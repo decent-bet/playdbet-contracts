@@ -12,6 +12,7 @@ LibQuest {
     // Admins mapping
     mapping (address => bool) public admins;
     // Quests mapping
+    mapping (bytes32 => Quest) public quests;
 
     // On add admin event
     event LogAddAdmin(
@@ -58,7 +59,32 @@ LibQuest {
     )
     public
     returns (bool) {
-
+        // Allow only admins to add quests
+        require(admins[msg.sender]);
+        // Id cannot be default bytes32 value and cannot already exist on-chain
+        require(
+            id != 0 &&
+            !quests[id].exists
+        );
+        // Check if uints are greater than 0
+        require(
+            entryFee > 0 &&
+            timeToComplete > 0 &&
+            prize > 0
+        );
+        // Add quest to contract
+        quests[id] = Quest({
+            id: id,
+            entryFee: entryFee,
+            timeToComplete: timeToComplete,
+            prize: prize,
+            exists: true
+        });
+        // Emit new quest event
+        emit LogNewQuest(
+            id
+        );
+        return true;
     }
 
     /**

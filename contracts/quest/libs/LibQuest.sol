@@ -11,6 +11,8 @@ contract LibQuest {
         uint256 timeToComplete;
         // Prize in DBETs to payout to winners
         uint256 prize;
+        // True if quest has been set
+        bool exists;
     }
 
 }
