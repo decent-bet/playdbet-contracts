@@ -3,6 +3,8 @@ pragma solidity 0.5.0;
 import "./interfaces/IQuest.sol";
 import "./libs/LibQuest.sol";
 
+import "../token/ERC20.sol";
+
 contract Quest is
 IQuest,
 LibQuest {
@@ -13,6 +15,8 @@ LibQuest {
     mapping (address => bool) public admins;
     // Quests mapping
     mapping (bytes32 => Quest) public quests;
+    // User quest entries mapping
+    mapping (address => mapping (bytes32 => UserQuestEntry)) userQuestEntries;
 
     // On add admin event
     event LogAddAdmin(
@@ -38,9 +42,11 @@ LibQuest {
     );
 
     constructor(
-        address _owner
+        address token
     ) {
-        owner = _owner;
+        require(token != address(0));
+        owner = msg.sender;
+        token = ERC20(token);
     }
 
     /**
@@ -74,7 +80,6 @@ LibQuest {
         );
         // Add quest to contract
         quests[id] = Quest({
-            id: id,
             entryFee: entryFee,
             timeToComplete: timeToComplete,
             prize: prize,
@@ -95,7 +100,28 @@ LibQuest {
     function payForQuest(
         bytes32 id
     ) public returns (bool) {
-
+        // Must be a valid quest ID
+        require(quests[id].exists);
+        // Balance of user must be greater or equal to quest entry fee
+        require(
+            token.balanceOf(msg.sender) >=
+            quests[id].entryFee
+        );
+        // User cannot have already started quest
+        require(
+            !userQuestEntries[msg.sender][id].exists
+        );
+        // Add user quest entry
+        userQuestEntries[msg.sender][id] = UserQuestEntry({
+            entryTime: block.timestamp,
+            status: QuestStatus.STARTED,
+            exists: true
+        });
+        // Emit log pay for quest event
+        emit LogPayForQuest(
+            id,
+            msg.sender
+        );
     }
 
     /**
