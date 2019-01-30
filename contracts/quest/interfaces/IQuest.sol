@@ -27,7 +27,7 @@ contract IQuest {
     ) public returns (bool);
 
     /**
-    * Allows the platform to set the quest outcome for a user playing a quest
+    * Allows the platform to set the quest outcome for a user playing a quest and payout user/Decent.bet
     * @param id Unique quest ID
     * @param user User playing quest
     * @return Whether quest outcome was set
@@ -35,15 +35,6 @@ contract IQuest {
     function setQuestOutcome(
         bytes32 id,
         address user
-    ) public returns (bool);
-
-    /**
-    * Allows users who've completed quests to claim their quest payout
-    * @param id Unique quest ID
-    * @return Whether the quest payout was claimed
-    */
-    function claimQuestPayout(
-        bytes32 id
     ) public returns (bool);
 
     /**
