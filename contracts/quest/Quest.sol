@@ -9,6 +9,8 @@ contract Quest is
 IQuest,
 LibQuest {
 
+    // Platform wallet address
+    address public platformWallet;
     // Owner of Quest contract
     address public owner;
     // Admins mapping
@@ -18,6 +20,10 @@ LibQuest {
     // User quest entries mapping
     mapping (address => mapping (bytes32 => UserQuestEntry)) userQuestEntries;
 
+    // On set platform wallet event
+    event LogOnSetPlatformWallet(
+        address wallet
+    );
     // On add admin event
     event LogAddAdmin(
         address indexed _address
@@ -47,6 +53,22 @@ LibQuest {
         require(token != address(0));
         owner = msg.sender;
         token = ERC20(token);
+    }
+
+    /**
+    * Sets the platform wallet to send/receive payments
+    */
+    function setPlatformWallet(
+        address _platformWallet
+    )
+    public
+    returns (bool) {
+        // Only the owner can set the platform wallet address
+        require(msg.sender == owner);
+        platformWallet = _platformWallet;
+        emit LogOnSetPlatformWallet(
+            _platformWallet
+        );
     }
 
     /**
@@ -117,6 +139,13 @@ LibQuest {
             status: QuestStatus.STARTED,
             exists: true
         });
+        require(
+            token.transferFrom(
+                msg.sender,
+                address(this),
+                quests[id].entryFee
+            )
+        );
         // Emit log pay for quest event
         emit LogPayForQuest(
             id,
@@ -125,16 +154,50 @@ LibQuest {
     }
 
     /**
-    * Allows the platform to set the quest outcome for a user playing a quest
+    * Allows the platform to set the quest outcome for a user playing a quest and pays out the user/Decent.bet
     * @param id Unique quest ID
     * @param user User playing quest
     * @return Whether quest outcome was set
     */
     function setQuestOutcome(
         bytes32 id,
-        address user
+        address user,
+        uint8 outcome
     ) public returns (bool) {
-
+        // Allow only admins to set quest outcomes
+        require(admins[msg.sender]);
+        // User quest entry must exist
+        require(
+            userQuestEntries[id][user].exists
+        );
+        // Must be a valid outcome
+        require(
+            outcome == QuestStatus.SUCCESS &&
+            outcome == QuestStatus.FAILED
+        );
+        // Outcome cannot be success if entry took longer than timeToComplete to complete
+        require(
+            userQuestEntries[id][user].entryTime >= (block.timestamp - quests[id].timeToComplete)
+        );
+        // User quest entry status must be started
+        require(
+            userQuestEntries[id][user].status == QuestStatus.STARTED
+        );
+        // Update quest entry status
+        userQuestEntries[id][user].status = outcome;
+        // Pay out user/Decent.bet
+        require(
+            token.transfer(
+                quests[id].entryFee,
+                outcome == QuestStatus.SUCCESS ?
+                    user :
+                    platformWallet
+            )
+        );
+        emit LogSetQuestOutcome(
+            id,
+            user
+        );
     }
 
     /**
