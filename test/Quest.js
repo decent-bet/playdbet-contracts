@@ -4,6 +4,10 @@ const Web3 = require('web3')
 const contracts = require('./utils/contracts')
 const utils = require('./utils/utils')
 
+const OUTCOME_SUCCESS = 1
+const OUTCOME_FAILED = 2
+const OUTCOME_INVALID = 3
+
 let quest,
     token
 
@@ -288,6 +292,118 @@ contract('Options', accounts => {
         await utils.assertFail(
             quest.payForQuest(
                 id
+            )
+        )
+    })
+
+    it('throws if non-admin sets quest outcome', async () => {
+        const {id} = getValidQuestParams()
+        await utils.assertFail(
+            quest.setQuestOutcome(
+                id,
+                user1,
+                OUTCOME_SUCCESS,
+                {
+                    from: user2
+                }
+            )
+        )
+    })
+
+    it('throws if admin sets quest outcome with invalid outcome', async () => {
+        await utils.assertFail(
+            quest.setQuestOutcome(
+                id,
+                user1,
+                OUTCOME_INVALID
+            )
+        )
+    })
+
+    it('throws if admin sets quest outcome with invalid user quest entry id/user', async () => {
+        const {id} = getValidQuestParams()
+        // Invalid id
+        await utils.assertFail(
+            quest.setQuestOutcome(
+                'invalid',
+                user1,
+                OUTCOME_SUCCESS
+            )
+        )
+
+        // Invalid user
+        await utils.assertFail(
+            quest.setQuestOutcome(
+                id,
+                user2,
+                OUTCOME_SUCCESS
+            )
+        )
+    })
+
+    it('allows admin to set quest outcome with valid values', async () => {
+        const {id} = getValidQuestParams()
+        await quest.setQuestOutcome(
+            id,
+            user1,
+            OUTCOME_SUCCESS
+        )
+
+        const userQuestEntry = await quest.userQuestEntries(
+            user1,
+            id
+        )
+        assert.equal(
+            userQuestEntry[1],
+            true
+        )
+    })
+
+    it('throws if admin sets quest outcome for completed quest', async () => {
+        const {id} = getValidQuestParams()
+        await utils.assertFail(
+            quest.setQuestOutcome(
+                id,
+                user1,
+                OUTCOME_SUCCESS
+            )
+        )
+    })
+
+    it('throws if admin sets quest outcome for quest after timeToComplete has elapsed', async () => {
+        // Transfer DBETs to user2
+        await token.transfer(
+            user2,
+            web3.utils.toWei('10000', 'ether')
+        )
+
+        // Approve quest contract to send user2's tokens
+        await token.approve(
+            quest.options.address,
+            web3.utils.toWei('100000', 'ether'),
+            {
+                from: user2
+            }
+        )
+
+        const {id} = getValidQuestParams()
+
+        // Pay for quest with sufficient allowance and balance
+        await quest.payForQuest(
+            id,
+            {
+                from: user2
+            }
+        )
+
+        await timeTravel(2 * 60 * 60)
+
+        // Time for quest has completed
+        await utils.assertFail(
+            quest.setQuestOutcome(
+                id,
+                user2,
+                OUTCOME_SUCCESS
             )
         )
     })

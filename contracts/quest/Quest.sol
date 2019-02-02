@@ -197,7 +197,9 @@ LibQuest {
         // Pay out user/Decent.bet
         require(
             token.transfer(
-                quests[id].entryFee,
+                outcome == QuestStatus.SUCCESS ?
+                    quests[id].prize :
+                    quests[id].entryFee,
                 outcome == QuestStatus.SUCCESS ?
                     user :
                     platformWallet
