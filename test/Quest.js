@@ -59,4 +59,30 @@ contract('Options', accounts => {
         )
     })
 
+    it('throws if non-owner sets platform wallet', async () => {
+        await utils.assertFail(
+            quest.setPlatformWallet(
+                user2,
+                {
+                    from: user1
+                }
+            )
+        )
+    })
+
+    it('allows owner to set platform wallet', async () => {
+        await quest.setPlatformWallet(
+            user2,
+            {
+                from: owner
+            }
+        )
+
+        const platformWallet = await quest.platformWallet()
+        assert.equal(
+            platformWallet,
+            user2
+        )
+    })
+
 })
