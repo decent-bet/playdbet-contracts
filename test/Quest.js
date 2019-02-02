@@ -212,4 +212,84 @@ contract('Options', accounts => {
         )
     })
 
+    it('throws if user pays for non-existent quest id', async () => {
+        await utils.assertFail(
+            quest.payForQuest(
+                'invalid',
+                {
+                    from: user1
+                }
+            )
+        )
+    })
+
+    it('throws if user pays for quest id without a sufficient balance and/or allowance', async () => {
+        const {id} = getValidQuestParams()
+        // Invalid balance
+        await utils.assertFail(
+            quest.payForQuest(
+                id,
+                {
+                    from: user1
+                }
+            )
+        )
+
+        // Transfer DBETs to user1
+        await token.transfer(
+            user1,
+            web3.utils.toWei('10000', 'ether')
+        )
+
+        // Invalid allowance
+        await utils.assertFail(
+            quest.payForQuest(
+                id,
+                {
+                    from: user1
+                }
+            )
+        )
+    })
+
+    it('allows user to pay for quest with a sufficient balance and allowance', async () => {
+        // Approve quest contract to send user1's tokens
+        await token.approve(
+            quest.options.address,
+            web3.utils.toWei('100000', 'ether'),
+            {
+                from: user1
+            }
+        )
+
+        const {id} = getValidQuestParams()
+
+        // Pay for quest with sufficient allowance and balance
+        await quest.payForQuest(
+            id,
+            {
+                from: user1
+            }
+        )
+
+        // Check if user entry exists
+        const userQuestEntry = await quest.userQuestEntries(
+            user1,
+            id
+        )
+        assert.equal(
+            userQuestEntry[2],
+            true
+        )
+    })
+
+    it('throws if user pays for quest id that has already been started', async () => {
+        const {id} = getValidQuestParams()
+        await utils.assertFail(
+            quest.payForQuest(
+                id
+            )
+        )
+    })
+
 })

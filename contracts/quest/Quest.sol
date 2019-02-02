@@ -126,8 +126,17 @@ LibQuest {
         require(quests[id].exists);
         // Balance of user must be greater or equal to quest entry fee
         require(
-            token.balanceOf(msg.sender) >=
-            quests[id].entryFee
+            (
+                token.balanceOf(msg.sender) >=
+                quests[id].entryFee
+            ) &&
+            (
+                token.allowance(
+                    msg.sender,
+                    address(this)
+                ) >=
+                quests[id].entryFee
+            )
         );
         // User cannot have already started quest
         require(
