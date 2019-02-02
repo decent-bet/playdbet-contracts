@@ -17,6 +17,20 @@ const timeTravel = async timeDiff => {
     await utils.timeTravel(timeDiff)
 }
 
+const getValidQuestParams = () => {
+    const id = web3.utils.fromUtf8('123')
+    const entryFee = web3.utils.toWei('100', 'ether')
+    const timeToComplete = 60 * 60
+    const prize = web3.utils.toWei('500', 'ether')
+
+    return {
+        id,
+        entryFee,
+        timeToComplete,
+        prize
+    }
+}
+
 contract('Options', accounts => {
     it('initializes quest contract', async () => {
         owner = accounts[0]
@@ -82,6 +96,119 @@ contract('Options', accounts => {
         assert.equal(
             platformWallet,
             user2
+        )
+    })
+
+    it('throws if non-admin adds quest', async () => {
+        const {
+            id,
+            entryFee,
+            timeToComplete,
+            prize
+        } = getValidQuestParams()
+
+        await utils.assertFail(
+            quest.addQuest(
+                id,
+                entryFee,
+                timeToComplete,
+                prize,
+                {
+                    from: user2
+                }
+            )
+        )
+    })
+
+    it('throws if admin adds quest with invalid data', async () => {
+        const {
+            id,
+            entryFee,
+            timeToComplete,
+            prize
+        } = getValidQuestParams()
+
+        const invalidValue = 0
+
+        // Invalid id
+        await utils.assertFail(
+            quest.addQuest(
+                invalidValue,
+                entryFee,
+                timeToComplete,
+                prize
+            )
+        )
+
+        // Invalid entryFee
+        await utils.assertFail(
+            quest.addQuest(
+                id,
+                invalidValue,
+                timeToComplete,
+                prize
+            )
+        )
+
+        // Invalid timeToComplete
+        await utils.assertFail(
+            quest.addQuest(
+                id,
+                entryFee,
+                invalidValue,
+                prize
+            )
+        )
+
+        // Invalid prize
+        await utils.assertFail(
+            quest.addQuest(
+                id,
+                entryFee,
+                timeToComplete,
+                invalidValue
+            )
+        )
+    })
+
+    it('allows admins to add quests', async () => {
+        const {
+            id,
+            entryFee,
+            timeToComplete,
+            prize
+        } = getValidQuestParams()
+
+        await quest.addQuest(
+            id,
+            entryFee,
+            timeToComplete,
+            prize
+        )
+
+        const questData = await quest.quests(id)
+
+        assert.equal(
+            questData[3],
+            true
+        )
+    })
+
+    it('throws if admin adds quest with an existing id', async () => {
+        const {
+            id,
+            entryFee,
+            timeToComplete,
+            prize
+        } = getValidQuestParams()
+
+        await utils.assertFail(
+            quest.addQuest(
+                id,
+                entryFee,
+                timeToComplete,
+                prize
+            )
         )
     })
 
