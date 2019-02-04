@@ -5,9 +5,13 @@ import "./libs/LibQuest.sol";
 
 import "../token/ERC20.sol";
 
+import "../utils/SafeMath.sol";
+
 contract Quest is
 IQuest,
 LibQuest {
+
+    using SafeMath for uint256;
 
     // Platform wallet address
     address public platformWallet;
@@ -20,7 +24,7 @@ LibQuest {
     // Quests mapping
     mapping (bytes32 => Quest) public quests;
     // User quest entries mapping
-    mapping (address => mapping (bytes32 => UserQuestEntry)) userQuestEntries;
+    mapping (address => mapping (bytes32 => UserQuestEntry)) public userQuestEntries;
 
     // On set platform wallet event
     event LogOnSetPlatformWallet(
@@ -55,7 +59,7 @@ LibQuest {
     public {
         require(_token != address(0));
         owner = msg.sender;
-        token = ERC20(token);
+        token = ERC20(_token);
         addAdmin(owner);
     }
 
@@ -155,7 +159,7 @@ LibQuest {
         require(
             token.transferFrom(
                 msg.sender,
-                address(this),
+                platformWallet,
                 quests[id].entryFee
             )
         );
@@ -185,30 +189,30 @@ LibQuest {
         );
         // Must be a valid outcome
         require(
-            outcome == uint8(QuestStatus.SUCCESS) &&
+            outcome == uint8(QuestStatus.SUCCESS) ||
             outcome == uint8(QuestStatus.FAILED)
         );
         // Outcome cannot be success if entry took longer than timeToComplete to complete
-        require(
-            userQuestEntries[user][id].entryTime >= (block.timestamp - quests[id].timeToComplete)
-        );
+        if(outcome == uint8(QuestStatus.SUCCESS))
+            require(
+                (userQuestEntries[user][id].entryTime).add(quests[id].timeToComplete) >=
+                block.timestamp
+            );
         // User quest entry status must be started
         require(
             userQuestEntries[user][id].status == uint8(QuestStatus.STARTED)
         );
         // Update quest entry status
         userQuestEntries[user][id].status = outcome;
-        // Pay out user/Decent.bet
-        require(
-            token.transfer(
-                outcome == uint8(QuestStatus.SUCCESS) ?
-                user :
-                platformWallet,
-                outcome == uint8(QuestStatus.SUCCESS) ?
-                    quests[id].prize :
-                    quests[id].entryFee
-            )
-        );
+        // Pay out user if quest was successfully finished
+        if(outcome == uint8(QuestStatus.SUCCESS))
+            require(
+                token.transferFrom(
+                    platformWallet,
+                    user,
+                    quests[id].prize
+                )
+            );
         emit LogSetQuestOutcome(
             id,
             user

@@ -101,6 +101,21 @@ contract('Options', accounts => {
             platformWallet,
             user2
         )
+
+        // Approve platform wallet to transfer DBETs for prizes
+        await token.approve(
+            quest.address,
+            web3.utils.toWei('1000000000', 'ether'),
+            {
+                from: user2
+            }
+        )
+
+        // Transfer DBETs to platform wallet
+        await token.transfer(
+            user2,
+            web3.utils.toWei('1000000', 'ether')
+        )
     })
 
     it('throws if non-admin adds quest', async () => {
@@ -220,7 +235,7 @@ contract('Options', accounts => {
     it('throws if user pays for non-existent quest id', async () => {
         await utils.assertFail(
             quest.payForQuest(
-                'invalid',
+                web3.utils.fromUtf8('invalid'),
                 {
                     from: user1
                 }
@@ -260,7 +275,7 @@ contract('Options', accounts => {
     it('allows user to pay for quest with a sufficient balance and allowance', async () => {
         // Approve quest contract to send user1's tokens
         await token.approve(
-            quest.options.address,
+            quest.address,
             web3.utils.toWei('100000', 'ether'),
             {
                 from: user1
@@ -268,6 +283,21 @@ contract('Options', accounts => {
         )
 
         const {id} = getValidQuestParams()
+
+        const {
+            entryFee,
+            timeToComplete,
+            prize,
+            exists
+        } = (await quest.quests(id))
+
+        console.log({
+            entryFee: web3.utils.fromWei(entryFee.toString(), 'ether'),
+            timeToComplete: timeToComplete.toString(),
+            prize: web3.utils.fromWei(prize
+                .toString(), 'ether'),
+            exists
+        })
 
         // Pay for quest with sufficient allowance and balance
         await quest.payForQuest(
@@ -312,6 +342,8 @@ contract('Options', accounts => {
     })
 
     it('throws if admin sets quest outcome with invalid outcome', async () => {
+        const {id} = getValidQuestParams()
+
         await utils.assertFail(
             quest.setQuestOutcome(
                 id,
@@ -326,7 +358,7 @@ contract('Options', accounts => {
         // Invalid id
         await utils.assertFail(
             quest.setQuestOutcome(
-                'invalid',
+                web3.utils.fromUtf8('invalid'),
                 user1,
                 OUTCOME_SUCCESS
             )
@@ -372,21 +404,6 @@ contract('Options', accounts => {
     })
 
     it('throws if admin sets quest outcome for quest after timeToComplete has elapsed', async () => {
-        // Transfer DBETs to user2
-        await token.transfer(
-            user2,
-            web3.utils.toWei('10000', 'ether')
-        )
-
-        // Approve quest contract to send user2's tokens
-        await token.approve(
-            quest.options.address,
-            web3.utils.toWei('100000', 'ether'),
-            {
-                from: user2
-            }
-        )
-
         const {id} = getValidQuestParams()
 
         // Pay for quest with sufficient allowance and balance
