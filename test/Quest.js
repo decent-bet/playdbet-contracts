@@ -132,12 +132,13 @@ contract('Options', accounts => {
             prize
         } = getValidQuestParams()
 
-        const invalidValue = 0
+        const invalidUint = 0
+        const invalidBytes32 = web3.utils.fromUtf8(0)
 
         // Invalid id
         await utils.assertFail(
             quest.addQuest(
-                invalidValue,
+                invalidBytes32,
                 entryFee,
                 timeToComplete,
                 prize
@@ -148,7 +149,7 @@ contract('Options', accounts => {
         await utils.assertFail(
             quest.addQuest(
                 id,
-                invalidValue,
+                invalidUint,
                 timeToComplete,
                 prize
             )
@@ -159,7 +160,7 @@ contract('Options', accounts => {
             quest.addQuest(
                 id,
                 entryFee,
-                invalidValue,
+                invalidUint,
                 prize
             )
         )
@@ -170,7 +171,7 @@ contract('Options', accounts => {
                 id,
                 entryFee,
                 timeToComplete,
-                invalidValue
+                invalidUint
             )
         )
     })

@@ -56,6 +56,7 @@ LibQuest {
         require(_token != address(0));
         owner = msg.sender;
         token = ERC20(token);
+        addAdmin(owner);
     }
 
     /**
