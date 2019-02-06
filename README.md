@@ -28,7 +28,7 @@ The contracts are split into the following types:
 1. Install the repository packages
 
     ```
-    yarn install
+    npm install
     ```
 
 ## Instructions
@@ -50,7 +50,7 @@ The contracts are split into the following types:
 1. To compile a fresh set of contracts, run
 
     ```
-    yarn compile
+    npm run compile
     ```
     
     This will not run if contracts have already been compiled. 
@@ -59,13 +59,13 @@ The contracts are split into the following types:
 1. To migrate/deploy contracts, run
 
     ```
-    yarn migrate
+    npm run migrate
     ```
     
     You can also specify chains by adding it as an arg,
     
     ```
-    yarn migrate --chain solo
+    npm run migrate --chain solo
     ```
     
     Note that this will auto-compile contracts if ./build/contracts is empty
@@ -111,11 +111,11 @@ To run tests, run the following commands
 * All tests
 
   ```
-  yarn test
+  npm run test
   ```
   
 * Quest
 
   ```
-  yarn test-quest
+  npm run test-quest
   ```
