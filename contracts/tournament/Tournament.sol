@@ -42,6 +42,17 @@ LibTournament {
         bytes32 indexed id,
         address indexed participant
     );
+    // Log completed tournament
+    event LogCompletedTournament(
+        bytes32 indexed id
+    );
+    // Log claimed tournament prize
+    event LogClaimedTournamentPrize(
+        bytes32 indexed id,
+        address participant,
+        uint256 standing,
+        uint256 prize
+    );
 
     constructor (
         address _admin,
@@ -87,6 +98,8 @@ LibTournament {
         uint256 maxParticipants,
         bytes32 prizeTable
     ) public returns (bytes32) {
+        // Creator must be an admin
+        require(admin.admins[msg.sender]);
         // Entry fee must be greater than 0
         require(entryFee > 0);
         // Max participants must be greater than 0
@@ -123,6 +136,8 @@ LibTournament {
         require(tournaments[id].entryFee != 0);
         // Cannot have already entered the tournament
         require(!tournaments[id].participants[msg.sender]);
+        // Tournament cannot have been completed
+        require(tournaments[id].finalStandings.length == 0);
         // Must have a balance and allowance >= entryFee
         require(
             token.balanceOf(msg.sender) >= tournaments[id].entryFee &&
@@ -149,18 +164,56 @@ LibTournament {
         bytes32 id,
         address[] finalStandings
     ) public returns (bool) {
-
+        // Sender must be an admin
+        require(admin.admins[msg.sender]);
+        // Must be a valid tournament
+        require(tournaments[id].entryFee != 0);
+        // Must be a valid finalStandings length
+        require(finalStandings.length > 0);
+        // Tournament cannot have been completed
+        require(tournaments[id].finalStandings.length == 0);
+        // Set finalStandings for the tournament
+        tournaments[id].finalStandings = finalStandings;
+        // Emit log completed tournament event
+        emit LogCompletedTournament(id);
     }
 
     /**
     * Allows users to claim their tournament prizes
     * @param id unique ID of the tournament
+    * @param index final standing index in the tournaments' final standings
     * @return whether the tournament prize was claimed
     */
     function claimTournamentPrize(
-        bytes32 id
+        bytes32 id,
+        uint256 index
     ) public returns (bool) {
-
+        // Must be a valid tournament
+        require(tournaments[id].entryFee != 0);
+        // Tournament should have been completed
+        require(tournaments[id].finalStandings.length > 0);
+        // Address at final standings index must be sender
+        require(tournaments[id].finalStandings[index] == msg.sender);
+        // User cannot have already claimed their prize
+        require(!tournaments[id].claimed[msg.sender]);
+        // Prize table must have a valid prize at final standings index
+        require(prizeTables[tournaments[id].prizeTable][index] != 0);
+        // Transfer prize tokens to sender
+        require(
+            token.transfer(
+                msg.sender,
+                prizeTables[tournaments[id].prizeTable][index]
+            )
+        );
+        // Mark prize as claimed
+        tournaments[id].claimed[msg.sender] = true;
+        // Emit log claimed tournament prize event
+        emit LogClaimedTournamentPrize(
+            id,
+            msg.sender,
+            index,
+            prizeTables[tournaments[id].prizeTable][index]
+        );
     }
 
 }

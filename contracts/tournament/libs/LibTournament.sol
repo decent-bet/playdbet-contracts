@@ -13,6 +13,8 @@ contract LibTournament {
         mapping (address => bool) participants;
         // Final standings
         address[] finalStandings;
+        // Claimed amounts from participants based on prize table and final standings
+        mapping (address => bool) claimed;
     }
 
 }
