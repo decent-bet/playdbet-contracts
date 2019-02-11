@@ -11,6 +11,8 @@ contract LibTournament {
         bytes32 prizeTable;
         // Participants in tournament
         mapping (address => bool) participants;
+        // Participant count
+        uint256 participantCount;
         // Final standings
         address[] finalStandings;
         // Claimed amounts from participants based on prize table and final standings

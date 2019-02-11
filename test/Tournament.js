@@ -11,6 +11,7 @@ let user2
 let web3 = utils.getWeb3()
 
 let prizeTableId
+let tournamentId
 
 const getValidPrizeTable = () => {
     return [
@@ -18,6 +19,15 @@ const getValidPrizeTable = () => {
         web3.utils.toWei('250', 'ether'),
         web3.utils.toWei('100', 'ether')
     ]
+}
+
+const getValidTournamentParams = () => {
+    const entryFee = web3.utils.toWei('50', 'ether')
+    const maxParticipants = 32
+    return {
+        entryFee,
+        maxParticipants
+    }
 }
 
 contract('Tournament', accounts => {
@@ -68,19 +78,79 @@ contract('Tournament', accounts => {
     })
 
     it('throws if non-admins create tournaments', async () => {
+        const {
+            entryFee,
+            maxParticipants
+        } = getValidTournamentParams()
 
+        await utils.assertFail(
+            tournament.createTournament(
+                entryFee,
+                maxParticipants,
+                prizeTableId
+            ),
+            {
+                from: user2
+            }
+        )
     })
 
     it('throws if admin creates tournament with invalid values', async () => {
+        const {
+            entryFee,
+            maxParticipants
+        } = getValidTournamentParams()
 
+        // Invalid entry fee
+        await utils.assertFail(
+            tournament.createTournament(
+                '0',
+                maxParticipants,
+                prizeTableId,
+                {
+                    from: owner
+                }
+            )
+        )
+
+        // Invalid max participants
+        await utils.assertFail(
+            tournament.createTournament(
+                entryFee,
+                '0',
+                prizeTableId,
+                {
+                    from: owner
+                }
+            )
+        )
     })
 
     it('allows admins to create valid tournaments', async () => {
+        const {
+            entryFee,
+            maxParticipants
+        } = getValidTournamentParams()
 
+        const tx = await tournament.createTournament(
+            entryFee,
+            maxParticipants,
+            prizeTableId,
+            {
+                from: owner
+            }
+        )
+
+        tournamentId = tx.logs[0].args.id
+        let tournamentCount = tx.logs[0].args.count
+
+        assert.equal(
+            tournamentCount,
+            '1'
+        )
     })
 
     it('throws if user enters invalid tournament', async () => {
-
     })
 
     it('throws if user enters tournament with invalid balances and allowances', async () => {

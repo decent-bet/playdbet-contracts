@@ -120,6 +120,7 @@ LibTournament {
             entryFee: entryFee,
             maxParticipants: maxParticipants,
             prizeTable: prizeTable,
+            participantCount: 0,
             finalStandings: finalStandings
         });
         emit LogNewTournament(
@@ -141,6 +142,11 @@ LibTournament {
         require(!tournaments[id].participants[msg.sender]);
         // Tournament cannot have been completed
         require(tournaments[id].finalStandings.length == 0);
+        // Cannot be over max participant count
+        require(
+            tournaments[id].participantCount !=
+            tournaments[id].maxParticipants
+        );
         // Must have a balance and allowance >= entryFee
         require(
             token.balanceOf(msg.sender) >= tournaments[id].entryFee &&
