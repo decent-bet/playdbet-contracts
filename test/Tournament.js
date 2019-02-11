@@ -30,6 +30,13 @@ const getValidTournamentParams = () => {
     }
 }
 
+const getValidTournamentCompletionParams = () => {
+    const finalStandings = [user2]
+    return {
+        finalStandings
+    }
+}
+
 contract('Tournament', accounts => {
     it('initializes tournament contract', async () => {
         owner = accounts[0]
@@ -87,11 +94,11 @@ contract('Tournament', accounts => {
             tournament.createTournament(
                 entryFee,
                 maxParticipants,
-                prizeTableId
-            ),
-            {
-                from: user2
-            }
+                prizeTableId,
+                {
+                    from: user2
+                }
+            )
         )
     })
 
@@ -146,7 +153,7 @@ contract('Tournament', accounts => {
 
         assert.equal(
             tournamentCount,
-            '1'
+            '0'
         )
     })
 
@@ -167,11 +174,11 @@ contract('Tournament', accounts => {
         // Invalid balance
         await utils.assertFail(
             tournament.enterTournament(
-                tournamentId
-            ),
-            {
-                from: user2
-            }
+                tournamentId,
+                {
+                    from: user2
+                }
+            )
         )
 
         const tokenAmount = web3.utils.toWei('100000', 'ether')
@@ -187,11 +194,11 @@ contract('Tournament', accounts => {
         // Invalid allowance
         await utils.assertFail(
             tournament.enterTournament(
-                tournamentId
-            ),
-            {
-                from: user2
-            }
+                tournamentId,
+                {
+                    from: user2
+                }
+            )
         )
 
         // Approve tokens for transfer
@@ -218,35 +225,147 @@ contract('Tournament', accounts => {
     })
 
     it('throws if non-admin completes tournament', async () => {
+        const {
+            finalStandings
+        } = getValidTournamentCompletionParams()
 
+        await utils.assertFail(
+            tournament.completeTournament(
+                tournamentId,
+                finalStandings,
+                {
+                    from: user2
+                }
+            )
+        )
     })
 
     it('throws if admin completes tournament with an invalid ID', async () => {
+        const {
+            finalStandings
+        } = getValidTournamentCompletionParams()
 
+        await utils.assertFail(
+            tournament.completeTournament(
+                web3.utils.fromUtf8('invalid'),
+                finalStandings,
+                {
+                    from: owner
+                }
+            )
+        )
     })
 
     it('throws if admin completes tournament with invalid final standings', async () => {
+        const finalStandings = []
 
+        await utils.assertFail(
+            tournament.completeTournament(
+                tournamentId,
+                finalStandings,
+                {
+                    from: owner
+                }
+            )
+        )
     })
 
     it('allows admin to complete tournament with valid final standings', async () => {
+        const {
+            finalStandings
+        } = getValidTournamentCompletionParams()
 
+        const tx = await tournament.completeTournament(
+            tournamentId,
+            finalStandings,
+            {
+                from: owner
+            }
+        )
+
+        assert.equal(
+            tx.logs[0].args.id,
+            tournamentId
+        )
     })
 
     it('throws if user enters completed tournament', async () => {
+        const tokenAmount = web3.utils.toWei('100000', 'ether')
+        // Transfer tokens to user1
+        await token.transfer(
+            user1,
+            tokenAmount,
+            {
+                from: owner
+            }
+        )
 
+        // Approve tokens for transfer
+        await token.approve(
+            tournament.address,
+            tokenAmount,
+            {
+                from: user1
+            }
+        )
+
+        // Enter completed tournament
+        await utils.assertFail(
+            tournament.enterTournament(
+                tournamentId,
+                {
+                    from: user1
+                }
+            )
+        )
     })
 
     it('throws if users claims tournament prize with invalid id', async () => {
-
+        await utils.assertFail(
+            tournament.claimTournamentPrize(
+                web3.utils.fromUtf8('invalid'),
+                0,
+                {
+                    from: user2
+                }
+            )
+        )
     })
 
     it('throws if user claims tournament prize with invalid index', async () => {
-
+        await utils.assertFail(
+            tournament.claimTournamentPrize(
+                tournamentId,
+                1,
+                {
+                    from: user2
+                }
+            )
+        )
     })
 
     it('allows user to claim tournament prize with valid id and index', async () => {
+        const preClaimBalance = await token.balanceOf(user2)
 
+        const tx = await tournament.claimTournamentPrize(
+            tournamentId,
+            0,
+            {
+                from: user2
+            }
+        )
+
+        const postClaimBalance = await token.balanceOf(user2)
+
+        assert.equal(
+            new BigNumber(postClaimBalance).isGreaterThan(preClaimBalance),
+            true
+        )
+
+        assert.equal(
+            tx.logs[0].args.id,
+            tournamentId
+        )
     })
 
 })
