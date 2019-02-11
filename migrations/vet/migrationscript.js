@@ -5,8 +5,9 @@ const constants = require(`${appRoot}/lib/constants`)
 function MigrationScript(web3, contractManager, deployer, args) {
     let defaultAccount
 
-    let token,
-        quest
+    let admin,
+        quest,
+        token
 
     const TOKEN_NAME = 'Decent.bet Token'
     const TOKEN_SYMBOL = 'DBET'
@@ -28,6 +29,7 @@ function MigrationScript(web3, contractManager, deployer, args) {
 
     // Migration script
     this.migrate = async (chain) => {
+        const Admin = contractManager.getContract('Admin')
         const DecentBetToken = contractManager.getContract('DBETVETToken')
         const Quest = contractManager.getContract('Quest')
 
@@ -48,9 +50,16 @@ function MigrationScript(web3, contractManager, deployer, args) {
                 )
                 console.log('Deployed token')
 
+                // Deploy the Admin contract
+                admin = await deployer.deploy(
+                    Admin
+                )
+                console.log('Deployed admin')
+
                 // Deploy the Quest contract
                 quest = await deployer.deploy(
                     Quest,
+                    admin.options.address,
                     token.options.address,
                     getDefaultOptions()
                 )
@@ -58,8 +67,9 @@ function MigrationScript(web3, contractManager, deployer, args) {
 
                 console.log(
                     'Deployed:',
-                    '\nToken: ' + token.options.address,
+                    '\nAdmin: ' + admin.options.address,
                     '\nQuest: ' + quest.options.address,
+                    '\nToken: ' + token.options.address,
                     '\n\nContract info:\n',
                     contractInfo
                 )

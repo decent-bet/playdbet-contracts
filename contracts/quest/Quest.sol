@@ -3,6 +3,8 @@ pragma solidity 0.5.0;
 import "./interfaces/IQuest.sol";
 import "./libs/LibQuest.sol";
 
+import "../admin/Admin.sol";
+
 import "../token/ERC20.sol";
 
 import "../utils/SafeMath.sol";
@@ -19,8 +21,8 @@ LibQuest {
     address public owner;
     // DBET Token
     ERC20 public token;
-    // Admins mapping
-    mapping (address => bool) public admins;
+    // Admin contract
+    Admin public admin;
     // Quests mapping
     mapping (bytes32 => Quest) public quests;
     // User quest entries mapping
@@ -29,14 +31,6 @@ LibQuest {
     // On set platform wallet event
     event LogOnSetPlatformWallet(
         address wallet
-    );
-    // On add admin event
-    event LogAddAdmin(
-        address indexed _address
-    );
-    // On remove admin event
-    event LogRemoveAdmin(
-        address indexed _address
     );
     // On add new quest
     event LogNewQuest(
@@ -54,13 +48,15 @@ LibQuest {
     );
 
     constructor (
+        address _admin,
         address _token
     )
     public {
         require(_token != address(0));
         owner = msg.sender;
         token = ERC20(_token);
-        addAdmin(owner);
+        admin = Admin(_admin);
+        admin.addAdmin(owner);
     }
 
     /**
@@ -96,7 +92,7 @@ LibQuest {
     public
     returns (bool) {
         // Allow only admins to add quests
-        require(admins[msg.sender]);
+        require(admin.admins[msg.sender]);
         // Id cannot be default bytes32 value and cannot already exist on-chain
         require(
             id != 0 &&
@@ -182,7 +178,7 @@ LibQuest {
         uint8 outcome
     ) public returns (bool) {
         // Allow only admins to set quest outcomes
-        require(admins[msg.sender]);
+        require(admin.admins[msg.sender]);
         // User quest entry must exist
         require(
             userQuestEntries[user][id].exists
@@ -217,36 +213,6 @@ LibQuest {
             id,
             user
         );
-    }
-
-    /**
-    * Adds an admin to the market contract
-    * @param _address Address to add as admin
-    * @return whether admin was added
-    */
-    function addAdmin(
-        address _address
-    )
-    public
-    returns (bool) {
-        require(msg.sender == owner);
-        admins[_address] = true;
-        emit LogAddAdmin(_address);
-    }
-
-    /**
-    * Removes an admin from the market contract
-    * @param _address Address of admin
-    * @return whether admin was removed
-    */
-    function removeAdmin(
-        address _address
-    )
-    public
-    returns (bool) {
-        require(msg.sender == owner);
-        admins[_address] = false;
-        emit LogRemoveAdmin(_address);
     }
 
 }

@@ -1,3 +1,4 @@
+const Admin = artifacts.require('Admin')
 const DecentBetToken = artifacts.require('DBETVETToken')
 const Quest = artifacts.require('Quest')
 const utils = require('../../test/utils/utils')
@@ -5,8 +6,9 @@ const utils = require('../../test/utils/utils')
 let deploy = async (deployer, network) => {
     web3.eth.defaultAccount = process.env.DEFAULT_ACCOUNT
 
-    let token,
-        quest
+    let admin,
+        quest,
+        token
 
     const TOKEN_NAME = 'Decent.bet Token'
     const TOKEN_SYMBOL = 'DBET'
@@ -38,17 +40,25 @@ let deploy = async (deployer, network) => {
             )
             token = await getContractInstanceAndInfo(DecentBetToken)
 
+            // Deploy the admin contract
+            await deployer.deploy(
+                Admin
+            )
+            admin = await getContractInstanceAndInfo(Admin)
+
             // Deploy the quest contract
             await deployer.deploy(
                 Quest,
-                token.address
+                admin.address,
+                token.address,
             )
             quest = await getContractInstanceAndInfo(Quest)
 
             console.log(
                 'Deployed:',
-                '\nToken: ' + token.address,
+                '\nAdmin: ' + admin.address,
                 '\nQuest: ' + quest.address,
+                '\nToken: ' + token.address,
                 '\n\nContract info:\n',
                 contractInfo
             )
