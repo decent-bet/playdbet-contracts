@@ -8,7 +8,10 @@
     "compile": "node ./lib/compile",
     "migrate": "node ./lib/migrations/run",
     "init-contracts": "node init",
-    "test": "truffle test"
+    "test": "truffle test",
+    "test-admin": "truffle test ./test/Admin.js",
+    "test-quest": "truffle test ./test/Quest.js",
+    "test-tournament": "truffle test ./test/Tournament.js"
   },
   "dependencies": {
     "app-root-path": "^2.1.0",
