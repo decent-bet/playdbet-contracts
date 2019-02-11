@@ -1,3 +1,5 @@
+const BigNumber = require('bignumber.js')
+
 const contracts = require('./utils/contracts')
 const utils = require('./utils/utils')
 
@@ -133,7 +135,66 @@ contract('Tournament', accounts => {
         )
     })
 
-    it('allows admins to create valid tournaments', async () => {
+    it('throws if admin creates tournament with invalid balance or allowance', async () => {
+        const {
+            entryFee,
+            maxParticipants
+        } = getValidTournamentParams()
+
+        // Transfer owner token balance to user1
+        const ownerBalance = await token.balanceOf(owner)
+        await token.transfer(
+            user1,
+            ownerBalance,
+            {
+                from: owner
+            }
+        )
+
+        // Create tournament with invalid balance
+        await utils.assertFail(
+            tournament.createTournament(
+                entryFee,
+                maxParticipants,
+                prizeTableId,
+                {
+                    from: owner
+                }
+            )
+        )
+
+        // Transfer tokens from user1 back to owner
+        await token.transfer(
+            owner,
+            ownerBalance,
+            {
+                from: user1
+            }
+        )
+
+        // Create tournament with invalid allowance
+        await utils.assertFail(
+            tournament.createTournament(
+                entryFee,
+                maxParticipants,
+                prizeTableId,
+                {
+                    from: owner
+                }
+            )
+        )
+
+        // Approve tokens for transfer
+        await token.approve(
+            tournament.address,
+            ownerBalance,
+            {
+                from: owner
+            }
+        )
+    })
+
+    it('allows admins to create tournaments with valid params and balances', async () => {
         const {
             entryFee,
             maxParticipants

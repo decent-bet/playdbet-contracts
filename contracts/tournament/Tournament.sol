@@ -7,9 +7,13 @@ import "../admin/Admin.sol";
 
 import "../token/ERC20.sol";
 
+import "../utils/SafeMath.sol";
+
 contract Tournament is
 ITournament,
 LibTournament {
+
+    using SafeMath for uint256;
 
     // Owner of the tournament contract
     address public owner;
@@ -115,6 +119,17 @@ LibTournament {
                 tournamentCount
             )
         );
+        uint256 totalPrizeMoney;
+        for (uint256 i = 0; i < prizeTables[prizeTable].length; i++) {
+            totalPrizeMoney = totalPrizeMoney.add(prizeTables[prizeTable][i]);
+        }
+        // Must have a balance and allowance >= totalPrizeMoney
+        require(
+            token.balanceOf(msg.sender) >= totalPrizeMoney &&
+            token.allowance(msg.sender, address(this)) >= totalPrizeMoney
+        );
+        // Transfer tokens to contract
+        require(token.transferFrom(msg.sender, address(this), totalPrizeMoney));
         address[] memory finalStandings;
         tournaments[id] = Tournament({
             entryFee: entryFee,
