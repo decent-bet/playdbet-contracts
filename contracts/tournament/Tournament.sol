@@ -72,6 +72,7 @@ LibTournament {
     function createPrizeTable(
         uint256[] table
     ) public returns (bytes32) {
+        require(admin.admins[msg.sender]);
         require(table.length > 0);
         bytes32 id = keccak256(
             abi.encode(

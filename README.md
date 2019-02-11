@@ -114,6 +114,12 @@ To run tests, run the following commands
   npm run test
   ```
   
+* Admin
+
+  ```
+  npm run test-admin
+  ```
+  
 * Quest
 
   ```

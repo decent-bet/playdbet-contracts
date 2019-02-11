@@ -1,6 +1,5 @@
 const Web3 = require('web3')
 
-// Imports
 const contracts = require('./utils/contracts')
 const utils = require('./utils/utils')
 
