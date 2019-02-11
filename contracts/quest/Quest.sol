@@ -56,7 +56,6 @@ LibQuest {
         owner = msg.sender;
         token = ERC20(_token);
         admin = Admin(_admin);
-        admin.addAdmin(owner);
     }
 
     /**
