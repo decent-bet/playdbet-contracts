@@ -16,11 +16,20 @@ LibTournament {
 
     // Prize table mapping
     mapping (bytes32 => uint256[]) prizeTables;
+    // Tournaments mapping
+    mapping (bytes32 => Tournament) tournaments;
     // Prize table count
     uint256 public prizeTableCount;
+    // Tournament count
+    uint256 public tournamentCount;
 
     // Log new prize table
     event LogNewPrizeTable(
+        bytes32 indexed id,
+        uint256 indexed count
+    );
+    // Log new tournament
+    event LogNewTournament(
         bytes32 indexed id,
         uint256 indexed count
     );
@@ -42,7 +51,7 @@ LibTournament {
         uint256[] table
     ) public returns (bytes32) {
         require(table.length > 0);
-        bytes32 id = sha3(
+        bytes32 id = keccak256(
             abi.encode(
                 "prize_table_",
                 prizeTableCount
@@ -67,7 +76,29 @@ LibTournament {
         uint256 maxParticipants,
         bytes32 prizeTable
     ) public returns (bytes32) {
-
+        // Entry fee must be greater than 0
+        require(entryFee > 0);
+        // Max participants must be greater than 0
+        require(maxParticipants > 0);
+        // Must be a valid prize table
+        require(prizeTables[prizeTable][0] != 0);
+        bytes32 id = keccak256(
+            abi.encode(
+                "tournament_",
+                entryFee,
+                maxParticipants,
+                tournamentCount
+            )
+        );
+        tournaments[id] = Tournament({
+            entryFee: entryFee,
+            maxParticipants: maxParticipants,
+            prizeTable: prizeTable
+        });
+        emit LogNewTournament(
+            id,
+            tournamentCount++
+        );
     }
 
     /**
