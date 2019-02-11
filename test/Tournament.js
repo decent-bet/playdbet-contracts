@@ -151,18 +151,70 @@ contract('Tournament', accounts => {
     })
 
     it('throws if user enters invalid tournament', async () => {
+        await utils.assertFail(
+            tournament.enterTournament(
+                web3.utils.fromUtf8(
+                    'invalid'
+                ),
+                {
+                    from: user2
+                }
+            )
+        )
     })
 
     it('throws if user enters tournament with invalid balances and allowances', async () => {
+        // Invalid balance
+        await utils.assertFail(
+            tournament.enterTournament(
+                tournamentId
+            ),
+            {
+                from: user2
+            }
+        )
 
+        const tokenAmount = web3.utils.toWei('100000', 'ether')
+        // Transfer tokens to user2
+        await token.transfer(
+            user2,
+            tokenAmount,
+            {
+                from: owner
+            }
+        )
+
+        // Invalid allowance
+        await utils.assertFail(
+            tournament.enterTournament(
+                tournamentId
+            ),
+            {
+                from: user2
+            }
+        )
+
+        // Approve tokens for transfer
+        await token.approve(
+            tournament.address,
+            tokenAmount,
+            {
+                from: user2
+            }
+        )
     })
 
     it('allows user to enter running tournament with valid balances and allowances', async () => {
-
-    })
-
-    it('throws if user enters completed tournament', async () => {
-
+        const tx = await tournament.enterTournament(
+            tournamentId,
+            {
+                from: user2
+            }
+        )
+        assert.equal(
+            tx.logs[0].args.id,
+            tournamentId
+        )
     })
 
     it('throws if non-admin completes tournament', async () => {
@@ -178,6 +230,10 @@ contract('Tournament', accounts => {
     })
 
     it('allows admin to complete tournament with valid final standings', async () => {
+
+    })
+
+    it('throws if user enters completed tournament', async () => {
 
     })
 
