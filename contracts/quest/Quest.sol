@@ -91,7 +91,7 @@ LibQuest {
     public
     returns (bool) {
         // Allow only admins to add quests
-        require(admin.admins[msg.sender]);
+        require(admin.admins(msg.sender));
         // Id cannot be default bytes32 value and cannot already exist on-chain
         require(
             id != 0 &&
@@ -177,7 +177,7 @@ LibQuest {
         uint8 outcome
     ) public returns (bool) {
         // Allow only admins to set quest outcomes
-        require(admin.admins[msg.sender]);
+        require(admin.admins(msg.sender));
         // User quest entry must exist
         require(
             userQuestEntries[user][id].exists

@@ -1,6 +1,7 @@
 const Admin = artifacts.require('Admin')
 const DecentBetToken = artifacts.require('DBETVETToken')
 const Quest = artifacts.require('Quest')
+const Tournament = artifacts.require('Tournament')
 const utils = require('../../test/utils/utils')
 
 let deploy = async (deployer, network) => {
@@ -8,7 +9,8 @@ let deploy = async (deployer, network) => {
 
     let admin,
         quest,
-        token
+        token,
+        tournament
 
     const TOKEN_NAME = 'Decent.bet Token'
     const TOKEN_SYMBOL = 'DBET'
@@ -54,11 +56,20 @@ let deploy = async (deployer, network) => {
             )
             quest = await getContractInstanceAndInfo(Quest)
 
+            // Deploy the tournament contract
+            await deployer.deploy(
+                Tournament,
+                admin.address,
+                token.address,
+            )
+            tournament = await getContractInstanceAndInfo(Tournament)
+
             console.log(
                 'Deployed:',
                 '\nAdmin: ' + admin.address,
                 '\nQuest: ' + quest.address,
                 '\nToken: ' + token.address,
+                '\nTournament: ' + tournament.address,
                 '\n\nContract info:\n',
                 contractInfo
             )

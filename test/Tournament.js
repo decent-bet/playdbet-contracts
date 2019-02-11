@@ -1,5 +1,3 @@
-const Web3 = require('web3')
-
 const contracts = require('./utils/contracts')
 const utils = require('./utils/utils')
 
@@ -9,6 +7,18 @@ let token,
 let owner
 let user1
 let user2
+
+let web3 = utils.getWeb3()
+
+let prizeTableId
+
+const getValidPrizeTable = () => {
+    return [
+        web3.utils.toWei('500', 'ether'),
+        web3.utils.toWei('250', 'ether'),
+        web3.utils.toWei('100', 'ether')
+    ]
+}
 
 contract('Tournament', accounts => {
     it('initializes tournament contract', async () => {
@@ -21,15 +31,40 @@ contract('Tournament', accounts => {
     })
 
     it('throws if non-admin creates prize table', async () => {
-
+        await utils.assertFail(
+            tournament.createPrizeTable(
+                getValidPrizeTable(),
+                {
+                    from: user1
+                }
+            )
+        )
     })
 
     it('throws if admin creates invalid prize table', async () => {
-
+        await utils.assertFail(
+            tournament.createPrizeTable(
+                [],
+                {
+                    from: owner
+                }
+            )
+        )
     })
 
     it('allows admins to create valid prize tables', async () => {
-
+        const tx = await tournament.createPrizeTable(
+            getValidPrizeTable(),
+            {
+                from: owner
+            }
+        )
+        prizeTableId = tx.logs[0].args.id
+        const prizeTableCount = await tournament.prizeTableCount()
+        assert.equal(
+            prizeTableCount.toString(),
+            '1'
+        )
     })
 
     it('throws if non-admins create tournaments', async () => {

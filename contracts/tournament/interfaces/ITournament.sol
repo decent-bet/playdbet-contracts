@@ -8,7 +8,7 @@ contract ITournament {
     * @return unique ID of the prize table
     */
     function createPrizeTable(
-        uint256[] table
+        uint256[] memory table
     ) public returns (bytes32);
 
     /**
@@ -40,16 +40,18 @@ contract ITournament {
     */
     function completeTournament(
         bytes32 id,
-        address[] finalStandings
+        address[] memory finalStandings
     ) public returns (bool);
 
     /**
     * Allows users to claim their tournament prizes
     * @param id unique ID of the tournament
+    * @param index final standing index in the tournaments' final standings
     * @return whether the tournament prize was claimed
     */
     function claimTournamentPrize(
-        bytes32 id
+        bytes32 id,
+        uint256 index
     ) public returns (bool);
 
 }

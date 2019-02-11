@@ -70,9 +70,9 @@ LibTournament {
     * @return unique ID of the prize table
     */
     function createPrizeTable(
-        uint256[] table
+        uint256[] memory table
     ) public returns (bytes32) {
-        require(admin.admins[msg.sender]);
+        require(admin.admins(msg.sender));
         require(table.length > 0);
         bytes32 id = keccak256(
             abi.encode(
@@ -100,7 +100,7 @@ LibTournament {
         bytes32 prizeTable
     ) public returns (bytes32) {
         // Creator must be an admin
-        require(admin.admins[msg.sender]);
+        require(admin.admins(msg.sender));
         // Entry fee must be greater than 0
         require(entryFee > 0);
         // Max participants must be greater than 0
@@ -115,10 +115,12 @@ LibTournament {
                 tournamentCount
             )
         );
+        address[] memory finalStandings;
         tournaments[id] = Tournament({
             entryFee: entryFee,
             maxParticipants: maxParticipants,
-            prizeTable: prizeTable
+            prizeTable: prizeTable,
+            finalStandings: finalStandings
         });
         emit LogNewTournament(
             id,
@@ -163,10 +165,10 @@ LibTournament {
     */
     function completeTournament(
         bytes32 id,
-        address[] finalStandings
+        address[] memory finalStandings
     ) public returns (bool) {
         // Sender must be an admin
-        require(admin.admins[msg.sender]);
+        require(admin.admins(msg.sender));
         // Must be a valid tournament
         require(tournaments[id].entryFee != 0);
         // Must be a valid finalStandings length
