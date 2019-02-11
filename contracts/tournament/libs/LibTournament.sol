@@ -10,7 +10,7 @@ contract LibTournament {
         // Unique id of prize table
         bytes32 prizeTable;
         // Participants in tournament
-        address[] participants;
+        mapping (address => bool) participants;
         // Final standings
         address[] finalStandings;
     }

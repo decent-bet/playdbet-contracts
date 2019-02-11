@@ -5,6 +5,8 @@ import "./libs/LibTournament.sol";
 
 import "../admin/Admin.sol";
 
+import "../token/ERC20.sol";
+
 contract Tournament is
 ITournament,
 LibTournament {
@@ -13,6 +15,8 @@ LibTournament {
     address public owner;
     // Admin contract
     Admin public admin;
+    // Token contract
+    ERC20 public token;
 
     // Prize table mapping
     mapping (bytes32 => uint256[]) prizeTables;
@@ -33,13 +37,20 @@ LibTournament {
         bytes32 indexed id,
         uint256 indexed count
     );
+    // Log entered tournament
+    event LogEnteredTournament(
+        bytes32 indexed id,
+        address indexed participant
+    );
 
     constructor (
-        address _admin
+        address _admin,
+        address _token
     )
     public {
         owner = msg.sender;
         admin = Admin(_admin);
+        token = ERC20(_token);
     }
 
     /**
@@ -108,7 +119,24 @@ LibTournament {
     function enterTournament(
         bytes32 id
     ) public returns (bool) {
-
+        // Must be a valid tournament
+        require(tournaments[id].entryFee != 0);
+        // Cannot have already entered the tournament
+        require(!tournaments[id].participants[msg.sender]);
+        // Must have a balance and allowance >= entryFee
+        require(
+            token.balanceOf(msg.sender) >= tournaments[id].entryFee &&
+            token.allowance(msg.sender, address(this)) >= tournaments[id].entryFee
+        );
+        // Transfer tokens to contract
+        require(token.transferFrom(msg.sender, address(this), tournaments[id].entryFee));
+        // Add to tournament
+        tournaments[id].participants[msg.sender] = true;
+        // Emit log entered tournament event
+        emit LogEnteredTournament(
+            id,
+            msg.sender
+        );
     }
 
     /**
