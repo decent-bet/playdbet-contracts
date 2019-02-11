@@ -119,3 +119,9 @@ To run tests, run the following commands
   ```
   npm run test-quest
   ```
+  
+* Tournament
+
+  ```
+  npm run test-tournament
+  ```

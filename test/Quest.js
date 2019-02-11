@@ -35,7 +35,7 @@ const getValidQuestParams = () => {
     }
 }
 
-contract('Options', accounts => {
+contract('Quest', accounts => {
     it('initializes quest contract', async () => {
         owner = accounts[0]
         user1 = accounts[1]
