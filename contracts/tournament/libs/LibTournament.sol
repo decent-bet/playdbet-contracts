@@ -5,14 +5,14 @@ contract LibTournament {
     struct Tournament {
         // Entry fee
         uint256 entryFee;
-        // Maximum participants
-        uint256 maxParticipants;
+        // Can users enter multiple times
+        bool isMultiEntry;
+        // Maximum entries
+        uint256 maxEntries;
         // Unique id of prize table
         bytes32 prizeTable;
         // Participants in tournament
-        mapping (address => bool) participants;
-        // Participant count
-        uint256 participantCount;
+        address[] entries;
         // Final standings
         address[] finalStandings;
         // Claimed amounts from participants based on prize table and final standings

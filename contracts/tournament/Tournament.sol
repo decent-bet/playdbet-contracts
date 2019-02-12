@@ -76,8 +76,25 @@ LibTournament {
     function createPrizeTable(
         uint256[] memory table
     ) public returns (bytes32) {
-        require(admin.admins(msg.sender));
-        require(table.length > 0);
+        // Sender must be an admin
+        require(
+            admin.admins(msg.sender),
+            "INVALID_SENDER"
+        );
+        // Prize table must have more than one prize value
+        require(
+            table.length > 0,
+            "INVALID_PRIZE_TABLE"
+        );
+        uint256 totalPrizePercent = 0;
+        for (uint256 i = 0; i < table.length; i++) {
+            totalPrizePercent = totalPrizePercent.add(table[i]);
+        }
+        // Total percentage of prizes in prize table must be 100
+        require(
+            totalPrizePercent == 100,
+            "INVALID_PRIZE_PERCENT_TOTAL"
+        );
         bytes32 id = keccak256(
             abi.encode(
                 "prize_table_",
@@ -94,48 +111,65 @@ LibTournament {
     /**
     * Creates a tournament that users can enter
     * @param entryFee fee to enter the tournament
-    * @param maxParticipants the maximum number of participants for the tournament
+    * @param isMultiEntry can a user enter more than once
+    * @param minEntries the minimum number of entries for the tournament
+    * @param maxEntries the maximum number of entries for the tournament
+    * @param rakePercent percentage of the prize pool retained by Decent.bet
     * @param prizeTable unique ID of prize table to be used for the tournament
     * @return unique ID of the created tournament
     */
     function createTournament(
         uint256 entryFee,
-        uint256 maxParticipants,
+        bool isMultiEntry,
+        uint256 minEntries,
+        uint256 maxEntries,
+        uint256 rakePercent,
         bytes32 prizeTable
     ) public returns (bytes32) {
         // Creator must be an admin
-        require(admin.admins(msg.sender));
+        require(
+            admin.admins(msg.sender),
+            "INVALID_SENDER"
+        );
         // Entry fee must be greater than 0
-        require(entryFee > 0);
-        // Max participants must be greater than 0
-        require(maxParticipants > 0);
+        require(
+            entryFee > 0,
+            "INVALID_ENTRY_FEE"
+        );
+        // Min entries must be greater than 0 and less than or equal to max entries
+        require(
+            minEntries > 0 &&
+            minEntries <= maxEntries,
+            "INVALID_ENTRIES_RANGE"
+        );
+        // Rake percent must be greater than 0 and less than 100
+        require(
+            rakePercent > 0 &&
+            rakePercent < 100,
+            "INVALID_RAKE_PERCENT"
+        );
         // Must be a valid prize table
         require(prizeTables[prizeTable][0] != 0);
         bytes32 id = keccak256(
             abi.encode(
                 "tournament_",
                 entryFee,
-                maxParticipants,
+                isMultiEntry,
+                minEntries,
+                maxEntries,
+                rakePercent,
                 tournamentCount
             )
         );
-        uint256 totalPrizeMoney;
-        for (uint256 i = 0; i < prizeTables[prizeTable].length; i++) {
-            totalPrizeMoney = totalPrizeMoney.add(prizeTables[prizeTable][i]);
-        }
-        // Must have a balance and allowance >= totalPrizeMoney
-        require(
-            token.balanceOf(msg.sender) >= totalPrizeMoney &&
-            token.allowance(msg.sender, address(this)) >= totalPrizeMoney
-        );
-        // Transfer tokens to contract
-        require(token.transferFrom(msg.sender, address(this), totalPrizeMoney));
         address[] memory finalStandings;
+        address[] memory entries;
         tournaments[id] = Tournament({
             entryFee: entryFee,
-            maxParticipants: maxParticipants,
+            isMultiEntry: isMultiEntry,
+            minEntries: minEntries,
+            maxEntries: maxEntries,
             prizeTable: prizeTable,
-            participantCount: 0,
+            entries: entries,
             finalStandings: finalStandings
         });
         emit LogNewTournament(
@@ -152,25 +186,42 @@ LibTournament {
         bytes32 id
     ) public returns (bool) {
         // Must be a valid tournament
-        require(tournaments[id].entryFee != 0);
-        // Cannot have already entered the tournament
-        require(!tournaments[id].participants[msg.sender]);
-        // Tournament cannot have been completed
-        require(tournaments[id].finalStandings.length == 0);
-        // Cannot be over max participant count
         require(
-            tournaments[id].participantCount !=
-            tournaments[id].maxParticipants
+            tournaments[id].entryFee != 0,
+            "INVALID_TOURNAMENT_ID"
+        );
+        // Cannot have already entered the tournament if isMultiEntry is false
+        if(!tournaments[id].isMultiEntry)
+            for (uint256 i = 0; i < tournaments[id].entries.length; i++) {
+                require(
+                    tournaments[id].entries[i] != msg.sender,
+                    "ENTRY_STATUS_ENTERED"
+                );
+            }
+        // Tournament cannot have been completed
+        require(
+            tournaments[id].finalStandings.length == 0,
+            "TOURNAMENT_STATUS_COMPLETED"
+        );
+        // Cannot be over max entry count
+        require(
+            tournaments[id].entries.length !=
+            tournaments[id].maxEntries,
+            "MAX_ENTRY_COUNT_EXCEEDED"
         );
         // Must have a balance and allowance >= entryFee
         require(
             token.balanceOf(msg.sender) >= tournaments[id].entryFee &&
-            token.allowance(msg.sender, address(this)) >= tournaments[id].entryFee
+            token.allowance(msg.sender, address(this)) >= tournaments[id].entryFee,
+            "INVALID_TOKEN_BALANCE_OR_ALLOWANCE"
         );
         // Transfer tokens to contract
-        require(token.transferFrom(msg.sender, address(this), tournaments[id].entryFee));
+        require(
+            token.transferFrom(msg.sender, address(this), tournaments[id].entryFee),
+            "TOKEN_TRANSFER_ERROR"
+        );
         // Add to tournament
-        tournaments[id].participants[msg.sender] = true;
+        tournaments[id].entries.push(msg.sender);
         // Emit log entered tournament event
         emit LogEnteredTournament(
             id,
