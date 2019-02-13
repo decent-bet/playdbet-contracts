@@ -48,7 +48,8 @@ LibTournament {
     );
     // Log completed tournament
     event LogCompletedTournament(
-        bytes32 indexed id
+        bytes32 indexed id,
+        uint8 indexed status
     );
     // Log claimed tournament prize
     event LogClaimedTournamentPrize(
@@ -161,17 +162,15 @@ LibTournament {
                 tournamentCount
             )
         );
-        address[] memory finalStandings;
-        address[] memory entries;
-        tournaments[id] = Tournament({
-            entryFee: entryFee,
-            isMultiEntry: isMultiEntry,
-            minEntries: minEntries,
-            maxEntries: maxEntries,
-            prizeTable: prizeTable,
-            entries: entries,
-            finalStandings: finalStandings
-        });
+
+        // Assign params
+        tournaments[id].entryFee = entryFee;
+        tournaments[id].isMultiEntry = isMultiEntry;
+        tournaments[id].minEntries = minEntries;
+        tournaments[id].maxEntries = maxEntries;
+        tournaments[id].prizeTable = prizeTable;
+
+        // Emit log new tournament event
         emit LogNewTournament(
             id,
             tournamentCount++
@@ -237,20 +236,44 @@ LibTournament {
     */
     function completeTournament(
         bytes32 id,
-        address[] memory finalStandings
+        uint256[] memory finalStandings
     ) public returns (bool) {
         // Sender must be an admin
-        require(admin.admins(msg.sender));
+        require(
+            admin.admins(msg.sender),
+            "INVALID_SENDER"
+        );
         // Must be a valid tournament
-        require(tournaments[id].entryFee != 0);
-        // Must be a valid finalStandings length
-        require(finalStandings.length > 0);
+        require(
+            tournaments[id].entryFee != 0,
+            "INVALID_TOURNAMENT_ID"
+        );
         // Tournament cannot have been completed
-        require(tournaments[id].finalStandings.length == 0);
-        // Set finalStandings for the tournament
-        tournaments[id].finalStandings = finalStandings;
-        // Emit log completed tournament event
-        emit LogCompletedTournament(id);
+        require(
+            tournaments[id].status == uint8(TournamentStatus.ACTIVE),
+            "INVALID_TOURNAMENT_STATUS"
+        );
+        if(finalStandings.length > 0) {
+            // Tournament successfully completed
+            // Set finalStandings for the tournament
+            tournaments[id].finalStandings = finalStandings;
+            // Set tournament status to completed
+            tournaments[id].status = uint8(TournamentStatus.COMPLETED);
+            // Emit log completed tournament event
+            emit LogCompletedTournament(
+                id,
+                uint8(TournamentStatus.COMPLETED)
+            );
+        } else {
+            // Tournament has ended unsuccessfully, allow users to claim refunds
+            // Set tournament status to failed
+            tournaments[id].status = uint8(TournamentStatus.FAILED);
+            // Emit log completed tournament event
+            emit LogCompletedTournament(
+                id,
+                uint8(TournamentStatus.FAILED)
+            );
+        }
     }
 
     /**
@@ -264,24 +287,43 @@ LibTournament {
         uint256 index
     ) public returns (bool) {
         // Must be a valid tournament
-        require(tournaments[id].entryFee != 0);
+        require(
+            tournaments[id].entryFee != 0,
+            "INVALID_TOURNAMENT_ID"
+        );
         // Tournament should have been completed
-        require(tournaments[id].finalStandings.length > 0);
+        require(
+            tournaments[id].status == uint8(TournamentStatus.COMPLETED),
+            "INVALID_TOURNAMENT_STATUS"
+        );
         // Address at final standings index must be sender
-        require(tournaments[id].finalStandings[index] == msg.sender);
+        require(
+            tournaments[id].entries[tournaments[id].finalStandings[index]] == msg.sender,
+            "INVALID_FINAL_STANDINGS_INDEX"
+        );
         // User cannot have already claimed their prize
-        require(!tournaments[id].claimed[msg.sender]);
+        require(
+            !tournaments[id].claimed[index],
+            "INVALID_CLAIMED_STATUS"
+        );
         // Prize table must have a valid prize at final standings index
-        require(prizeTables[tournaments[id].prizeTable][index] != 0);
+        require(
+            prizeTables[tournaments[id].prizeTable][index] != 0,
+            "INVALID_PRIZE_INDEX"
+        );
         // Transfer prize tokens to sender
+        uint256 prizePool = (tournaments[id].entries.length).mul(tournaments[id].entryFee);
+        uint256 prizePercent = (prizeTables[tournaments[id].prizeTable][index]);
+        uint256 prizeMoneyAfterRakeFee = prizePool.mul(prizePercent).div(100);
         require(
             token.transfer(
                 msg.sender,
-                prizeTables[tournaments[id].prizeTable][index]
-            )
+                prizeMoneyAfterRakeFee
+            ),
+            "TOKEN_TRANSFER_ERROR"
         );
         // Mark prize as claimed
-        tournaments[id].claimed[msg.sender] = true;
+        tournaments[id].claimed[index] = true;
         // Emit log claimed tournament prize event
         emit LogClaimedTournamentPrize(
             id,

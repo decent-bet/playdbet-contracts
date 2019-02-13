@@ -2,11 +2,19 @@ pragma solidity 0.5.0;
 
 contract LibTournament {
 
+    enum TournamentStatus {
+        ACTIVE,
+        COMPLETED,
+        FAILED
+    }
+
     struct Tournament {
         // Entry fee
         uint256 entryFee;
         // Can users enter multiple times
         bool isMultiEntry;
+        // Minimum entries
+        uint256 minEntries;
         // Maximum entries
         uint256 maxEntries;
         // Unique id of prize table
@@ -14,9 +22,11 @@ contract LibTournament {
         // Participants in tournament
         address[] entries;
         // Final standings
-        address[] finalStandings;
-        // Claimed amounts from participants based on prize table and final standings
-        mapping (address => bool) claimed;
+        uint256[] finalStandings;
+        // Claimed amounts from entries based on prize table and final standings
+        mapping (uint256 => bool) claimed;
+        // Tournament status based on enum
+        uint8 status;
     }
 
 }
