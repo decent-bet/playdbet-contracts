@@ -25,6 +25,8 @@ contract LibTournament {
         uint256[] finalStandings;
         // Claimed amounts from entries based on prize table and final standings
         mapping (uint256 => bool) claimed;
+        // Refunded amounts from entries for tournaments with a failed status
+        mapping (uint256 => bool) refunded;
         // Tournament status based on enum
         uint8 status;
     }

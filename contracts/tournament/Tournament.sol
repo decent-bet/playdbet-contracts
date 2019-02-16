@@ -54,9 +54,14 @@ LibTournament {
     // Log claimed tournament prize
     event LogClaimedTournamentPrize(
         bytes32 indexed id,
-        address participant,
-        uint256 standing,
+        uint256 entryIndex,
+        uint256 finalStandingIndex,
         uint256 prize
+    );
+    // Log refunded tournament entry
+    event LogRefundedTournamentEntry(
+        bytes32 indexed id,
+        uint256 entryIndex
     );
 
     constructor (
@@ -327,10 +332,57 @@ LibTournament {
         // Emit log claimed tournament prize event
         emit LogClaimedTournamentPrize(
             id,
-            msg.sender,
+            tournaments[id].finalStandings[index],
             index,
             prizeTables[tournaments[id].prizeTable][index]
         );
     }
+
+    /**
+    * Allows users to claim refunds for tournaments that were not completed
+    * @param id tournament ID
+    * @param index entries index in the tournament's entries array
+    */
+    function claimTournamentRefund(
+        bytes32 id,
+        uint256 index
+    )
+    public
+    returns (bool) {
+        // Must be a valid tournament
+        require(
+            tournaments[id].entryFee != 0,
+            "INVALID_TOURNAMENT_ID"
+        );
+        // Tournament should have a failed status
+        require(
+            tournaments[id].status == uint8(TournamentStatus.FAILED),
+            "INVALID_TOURNAMENT_STATUS"
+        );
+        // Address at entries index must be sender
+        require(
+            tournaments[id].entries[index] == msg.sender,
+            "INVALID_FINAL_STANDINGS_INDEX"
+        );
+        // User cannot have already claimed their refund
+        require(
+            !tournaments[id].refunded[index],
+            "INVALID_REFUNDED_STATUS"
+        );
+        // Transfer entry fee to sender
+        require(
+            token.transfer(
+                msg.sender,
+                tournaments[id].entryFee
+            )
+        );
+        // Mark entry as refunded
+        tournaments[id].refunded[index] = true;
+        emit LogRefundedTournamentEntry(
+            id,
+            index
+        );
+    }
+
 
 }

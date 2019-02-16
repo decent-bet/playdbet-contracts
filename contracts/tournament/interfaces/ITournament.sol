@@ -60,4 +60,15 @@ contract ITournament {
         uint256 index
     ) public returns (bool);
 
+    /**
+    * Allows users to claim refunds for tournaments
+    * @param id unique ID of the tournament
+    * @param index entry index in the tournaments' entries
+    * @return whether the tournament entry fee was refunded
+    */
+    function claimTournamentRefund(
+        bytes32 id,
+        uint256 index
+    ) public returns (bool);
+
 }
