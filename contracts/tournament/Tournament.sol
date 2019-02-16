@@ -374,7 +374,8 @@ LibTournament {
             token.transfer(
                 msg.sender,
                 tournaments[id].entryFee
-            )
+            ),
+            "TOKEN_TRANSFER_ERROR"
         );
         // Mark entry as refunded
         tournaments[id].refunded[index] = true;
