@@ -7,7 +7,8 @@ const OUTCOME_SUCCESS = 1
 const OUTCOME_FAILED = 2
 const OUTCOME_INVALID = 3
 
-let quest,
+let admin,
+    quest,
     token
 
 let owner
@@ -42,60 +43,16 @@ contract('Quest', accounts => {
 
         quest = await contracts.Quest.deployed()
         token = await contracts.DBETVETToken.deployed()
-    })
+        admin = await contracts.Admin.deployed()
 
-    it('throws if non-owners add an admin', async () => {
-        await utils.assertFail(
-            quest.addAdmin(user2, {from: user1})
-        )
-    })
-
-    it('allows owners to add admins', async () => {
-        await quest.addAdmin(user2, {from: owner})
-        const isUser2Admin = await quest.admins(user2)
-        assert.equal(
-            isUser2Admin,
-            true
-        )
-    })
-
-    it('throws if non-owners remove admins', async () => {
-        await utils.assertFail(
-            quest.removeAdmin(user2, {from: user1})
-        )
-    })
-
-    it('allows owners to remove admins', async () => {
-        await quest.removeAdmin(user2, {from: owner})
-
-        const isUser2Admin = await quest.admins(user2)
-
-        assert.equal(
-            isUser2Admin,
-            false
-        )
-    })
-
-    it('throws if non-owner sets platform wallet', async () => {
-        await utils.assertFail(
-            quest.setPlatformWallet(
-                user2,
-                {
-                    from: user1
-                }
-            )
-        )
-    })
-
-    it('allows owner to set platform wallet', async () => {
-        await quest.setPlatformWallet(
+        await admin.setPlatformWallet(
             user2,
             {
                 from: owner
             }
         )
 
-        const platformWallet = await quest.platformWallet()
+        const platformWallet = await admin.platformWallet()
         assert.equal(
             platformWallet,
             user2
@@ -235,6 +192,7 @@ contract('Quest', accounts => {
         await utils.assertFail(
             quest.payForQuest(
                 web3.utils.fromUtf8('invalid'),
+                user1,
                 {
                     from: user1
                 }
@@ -248,6 +206,7 @@ contract('Quest', accounts => {
         await utils.assertFail(
             quest.payForQuest(
                 id,
+                user1,
                 {
                     from: user1
                 }
@@ -264,6 +223,7 @@ contract('Quest', accounts => {
         await utils.assertFail(
             quest.payForQuest(
                 id,
+                user1,
                 {
                     from: user1
                 }
@@ -293,14 +253,14 @@ contract('Quest', accounts => {
         console.log({
             entryFee: web3.utils.fromWei(entryFee.toString(), 'ether'),
             timeToComplete: timeToComplete.toString(),
-            prize: web3.utils.fromWei(prize
-                .toString(), 'ether'),
+            prize: web3.utils.fromWei(prize.toString(), 'ether'),
             exists
         })
 
         // Pay for quest with sufficient allowance and balance
         await quest.payForQuest(
             id,
+            user1,
             {
                 from: user1
             }
@@ -321,7 +281,11 @@ contract('Quest', accounts => {
         const {id} = getValidQuestParams()
         await utils.assertFail(
             quest.payForQuest(
-                id
+                id,
+                user1,
+                {
+                    from: user1
+                }
             )
         )
     })
@@ -408,6 +372,7 @@ contract('Quest', accounts => {
         // Pay for quest with sufficient allowance and balance
         await quest.payForQuest(
             id,
+            user2,
             {
                 from: user2
             }

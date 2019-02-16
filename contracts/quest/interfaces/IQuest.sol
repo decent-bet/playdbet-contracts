@@ -18,12 +18,14 @@ contract IQuest {
     ) public returns (bool);
 
     /**
-    * Pays for a quest as a user
+    * Pays for a users' quest
     * @param id Unique quest ID
+    * @param user User entering a quest
     * @return Whether the quest was paid for
     */
     function payForQuest(
-        bytes32 id
+        bytes32 id,
+        address user
     ) public returns (bool);
 
     /**

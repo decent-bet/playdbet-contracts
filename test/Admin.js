@@ -47,4 +47,30 @@ contract('Admin', accounts => {
             false
         )
     })
+
+    it('throws if non-owner sets platform wallet', async () => {
+        await utils.assertFail(
+            admin.setPlatformWallet(
+                user2,
+                {
+                    from: user1
+                }
+            )
+        )
+    })
+
+    it('allows owner to set platform wallet', async () => {
+        await admin.setPlatformWallet(
+            user2,
+            {
+                from: owner
+            }
+        )
+
+        const platformWallet = await admin.platformWallet()
+        assert.equal(
+            platformWallet,
+            user2
+        )
+    })
 })

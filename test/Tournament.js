@@ -3,7 +3,8 @@ const BigNumber = require('bignumber.js')
 const contracts = require('./utils/contracts')
 const utils = require('./utils/utils')
 
-let token,
+let admin,
+    token,
     tournament
 
 let owner
@@ -17,23 +18,28 @@ let tournamentId
 
 const getValidPrizeTable = () => {
     return [
-        web3.utils.toWei('500', 'ether'),
-        web3.utils.toWei('250', 'ether'),
-        web3.utils.toWei('100', 'ether')
+        60,
+        30,
+        10
     ]
 }
 
-const getValidTournamentParams = () => {
+const getValidTournamentParams = isMultiEntry => {
     const entryFee = web3.utils.toWei('50', 'ether')
-    const maxParticipants = 32
+    const minEntries = 1
+    const maxEntries = 10
+    const rakePercent = 20
     return {
         entryFee,
-        maxParticipants
+        isMultiEntry: isMultiEntry ? isMultiEntry : false,
+        minEntries,
+        maxEntries,
+        rakePercent
     }
 }
 
 const getValidTournamentCompletionParams = () => {
-    const finalStandings = [user2]
+    const finalStandings = [0] // Indices of entries
     return {
         finalStandings
     }
@@ -45,8 +51,37 @@ contract('Tournament', accounts => {
         user1 = accounts[1]
         user2 = accounts[2]
 
+        admin = await contracts.Admin.deployed()
         token = await contracts.DBETVETToken.deployed()
         tournament = await contracts.Tournament.deployed()
+
+        await admin.setPlatformWallet(
+            user1,
+            {
+                from: owner
+            }
+        )
+
+        const platformWallet = await admin.platformWallet()
+        assert.equal(
+            platformWallet,
+            user1
+        )
+
+        // Approve platform wallet to transfer DBETs for prizes
+        await token.approve(
+            tournament.address,
+            web3.utils.toWei('1000000000', 'ether'),
+            {
+                from: user1
+            }
+        )
+
+        // Transfer DBETs to platform wallet
+        await token.transfer(
+            user1,
+            web3.utils.toWei('1000000', 'ether')
+        )
     })
 
     it('throws if non-admin creates prize table', async () => {
@@ -89,13 +124,19 @@ contract('Tournament', accounts => {
     it('throws if non-admins create tournaments', async () => {
         const {
             entryFee,
-            maxParticipants
+            isMultiEntry,
+            minEntries,
+            maxEntries,
+            rakePercent
         } = getValidTournamentParams()
 
         await utils.assertFail(
             tournament.createTournament(
                 entryFee,
-                maxParticipants,
+                isMultiEntry,
+                minEntries,
+                maxEntries,
+                rakePercent,
                 prizeTableId,
                 {
                     from: user2
@@ -107,14 +148,20 @@ contract('Tournament', accounts => {
     it('throws if admin creates tournament with invalid values', async () => {
         const {
             entryFee,
-            maxParticipants
+            isMultiEntry,
+            minEntries,
+            maxEntries,
+            rakePercent
         } = getValidTournamentParams()
 
         // Invalid entry fee
         await utils.assertFail(
             tournament.createTournament(
                 '0',
-                maxParticipants,
+                isMultiEntry,
+                minEntries,
+                maxEntries,
+                rakePercent,
                 prizeTableId,
                 {
                     from: owner
@@ -122,10 +169,43 @@ contract('Tournament', accounts => {
             )
         )
 
-        // Invalid max participants
+        // Invalid min entries
         await utils.assertFail(
             tournament.createTournament(
                 entryFee,
+                isMultiEntry,
+                '0',
+                maxEntries,
+                rakePercent,
+                prizeTableId,
+                {
+                    from: owner
+                }
+            )
+        )
+
+        // Invalid max entries
+        await utils.assertFail(
+            tournament.createTournament(
+                entryFee,
+                isMultiEntry,
+                minEntries,
+                '0',
+                rakePercent,
+                prizeTableId,
+                {
+                    from: owner
+                }
+            )
+        )
+
+        // Invalid rake percent
+        await utils.assertFail(
+            tournament.createTournament(
+                entryFee,
+                isMultiEntry,
+                minEntries,
+                maxEntries,
                 '0',
                 prizeTableId,
                 {
@@ -133,76 +213,38 @@ contract('Tournament', accounts => {
                 }
             )
         )
-    })
 
-    it('throws if admin creates tournament with invalid balance or allowance', async () => {
-        const {
-            entryFee,
-            maxParticipants
-        } = getValidTournamentParams()
-
-        // Transfer owner token balance to user1
-        const ownerBalance = await token.balanceOf(owner)
-        await token.transfer(
-            user1,
-            ownerBalance,
-            {
-                from: owner
-            }
-        )
-
-        // Create tournament with invalid balance
+        // Invalid prize table ID
         await utils.assertFail(
             tournament.createTournament(
                 entryFee,
-                maxParticipants,
-                prizeTableId,
+                isMultiEntry,
+                minEntries,
+                maxEntries,
+                rakePercent,
+                web3.utils.fromUtf8('invalid'),
                 {
                     from: owner
                 }
             )
         )
-
-        // Transfer tokens from user1 back to owner
-        await token.transfer(
-            owner,
-            ownerBalance,
-            {
-                from: user1
-            }
-        )
-
-        // Create tournament with invalid allowance
-        await utils.assertFail(
-            tournament.createTournament(
-                entryFee,
-                maxParticipants,
-                prizeTableId,
-                {
-                    from: owner
-                }
-            )
-        )
-
-        // Approve tokens for transfer
-        await token.approve(
-            tournament.address,
-            ownerBalance,
-            {
-                from: owner
-            }
-        )
     })
 
-    it('allows admins to create tournaments with valid params and balances', async () => {
+    it('allows admins to create tournaments with valid params', async () => {
         const {
             entryFee,
-            maxParticipants
+            isMultiEntry,
+            minEntries,
+            maxEntries,
+            rakePercent
         } = getValidTournamentParams()
 
         const tx = await tournament.createTournament(
             entryFee,
-            maxParticipants,
+            isMultiEntry,
+            minEntries,
+            maxEntries,
+            rakePercent,
             prizeTableId,
             {
                 from: owner
@@ -309,20 +351,6 @@ contract('Tournament', accounts => {
         await utils.assertFail(
             tournament.completeTournament(
                 web3.utils.fromUtf8('invalid'),
-                finalStandings,
-                {
-                    from: owner
-                }
-            )
-        )
-    })
-
-    it('throws if admin completes tournament with invalid final standings', async () => {
-        const finalStandings = []
-
-        await utils.assertFail(
-            tournament.completeTournament(
-                tournamentId,
                 finalStandings,
                 {
                     from: owner

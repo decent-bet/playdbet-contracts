@@ -222,7 +222,11 @@ LibTournament {
         );
         // Transfer tokens to contract
         require(
-            token.transferFrom(msg.sender, address(this), tournaments[id].entryFee),
+            token.transferFrom(
+                msg.sender,
+                address(this),
+                tournaments[id].entryFee
+            ),
             "TOKEN_TRANSFER_ERROR"
         );
         // Add to tournament
@@ -266,14 +270,10 @@ LibTournament {
             // Set tournament status to completed
             tournaments[id].status = uint8(TournamentStatus.COMPLETED);
             // Transfer tournament rake fee to platform wallet
-            uint256 rakeFee = (tournaments[id].entryFee)
-                .mul(tournaments[id].entries.length)
-                .mul(tournaments[id].rakePercent)
-                .div(100);
             require(
                 token.transfer(
                     admin.platformWallet(),
-                    rakeFee
+                    getRakeFee(id)
                 ),
                 "TOKEN_TRANSFER_ERROR"
             );
@@ -330,13 +330,15 @@ LibTournament {
             "INVALID_PRIZE_INDEX"
         );
         // Transfer prize tokens to sender
-        uint256 prizePool = (tournaments[id].entries.length).mul(tournaments[id].entryFee);
+        uint256 prizePool = (tournaments[id].entries.length
+                    .mul(tournaments[id].entryFee))
+                    .sub(getRakeFee(id));
         uint256 prizePercent = (prizeTables[tournaments[id].prizeTable][index]);
-        uint256 prizeMoneyAfterRakeFee = prizePool.mul(prizePercent).div(100);
+        uint256 prizeMoney = prizePool.mul(prizePercent).div(100);
         require(
             token.transfer(
                 msg.sender,
-                prizeMoneyAfterRakeFee
+                prizeMoney
             ),
             "TOKEN_TRANSFER_ERROR"
         );
@@ -397,6 +399,55 @@ LibTournament {
             id,
             index
         );
+    }
+
+    /**
+    * Returns rake fee for a tournament
+    * @param id Unique tournament ID
+    * @return tournament rake fee
+    */
+    function getRakeFee(
+        bytes32 id
+    )
+    public
+    view
+    returns (uint256) {
+        return (tournaments[id].entryFee)
+            .mul(tournaments[id].entries.length)
+            .mul(tournaments[id].rakePercent)
+            .div(100);
+    }
+
+    /**
+    * Returns an entry address at a tournament entries index
+    * @param id Unique tournament ID
+    * @param index Tournament entry index
+    * @return Tournament entry at index
+    */
+    function getTournamentEntry(
+        bytes32 id,
+        uint256 index
+    )
+    public
+    view
+    returns (address) {
+        return tournaments[id].entries[index];
+    }
+
+    /**
+    * Returns a final standing for a tournament
+    * @param id Unique tournament ID
+    * @param index Tournament final standings index
+    * @return Tournament final standing at index
+    */
+    function getTournamentFinalStanding(
+        bytes32 id,
+        uint256 index
+    )
+    public
+    view
+    returns (uint256) {
+        return tournaments[id].finalStandings[index];
     }
 
 
