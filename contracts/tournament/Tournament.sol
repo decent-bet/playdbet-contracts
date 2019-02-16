@@ -174,6 +174,7 @@ LibTournament {
         tournaments[id].minEntries = minEntries;
         tournaments[id].maxEntries = maxEntries;
         tournaments[id].prizeTable = prizeTable;
+        tournaments[id].rakePercent = rakePercent;
 
         // Emit log new tournament event
         emit LogNewTournament(
@@ -264,6 +265,18 @@ LibTournament {
             tournaments[id].finalStandings = finalStandings;
             // Set tournament status to completed
             tournaments[id].status = uint8(TournamentStatus.COMPLETED);
+            // Transfer tournament rake fee to platform wallet
+            uint256 rakeFee = (tournaments[id].entryFee)
+                .mul(tournaments[id].entries.length)
+                .mul(tournaments[id].rakePercent)
+                .div(100);
+            require(
+                token.transfer(
+                    admin.platformWallet(),
+                    rakeFee
+                ),
+                "TOKEN_TRANSFER_ERROR"
+            );
             // Emit log completed tournament event
             emit LogCompletedTournament(
                 id,
@@ -340,8 +353,9 @@ LibTournament {
 
     /**
     * Allows users to claim refunds for tournaments that were not completed
-    * @param id tournament ID
+    * @param id unique tournament ID
     * @param index entries index in the tournament's entries array
+    * @return whether entry fees were refunded for tournament entry
     */
     function claimTournamentRefund(
         bytes32 id,

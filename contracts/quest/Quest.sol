@@ -15,8 +15,6 @@ LibQuest {
 
     using SafeMath for uint256;
 
-    // Platform wallet address
-    address public platformWallet;
     // Owner of Quest contract
     address public owner;
     // DBET Token
@@ -28,10 +26,6 @@ LibQuest {
     // User quest entries mapping
     mapping (address => mapping (bytes32 => UserQuestEntry)) public userQuestEntries;
 
-    // On set platform wallet event
-    event LogOnSetPlatformWallet(
-        address wallet
-    );
     // On add new quest
     event LogNewQuest(
         bytes32 indexed id
@@ -56,22 +50,6 @@ LibQuest {
         owner = msg.sender;
         token = ERC20(_token);
         admin = Admin(_admin);
-    }
-
-    /**
-    * Sets the platform wallet to send/receive payments
-    */
-    function setPlatformWallet(
-        address _platformWallet
-    )
-    public
-    returns (bool) {
-        // Only the owner can set the platform wallet address
-        require(msg.sender == owner);
-        platformWallet = _platformWallet;
-        emit LogOnSetPlatformWallet(
-            _platformWallet
-        );
     }
 
     /**
@@ -154,7 +132,7 @@ LibQuest {
         require(
             token.transferFrom(
                 msg.sender,
-                platformWallet,
+                admin.platformWallet(),
                 quests[id].entryFee
             )
         );
@@ -203,7 +181,7 @@ LibQuest {
         if(outcome == uint8(QuestStatus.SUCCESS))
             require(
                 token.transferFrom(
-                    platformWallet,
+                    admin.platformWallet(),
                     user,
                     quests[id].prize
                 )

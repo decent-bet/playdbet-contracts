@@ -7,9 +7,15 @@ IAdmin {
 
     // Owner of the admin contract
     address public owner;
+    // Platform wallet address
+    address public platformWallet;
     // Admins mapping
     mapping (address => bool) public admins;
 
+    // On set platform wallet event
+    event LogOnSetPlatformWallet(
+        address wallet
+    );
     // On add admin event
     event LogAddAdmin(
         address indexed _address
@@ -23,6 +29,22 @@ IAdmin {
     public {
         owner = msg.sender;
         addAdmin(owner);
+    }
+
+    /**
+    * Sets the platform wallet to send/receive payments
+    */
+    function setPlatformWallet(
+        address _platformWallet
+    )
+    public
+    returns (bool) {
+        // Only the owner can set the platform wallet address
+        require(msg.sender == owner);
+        platformWallet = _platformWallet;
+        emit LogOnSetPlatformWallet(
+            _platformWallet
+        );
     }
 
     /**

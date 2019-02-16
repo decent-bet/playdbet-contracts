@@ -17,6 +17,8 @@ contract LibTournament {
         uint256 minEntries;
         // Maximum entries
         uint256 maxEntries;
+        // Rake percent
+        uint256 rakePercent;
         // Unique id of prize table
         bytes32 prizeTable;
         // Participants in tournament
