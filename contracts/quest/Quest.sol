@@ -33,7 +33,8 @@ LibQuest {
     // On pay for quest
     event LogPayForQuest(
         bytes32 indexed id,
-        address indexed user
+        address indexed user,
+        address indexed payer
     );
     // On set quest outcome
     event LogSetQuestOutcome(
@@ -96,12 +97,14 @@ LibQuest {
     }
 
     /**
-    * Pays for a quest as a user
+    * Pays for a users' quest
     * @param id Unique quest ID
+    * @param user User entering a quest
     * @return Whether the quest was paid for
     */
     function payForQuest(
-        bytes32 id
+        bytes32 id,
+        address user
     ) public returns (bool) {
         // Must be a valid quest ID
         require(quests[id].exists);
@@ -121,10 +124,10 @@ LibQuest {
         );
         // User cannot have already started quest
         require(
-            !userQuestEntries[msg.sender][id].exists
+            !userQuestEntries[user][id].exists
         );
         // Add user quest entry
-        userQuestEntries[msg.sender][id] = UserQuestEntry({
+        userQuestEntries[user][id] = UserQuestEntry({
             entryTime: block.timestamp,
             status: uint8(QuestStatus.STARTED),
             exists: true
@@ -139,6 +142,7 @@ LibQuest {
         // Emit log pay for quest event
         emit LogPayForQuest(
             id,
+            user,
             msg.sender
         );
     }

@@ -76,8 +76,8 @@ LibTournament {
 
     /**
     * Creates a prize table that can be used for a tournament
-    * @param table array of integers representing redeemable prize money for each position represented by indices in the array
-    * @return unique ID of the prize table
+    * @param table Array of integers representing redeemable prize money for each position represented by indices in the array
+    * @return Unique ID of the prize table
     */
     function createPrizeTable(
         uint256[] memory table
@@ -116,13 +116,13 @@ LibTournament {
 
     /**
     * Creates a tournament that users can enter
-    * @param entryFee fee to enter the tournament
-    * @param isMultiEntry can a user enter more than once
-    * @param minEntries the minimum number of entries for the tournament
-    * @param maxEntries the maximum number of entries for the tournament
-    * @param rakePercent percentage of the prize pool retained by Decent.bet
-    * @param prizeTable unique ID of prize table to be used for the tournament
-    * @return unique ID of the created tournament
+    * @param entryFee Fee to enter the tournament
+    * @param isMultiEntry Can a user enter more than once
+    * @param minEntries The minimum number of entries for the tournament
+    * @param maxEntries The maximum number of entries for the tournament
+    * @param rakePercent Percentage of the prize pool retained by Decent.bet
+    * @param prizeTable Unique ID of prize table to be used for the tournament
+    * @return Unique ID of the created tournament
     */
     function createTournament(
         uint256 entryFee,
@@ -185,7 +185,7 @@ LibTournament {
 
     /**
     * Allows users to enter a tournament by paying the listed entry fee
-    * @param id unique ID of the tournament
+    * @param id Unique ID of the tournament
     */
     function enterTournament(
         bytes32 id
@@ -236,9 +236,9 @@ LibTournament {
 
     /**
     * Allows the admin to complete the tournament by publishing the final standings
-    * @param id unique ID of the tournament
-    * @param finalStandings final standings of participants in the tournament
-    * @return whether the tournament was completed
+    * @param id Unique ID of the tournament
+    * @param finalStandings Final standings of participants in the tournament
+    * @return Whether the tournament was completed
     */
     function completeTournament(
         bytes32 id,
@@ -296,9 +296,9 @@ LibTournament {
 
     /**
     * Allows users to claim their tournament prizes
-    * @param id unique ID of the tournament
-    * @param index final standing index in the tournaments' final standings
-    * @return whether the tournament prize was claimed
+    * @param id Unique ID of the tournament
+    * @param index Final standing index in the tournaments' final standings
+    * @return Whether the tournament prize was claimed
     */
     function claimTournamentPrize(
         bytes32 id,
@@ -353,9 +353,9 @@ LibTournament {
 
     /**
     * Allows users to claim refunds for tournaments that were not completed
-    * @param id unique tournament ID
-    * @param index entries index in the tournament's entries array
-    * @return whether entry fees were refunded for tournament entry
+    * @param id Unique tournament ID
+    * @param index Entries index in the tournament's entries array
+    * @return Whether entry fees were refunded for tournament entry
     */
     function claimTournamentRefund(
         bytes32 id,
