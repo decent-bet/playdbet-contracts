@@ -329,12 +329,30 @@ LibTournament {
             prizeTables[tournaments[id].prizeTable][index] != 0,
             "INVALID_PRIZE_INDEX"
         );
-        // Transfer prize tokens to sender
+        // Calculate prize pool
         uint256 prizePool = (tournaments[id].entries.length
                     .mul(tournaments[id].entryFee))
                     .sub(getRakeFee(id));
         uint256 prizePercent = (prizeTables[tournaments[id].prizeTable][index]);
-        uint256 prizeMoney = prizePool.mul(prizePercent).div(100);
+        uint256 prizeMoney;
+        // If the amount of prize winners is greater than the number of addresses in the final standings,
+        // split excess token % split among all addresses in final standings
+        if(
+            prizeTables[tournaments[id].prizeTable].length >
+            tournaments[id].finalStandings.length
+        ) {
+            uint256 excessPrizePercent;
+            for(
+                uint256 i = tournaments[id].finalStandings.length;
+                i < prizeTables[tournaments[id].prizeTable].length;
+                i++
+            ) {
+                excessPrizePercent = excessPrizePercent.add(prizeTables[tournaments[id].prizeTable][i]);
+            }
+            prizePercent = prizePercent.add(excessPrizePercent);
+        }
+        prizeMoney = prizePool.mul(prizePercent).div(100);
+        // Transfer prize tokens to sender
         require(
             token.transfer(
                 msg.sender,
