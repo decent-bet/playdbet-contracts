@@ -24,30 +24,15 @@ IAdmin {
     event LogRemoveAdmin(
         address indexed _address
     );
+    // On new owner event
+    event LogNewOwner(
+        address indexed owner
+    );
 
     constructor()
     public {
         owner = msg.sender;
         addAdmin(owner);
-    }
-
-    /**
-    * Sets the platform wallet to send/receive payments
-    * @param _platformWallet Address of platform wallet
-    * @return whether platform wallet was set
-    */
-    function setPlatformWallet(
-        address _platformWallet
-    )
-    public
-    returns (bool) {
-        // Only the owner can set the platform wallet address
-        require(msg.sender == owner);
-        platformWallet = _platformWallet;
-        emit LogOnSetPlatformWallet(
-            _platformWallet
-        );
-        return true;
     }
 
     /**
@@ -79,6 +64,42 @@ IAdmin {
         require(msg.sender == owner);
         admins[_address] = false;
         emit LogRemoveAdmin(_address);
+        return true;
+    }
+
+    /**
+    * Sets the platform wallet to send/receive payments
+    * @param _platformWallet Address of platform wallet
+    * @return whether platform wallet was set
+    */
+    function setPlatformWallet(
+        address _platformWallet
+    )
+    public
+    returns (bool) {
+        // Only the owner can set the platform wallet address
+        require(msg.sender == owner);
+        platformWallet = _platformWallet;
+        emit LogOnSetPlatformWallet(
+            _platformWallet
+        );
+        return true;
+    }
+
+    /**
+    * Allows owners to set new owners for the contract
+    * @param owner Address of new owner
+    * @return whether owner was added
+    */
+    function setOwner(
+        address _owner
+    ) public returns (bool) {
+        // Only the owner can set a new owner
+        require(msg.sender == owner);
+        owner = _owner;
+        emit LogNewOwner(
+            owner
+        );
         return true;
     }
 

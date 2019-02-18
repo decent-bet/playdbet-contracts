@@ -29,4 +29,13 @@ contract IAdmin {
         address _platformWallet
     ) public returns (bool);
 
+    /**
+    * Allows owners to set new owners for the contract
+    * @param owner Address of new owner
+    * @return whether owner was added
+    */
+    function setOwner(
+        address _owner
+    ) public returns (bool);
+
 }
