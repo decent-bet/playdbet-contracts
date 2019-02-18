@@ -73,4 +73,52 @@ contract('Admin', accounts => {
             user2
         )
     })
+
+    it('throws if non-owner sets owner', async () => {
+        await utils.assertFail(
+            admin.setOwner(
+                user2,
+                {
+                    from: user2
+                }
+            )
+        )
+    })
+
+    it('allows owners to set new owner', async () => {
+        await admin.setOwner(
+            user2,
+            {
+                from: owner
+            }
+        )
+
+        let _owner = await admin.owner()
+        assert.equal(
+            _owner,
+            user2
+        )
+
+        await utils.assertFail(
+            admin.setOwner(
+                owner,
+                {
+                    from: owner
+                }
+            )
+        )
+
+        await admin.setOwner(
+            owner,
+            {
+                from: user2
+            }
+        )
+
+        _owner = await admin.owner()
+        assert.equal(
+            _owner,
+            owner
+        )
+    })
 })
