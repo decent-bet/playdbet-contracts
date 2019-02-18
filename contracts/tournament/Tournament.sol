@@ -1,4 +1,5 @@
 pragma solidity 0.5.0;
+pragma experimental ABIEncoderV2;
 
 import "./interfaces/ITournament.sol";
 import "./libs/LibTournament.sol";
@@ -14,6 +15,7 @@ ITournament,
 LibTournament {
 
     using SafeMath for uint256;
+
 
     // Owner of the tournament contract
     address public owner;
@@ -55,7 +57,7 @@ LibTournament {
     event LogClaimedTournamentPrize(
         bytes32 indexed id,
         uint256 entryIndex,
-        uint256 finalStandingIndex,
+        uint256 finalStanding,
         uint256 prize
     );
     // Log refunded tournament entry
@@ -204,7 +206,7 @@ LibTournament {
         if(tournaments[id].entryLimit > 1) {
             uint256 entryCount = 0;
             for (uint256 i = 0; i < tournaments[id].entries.length; i++) {
-                if(tournaments[id].entries[i] == msg.sender) {
+                if(tournaments[id].entries[i]._address == msg.sender) {
                     require(
                         ++entryCount <= tournaments[id].entryLimit,
                         "ENTRY_LIMIT_EXCEEDED"
@@ -214,7 +216,7 @@ LibTournament {
         }
         // Tournament cannot have been completed
         require(
-            tournaments[id].status == TournamentStatus.ACTIVE,
+            tournaments[id].status == uint8(TournamentStatus.ACTIVE),
             "INVALID_TOURNAMENT_STATUS"
         );
         // Cannot be over max entry count
@@ -239,7 +241,10 @@ LibTournament {
             "TOKEN_TRANSFER_ERROR"
         );
         // Add to tournament
-        tournaments[id].entries.push(msg.sender);
+        tournaments[id].entries.push(TournamentEntry({
+            _address: msg.sender,
+            finalStanding: 0
+        }));
         // Emit log entered tournament event
         emit LogEnteredTournament(
             id,
@@ -367,11 +372,11 @@ LibTournament {
         // split excess token % split among all addresses in final standings
         if(
             prizeTables[tournaments[id].prizeTable].length >
-            tournaments[id].uniqueFinalStandings.length
+            tournaments[id].uniqueFinalStandings
         ) {
             uint256 excessPrizePercent;
             for(
-                uint256 i = tournaments[id].uniqueFinalStandings.length;
+                uint256 i = tournaments[id].uniqueFinalStandings;
                 i < prizeTables[tournaments[id].prizeTable].length;
                 i++
             ) {
@@ -397,7 +402,7 @@ LibTournament {
         // Emit log claimed tournament prize event
         emit LogClaimedTournamentPrize(
             id,
-            tournaments[id].finalStandings[index],
+            tournaments[id].entries[index].finalStanding,
             index,
             prizeTables[tournaments[id].prizeTable][index]
         );
@@ -480,14 +485,14 @@ LibTournament {
     )
     public
     view
-    returns (address) {
+    returns (TournamentEntry memory) {
         return tournaments[id].entries[index];
     }
 
     /**
     * Returns a final standing for a tournament
     * @param id Unique tournament ID
-    * @param index Tournament final standings index
+    * @param index Tournament entry index
     * @return Tournament final standing at index
     */
     function getTournamentFinalStanding(
@@ -497,7 +502,7 @@ LibTournament {
     public
     view
     returns (uint256) {
-        return tournaments[id].finalStandings[index];
+        return tournaments[id].entries[index].finalStanding;
     }
 
 
