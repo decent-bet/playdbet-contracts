@@ -11,8 +11,8 @@ contract LibTournament {
     struct Tournament {
         // Entry fee
         uint256 entryFee;
-        // Can users enter multiple times
-        bool isMultiEntry;
+        // How many times can a user enter the tournament
+        uint256 entryLimit;
         // Minimum entries
         uint256 minEntries;
         // Maximum entries

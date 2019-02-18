@@ -117,7 +117,7 @@ LibTournament {
     /**
     * Creates a tournament that users can enter
     * @param entryFee Fee to enter the tournament
-    * @param isMultiEntry Can a user enter more than once
+    * @param entryLimit Entry limit for each unique address
     * @param minEntries The minimum number of entries for the tournament
     * @param maxEntries The maximum number of entries for the tournament
     * @param rakePercent Percentage of the prize pool retained by Decent.bet
@@ -126,7 +126,7 @@ LibTournament {
     */
     function createTournament(
         uint256 entryFee,
-        bool isMultiEntry,
+        uint256 entryLimit,
         uint256 minEntries,
         uint256 maxEntries,
         uint256 rakePercent,
@@ -136,6 +136,11 @@ LibTournament {
         require(
             admin.admins(msg.sender),
             "INVALID_SENDER"
+        );
+        // Entry limit must be greater than 0
+        require(
+            entryLimit > 0,
+            "INVALID_ENTRY_LIMIT"
         );
         // Entry fee must be greater than 0
         require(
@@ -160,7 +165,7 @@ LibTournament {
             abi.encode(
                 "tournament_",
                 entryFee,
-                isMultiEntry,
+                entryLimit,
                 minEntries,
                 maxEntries,
                 rakePercent,
@@ -170,7 +175,7 @@ LibTournament {
 
         // Assign params
         tournaments[id].entryFee = entryFee;
-        tournaments[id].isMultiEntry = isMultiEntry;
+        tournaments[id].entryLimit = entryLimit;
         tournaments[id].minEntries = minEntries;
         tournaments[id].maxEntries = maxEntries;
         tournaments[id].prizeTable = prizeTable;
@@ -195,14 +200,18 @@ LibTournament {
             tournaments[id].entryFee != 0,
             "INVALID_TOURNAMENT_ID"
         );
-        // Cannot have already entered the tournament if isMultiEntry is false
-        if(!tournaments[id].isMultiEntry)
+        // Cannot have already entered the tournament if entryLimit is false
+        if(tournaments[id].entryLimit > 1) {
+            uint256 entryCount = 0;
             for (uint256 i = 0; i < tournaments[id].entries.length; i++) {
-                require(
-                    tournaments[id].entries[i] != msg.sender,
-                    "ENTRY_STATUS_ENTERED"
-                );
+                if(tournaments[id].entries[i] == msg.sender) {
+                    require(
+                        ++entryCount <= tournaments[id].entryLimit,
+                        "ENTRY_LIMIT_EXCEEDED"
+                    );
+                }
             }
+        }
         // Tournament cannot have been completed
         require(
             tournaments[id].finalStandings.length == 0,
