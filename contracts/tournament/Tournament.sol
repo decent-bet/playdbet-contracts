@@ -214,8 +214,8 @@ LibTournament {
         }
         // Tournament cannot have been completed
         require(
-            tournaments[id].finalStandings.length == 0,
-            "TOURNAMENT_STATUS_COMPLETED"
+            tournaments[id].status == TournamentStatus.ACTIVE,
+            "INVALID_TOURNAMENT_STATUS"
         );
         // Cannot be over max entry count
         require(
@@ -250,12 +250,14 @@ LibTournament {
     /**
     * Allows the admin to complete the tournament by publishing the final standings
     * @param id Unique ID of the tournament
-    * @param finalStandings Final standings of participants in the tournament
+    * @param finalStandings Final standings for entries in the tournament
+    * @param uniqueFinalStandings Number of unique positions in the final standing array
     * @return Whether the tournament was completed
     */
     function completeTournament(
         bytes32 id,
-        uint256[] memory finalStandings
+        uint256[] memory finalStandings,
+        uint256 uniqueFinalStandings
     ) public returns (bool) {
         // Sender must be an admin
         require(
@@ -273,9 +275,15 @@ LibTournament {
             "INVALID_TOURNAMENT_STATUS"
         );
         if(finalStandings.length > 0) {
+            // Unique final standings must be greater than 0
+            require(uniqueFinalStandings > 0);
             // Tournament successfully completed
             // Set finalStandings for the tournament
-            tournaments[id].finalStandings = finalStandings;
+            for (uint256 i = 0; i < tournaments[id].entries.length; i++) {
+                tournaments[id].entries[i].finalStanding = finalStandings[i];
+            }
+            // Set unique final standings
+            tournaments[id].uniqueFinalStandings = uniqueFinalStandings;
             // Set tournament status to completed
             tournaments[id].status = uint8(TournamentStatus.COMPLETED);
             // Transfer tournament rake fee to platform wallet
@@ -306,7 +314,7 @@ LibTournament {
     /**
     * Allows users to claim their tournament prizes
     * @param id Unique ID of the tournament
-    * @param index Final standing index in the tournaments' final standings
+    * @param index Index in the tournaments' entries
     * @return Whether the tournament prize was claimed
     */
     function claimTournamentPrize(
@@ -325,7 +333,7 @@ LibTournament {
         );
         // Address at final standings index must be sender
         require(
-            tournaments[id].entries[tournaments[id].finalStandings[index]] == msg.sender,
+            tournaments[id].entries[index]._address == msg.sender,
             "INVALID_FINAL_STANDINGS_INDEX"
         );
         // User cannot have already claimed their prize
@@ -335,24 +343,35 @@ LibTournament {
         );
         // Prize table must have a valid prize at final standings index
         require(
-            prizeTables[tournaments[id].prizeTable][index] != 0,
-            "INVALID_PRIZE_INDEX"
+            prizeTables
+            [tournaments[id].prizeTable]
+            [tournaments[id].entries[index].finalStanding] != 0,
+            "INVALID_PRIZE_TABLE_INDEX"
         );
+        // Check for other winners with same final standing
+        uint256 sharedFinalStandings = 0;
+        for(uint256 i = 0; i < tournaments[id].entries.length; i++) {
+            if(
+                tournaments[id].entries[i].finalStanding ==
+                tournaments[id].entries[index].finalStanding
+            )
+                sharedFinalStandings++;
+        }
         // Calculate prize pool
         uint256 prizePool = (tournaments[id].entries.length
                     .mul(tournaments[id].entryFee))
                     .sub(getRakeFee(id));
         uint256 prizePercent = (prizeTables[tournaments[id].prizeTable][index]);
         uint256 prizeMoney;
-        // If the amount of prize winners is greater than the number of addresses in the final standings,
+        // If the amount of prize winners is greater than the number of unique final standings,
         // split excess token % split among all addresses in final standings
         if(
             prizeTables[tournaments[id].prizeTable].length >
-            tournaments[id].finalStandings.length
+            tournaments[id].uniqueFinalStandings.length
         ) {
             uint256 excessPrizePercent;
             for(
-                uint256 i = tournaments[id].finalStandings.length;
+                uint256 i = tournaments[id].uniqueFinalStandings.length;
                 i < prizeTables[tournaments[id].prizeTable].length;
                 i++
             ) {
@@ -360,7 +379,11 @@ LibTournament {
             }
             prizePercent = prizePercent.add(excessPrizePercent);
         }
-        prizeMoney = prizePool.mul(prizePercent).div(100);
+        // Transfer prize percent of total prize money divided by the number of winners for the same final standing index
+        prizeMoney = prizePool
+            .mul(prizePercent)
+            .div(100)
+            .div(sharedFinalStandings);
         // Transfer prize tokens to sender
         require(
             token.transfer(
@@ -404,7 +427,7 @@ LibTournament {
         );
         // Address at entries index must be sender
         require(
-            tournaments[id].entries[index] == msg.sender,
+            tournaments[id].entries[index]._address == msg.sender,
             "INVALID_FINAL_STANDINGS_INDEX"
         );
         // User cannot have already claimed their refund

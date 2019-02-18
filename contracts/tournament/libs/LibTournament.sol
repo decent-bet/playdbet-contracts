@@ -22,15 +22,23 @@ contract LibTournament {
         // Unique id of prize table
         bytes32 prizeTable;
         // Participants in tournament
-        address[] entries;
-        // Final standings
-        uint256[] finalStandings;
+        TournamentEntry[] entries;
+        // Unique standings - used to determine number of unique final standings excluding tied entries for prize giveaway calculation.
+        // If unique final standings < prize table length, the remaining prize table % will be equally distributed among all addresses
+        uint256 uniqueFinalStandings;
         // Claimed amounts from entries based on prize table and final standings
         mapping (uint256 => bool) claimed;
         // Refunded amounts from entries for tournaments with a failed status
         mapping (uint256 => bool) refunded;
         // Tournament status based on enum
         uint8 status;
+    }
+
+    struct TournamentEntry {
+        // Address of entered user
+        address _address;
+        // Final standing index
+        uint256 finalStanding;
     }
 
 }
