@@ -1,4 +1,4 @@
-pragma solidity 0.4.24;
+pragma solidity 0.5.0;
 
 
 /// @title Multisignature wallet - Allows multiple parties to agree on transactions before execution.
@@ -97,7 +97,7 @@ contract MultiSigWallet {
     /// @dev Contract constructor sets initial owners and required number of confirmations.
     /// @param _owners List of initial owners.
     /// @param _required Number of required confirmations.
-    constructor(address[] _owners, uint _required)
+    constructor(address[] memory _owners, uint _required)
     public
     validRequirement(_owners.length, _required)
     {
@@ -178,7 +178,7 @@ contract MultiSigWallet {
     /// @param value Transaction ether value.
     /// @param data Transaction data payload.
     /// @return Returns transaction ID.
-    function submitTransaction(address destination, uint value, bytes data)
+    function submitTransaction(address destination, uint value, bytes memory data)
     public
     returns (uint transactionId)
     {
@@ -216,7 +216,7 @@ contract MultiSigWallet {
     /// @return Confirmation status.
     function isConfirmed(uint transactionId)
     public
-    constant
+    view
     returns (bool)
     {
         uint count = 0;
@@ -255,7 +255,7 @@ contract MultiSigWallet {
     /// @param value Transaction ether value.
     /// @param data Transaction data payload.
     /// @return Returns transaction ID.
-    function addTransaction(address destination, uint value, bytes data)
+    function addTransaction(address destination, uint value, bytes memory data)
     internal
     notNull(destination)
     returns (uint transactionId)
@@ -279,7 +279,7 @@ contract MultiSigWallet {
     /// @return Number of confirmations.
     function getConfirmationCount(uint transactionId)
     public
-    constant
+    view
     returns (uint count)
     {
         for (uint i=0; i<owners.length; i++)
@@ -293,7 +293,7 @@ contract MultiSigWallet {
     /// @return Total number of transactions after filters are applied.
     function getTransactionCount(bool pending, bool executed)
     public
-    constant
+    view
     returns (uint count)
     {
         for (uint i=0; i<transactionCount; i++)
@@ -306,8 +306,8 @@ contract MultiSigWallet {
     /// @return List of owner addresses.
     function getOwners()
     public
-    constant
-    returns (address[])
+    view
+    returns (address[] memory)
     {
         return owners;
     }
@@ -317,8 +317,8 @@ contract MultiSigWallet {
     /// @return Returns array of owner addresses.
     function getConfirmations(uint transactionId)
     public
-    constant
-    returns (address[] _confirmations)
+    view
+    returns (address[] memory _confirmations)
     {
         address[] memory confirmationsTemp = new address[](owners.length);
         uint count = 0;
@@ -341,8 +341,8 @@ contract MultiSigWallet {
     /// @return Returns array of transaction IDs.
     function getTransactionIds(uint from, uint to, bool pending, bool executed)
     public
-    constant
-    returns (uint[] _transactionIds)
+    view
+    returns (uint[] memory _transactionIds)
     {
         uint[] memory transactionIdsTemp = new uint[](transactionCount);
         uint count = 0;
