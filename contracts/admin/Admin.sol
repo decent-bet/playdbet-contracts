@@ -33,6 +33,8 @@ IAdmin {
 
     /**
     * Sets the platform wallet to send/receive payments
+    * @param _platformWallet Address of platform wallet
+    * @return whether platform wallet was set
     */
     function setPlatformWallet(
         address _platformWallet
@@ -45,6 +47,7 @@ IAdmin {
         emit LogOnSetPlatformWallet(
             _platformWallet
         );
+        return true;
     }
 
     /**
@@ -60,6 +63,7 @@ IAdmin {
         require(msg.sender == owner);
         admins[_address] = true;
         emit LogAddAdmin(_address);
+        return true;
     }
 
     /**
@@ -75,6 +79,7 @@ IAdmin {
         require(msg.sender == owner);
         admins[_address] = false;
         emit LogRemoveAdmin(_address);
+        return true;
     }
 
 }

@@ -20,4 +20,13 @@ contract IAdmin {
         address _address
     ) public returns (bool);
 
+    /**
+    * Sets the platform wallet to send/receive payments
+    * @param _platformWallet Address of platform wallet
+    * @return whether platform wallet was set
+    */
+    function setPlatformWallet(
+        address _platformWallet
+    ) public returns (bool);
+
 }
