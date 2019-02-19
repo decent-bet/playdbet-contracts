@@ -43,8 +43,8 @@ const getValidTournamentParams = entryLimit => {
 const getValidTournamentCompletionParams = () => {
     const finalStandings1 = [0] // Indices of entries
     const uniqueFinalStandings1 = 1
-    const finalStandings2 = [1, 0, 2] // Final standings for entries in the tournament
-    const uniqueFinalStandings2 = 3
+    const finalStandings2 = [0, 0, 1] // Final standings for entries in the tournament
+    const uniqueFinalStandings2 = 2
     return {
         finalStandings1,
         uniqueFinalStandings1,
