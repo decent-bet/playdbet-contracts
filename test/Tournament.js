@@ -20,8 +20,9 @@ let tournamentId2
 
 const getValidPrizeTable = () => {
     return [
-        60,
-        40
+        50,
+        30,
+        20
     ]
 }
 
@@ -42,8 +43,8 @@ const getValidTournamentParams = entryLimit => {
 const getValidTournamentCompletionParams = () => {
     const finalStandings1 = [0] // Indices of entries
     const uniqueFinalStandings1 = 1
-    const finalStandings2 = [0, 1] // Indices of entries
-    const uniqueFinalStandings2 = 2
+    const finalStandings2 = [1, 0, 2] // Final standings for entries in the tournament
+    const uniqueFinalStandings2 = 3
     return {
         finalStandings1,
         uniqueFinalStandings1,
@@ -392,6 +393,17 @@ contract('Tournament', accounts => {
         )
         assert.equal(
             tx3.logs[0].args.id,
+            tournamentId2
+        )
+        // User 2 enters tournament 2 again
+        const tx4 = await tournament.enterTournament(
+            tournamentId2,
+            {
+                from: user2
+            }
+        )
+        assert.equal(
+            tx4.logs[0].args.id,
             tournamentId2
         )
     })
