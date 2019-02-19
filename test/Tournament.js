@@ -25,14 +25,14 @@ const getValidPrizeTable = () => {
     ]
 }
 
-const getValidTournamentParams = isMultiEntry => {
+const getValidTournamentParams = entryLimit => {
     const entryFee = web3.utils.toWei('50', 'ether')
     const minEntries = 1
     const maxEntries = 10
     const rakePercent = 20
     return {
         entryFee,
-        isMultiEntry: isMultiEntry ? isMultiEntry : false,
+        entryLimit,
         minEntries,
         maxEntries,
         rakePercent
@@ -41,10 +41,14 @@ const getValidTournamentParams = isMultiEntry => {
 
 const getValidTournamentCompletionParams = () => {
     const finalStandings1 = [0] // Indices of entries
+    const uniqueFinalStandings1 = 1
     const finalStandings2 = [0, 1] // Indices of entries
+    const uniqueFinalStandings2 = 2
     return {
         finalStandings1,
-        finalStandings2
+        uniqueFinalStandings1,
+        finalStandings2,
+        uniqueFinalStandings2
     }
 }
 
@@ -128,16 +132,16 @@ contract('Tournament', accounts => {
     it('throws if non-admins create tournaments', async () => {
         const {
             entryFee,
-            isMultiEntry,
+            entryLimit,
             minEntries,
             maxEntries,
             rakePercent
-        } = getValidTournamentParams()
+        } = getValidTournamentParams(1)
 
         await utils.assertFail(
             tournament.createTournament(
                 entryFee,
-                isMultiEntry,
+                entryLimit,
                 minEntries,
                 maxEntries,
                 rakePercent,
@@ -152,17 +156,17 @@ contract('Tournament', accounts => {
     it('throws if admin creates tournament with invalid values', async () => {
         const {
             entryFee,
-            isMultiEntry,
+            entryLimit,
             minEntries,
             maxEntries,
             rakePercent
-        } = getValidTournamentParams()
+        } = getValidTournamentParams(1)
 
         // Invalid entry fee
         await utils.assertFail(
             tournament.createTournament(
                 '0',
-                isMultiEntry,
+                entryLimit,
                 minEntries,
                 maxEntries,
                 rakePercent,
@@ -177,7 +181,7 @@ contract('Tournament', accounts => {
         await utils.assertFail(
             tournament.createTournament(
                 entryFee,
-                isMultiEntry,
+                entryLimit,
                 '0',
                 maxEntries,
                 rakePercent,
@@ -192,7 +196,7 @@ contract('Tournament', accounts => {
         await utils.assertFail(
             tournament.createTournament(
                 entryFee,
-                isMultiEntry,
+                entryLimit,
                 minEntries,
                 '0',
                 rakePercent,
@@ -207,7 +211,7 @@ contract('Tournament', accounts => {
         await utils.assertFail(
             tournament.createTournament(
                 entryFee,
-                isMultiEntry,
+                entryLimit,
                 minEntries,
                 maxEntries,
                 '0',
@@ -222,7 +226,7 @@ contract('Tournament', accounts => {
         await utils.assertFail(
             tournament.createTournament(
                 entryFee,
-                isMultiEntry,
+                entryLimit,
                 minEntries,
                 maxEntries,
                 rakePercent,
@@ -237,15 +241,15 @@ contract('Tournament', accounts => {
     it('allows admins to create tournaments with valid params', async () => {
         const {
             entryFee,
-            isMultiEntry,
+            entryLimit,
             minEntries,
             maxEntries,
             rakePercent
-        } = getValidTournamentParams()
+        } = getValidTournamentParams(1)
 
         const tx1 = await tournament.createTournament(
             entryFee,
-            isMultiEntry,
+            entryLimit,
             minEntries,
             maxEntries,
             rakePercent,
@@ -265,7 +269,7 @@ contract('Tournament', accounts => {
 
         const tx2 = await tournament.createTournament(
             entryFee,
-            isMultiEntry,
+            entryLimit,
             minEntries,
             maxEntries,
             rakePercent,
@@ -394,13 +398,15 @@ contract('Tournament', accounts => {
 
     it('throws if non-admin completes tournament', async () => {
         const {
-            finalStandings1
+            finalStandings1,
+            uniqueFinalStandings1
         } = getValidTournamentCompletionParams()
 
         await utils.assertFail(
             tournament.completeTournament(
                 tournamentId1,
                 finalStandings1,
+                uniqueFinalStandings1,
                 {
                     from: user1
                 }
@@ -410,13 +416,15 @@ contract('Tournament', accounts => {
 
     it('throws if admin completes tournament with an invalid ID', async () => {
         const {
-            finalStandings1
+            finalStandings1,
+            uniqueFinalStandings1
         } = getValidTournamentCompletionParams()
 
         await utils.assertFail(
             tournament.completeTournament(
                 web3.utils.fromUtf8('invalid'),
                 finalStandings1,
+                uniqueFinalStandings1,
                 {
                     from: owner
                 }
@@ -427,13 +435,16 @@ contract('Tournament', accounts => {
     it('allows admin to complete tournament with valid final standings', async () => {
         const {
             finalStandings1,
-            finalStandings2
+            uniqueFinalStandings1,
+            finalStandings2,
+            uniqueFinalStandings2
         } = getValidTournamentCompletionParams()
 
         // Complete tournament 1
         const tx1 = await tournament.completeTournament(
             tournamentId1,
             finalStandings1,
+            uniqueFinalStandings1,
             {
                 from: owner
             }
@@ -448,6 +459,7 @@ contract('Tournament', accounts => {
         const tx2 = await tournament.completeTournament(
             tournamentId2,
             finalStandings2,
+            uniqueFinalStandings2,
             {
                 from: owner
             }

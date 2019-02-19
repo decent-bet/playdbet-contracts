@@ -14,7 +14,7 @@ contract ITournament {
     /**
     * Creates a tournament that users can enter
     * @param entryFee fee to enter the tournament
-    * @param isMultiEntry can a user enter more than once
+    * @param entryLimit Entry limit for each unique address
     * @param minEntries the minimum number of entries for the tournament
     * @param maxEntries the maximum number of entries for the tournament
     * @param rakePercent percentage of the prize pool retained by Decent.bet
@@ -23,7 +23,7 @@ contract ITournament {
     */
     function createTournament(
         uint256 entryFee,
-        bool isMultiEntry,
+        uint256 entryLimit,
         uint256 minEntries,
         uint256 maxEntries,
         uint256 rakePercent,
@@ -42,11 +42,13 @@ contract ITournament {
     * Allows the admin to complete the tournament by publishing the final standings
     * @param id unique ID of the tournament
     * @param finalStandings final standings of participants in the tournament
+    * @param uniqueFinalStandings Number of unique positions in the final standing array
     * @return whether the tournament was completed
     */
     function completeTournament(
         bytes32 id,
-        uint256[] memory finalStandings
+        uint256[] memory finalStandings,
+        uint256 uniqueFinalStandings
     ) public returns (bool);
 
     /**
