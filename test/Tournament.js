@@ -17,6 +17,7 @@ let web3 = utils.getWeb3()
 let prizeTableId
 let tournamentId1
 let tournamentId2
+let tournamentId3
 
 const getValidPrizeTable = () => {
     return [
@@ -45,11 +46,15 @@ const getValidTournamentCompletionParams = () => {
     const uniqueFinalStandings1 = 1
     const finalStandings2 = [0, 0, 1] // Final standings for entries in the tournament
     const uniqueFinalStandings2 = 2
+    const finalStandings3 = [0, 1, 2]
+    const uniqueFinalStandings3 = 3
     return {
         finalStandings1,
         uniqueFinalStandings1,
         finalStandings2,
-        uniqueFinalStandings2
+        uniqueFinalStandings2,
+        finalStandings3,
+        uniqueFinalStandings3
     }
 }
 
@@ -287,6 +292,26 @@ contract('Tournament', accounts => {
             tournamentCountAtCreation,
             '1'
         )
+
+        const tx3 = await tournament.createTournament(
+            entryFee,
+            entryLimit,
+            minEntries,
+            maxEntries,
+            rakePercent,
+            prizeTableId,
+            {
+                from: owner
+            }
+        )
+
+        tournamentId3 = tx3.logs[0].args.id
+        tournamentCountAtCreation = tx3.logs[0].args.count
+
+        assert.equal(
+            tournamentCountAtCreation,
+            '2'
+        )
     })
 
     it('throws if user enters invalid tournament', async () => {
@@ -406,6 +431,39 @@ contract('Tournament', accounts => {
             tx4.logs[0].args.id,
             tournamentId2
         )
+        // User 1 enters tournament 3
+        const tx5 = await tournament.enterTournament(
+            tournamentId3,
+            {
+                from: user1
+            }
+        )
+        assert.equal(
+            tx5.logs[0].args.id,
+            tournamentId3
+        )
+        // User 2 enters tournament 3
+        const tx6 = await tournament.enterTournament(
+            tournamentId3,
+            {
+                from: user2
+            }
+        )
+        assert.equal(
+            tx6.logs[0].args.id,
+            tournamentId3
+        )
+        // User 1 enters tournament 3 again
+        const tx7 = await tournament.enterTournament(
+            tournamentId3,
+            {
+                from: user1
+            }
+        )
+        assert.equal(
+            tx7.logs[0].args.id,
+            tournamentId3
+        )
     })
 
     it('throws if non-admin completes tournament', async () => {
@@ -449,7 +507,9 @@ contract('Tournament', accounts => {
             finalStandings1,
             uniqueFinalStandings1,
             finalStandings2,
-            uniqueFinalStandings2
+            uniqueFinalStandings2,
+            finalStandings3,
+            uniqueFinalStandings3
         } = getValidTournamentCompletionParams()
 
         // Complete tournament 1
@@ -480,6 +540,21 @@ contract('Tournament', accounts => {
         assert.equal(
             tx2.logs[0].args.id,
             tournamentId2
+        )
+
+        // Complete tournament 3
+        const tx3 = await tournament.completeTournament(
+            tournamentId3,
+            finalStandings3,
+            uniqueFinalStandings3,
+            {
+                from: owner
+            }
+        )
+
+        assert.equal(
+            tx3.logs[0].args.id,
+            tournamentId3
         )
     })
 
@@ -578,8 +653,8 @@ contract('Tournament', accounts => {
             tournamentId2
         )
 
-        // Claim tournament 2 prize as user2
-        const preClaimTournament2User2Balance = await token.balanceOf(user2)
+        // Claim tournament 2 prizes as user2
+        const preClaimTournament2User2Entry1Balance = await token.balanceOf(user2)
 
         const tx3 = await tournament.claimTournamentPrize(
             tournamentId2,
@@ -589,22 +664,135 @@ contract('Tournament', accounts => {
             }
         )
 
-        const postClaimTournament2User2Balance = await token.balanceOf(user2)
+        const postClaimTournament2User2Entry1Balance = await token.balanceOf(user2)
 
         console.log(
-            'T2U2',
-            web3.utils.fromWei(preClaimTournament2User2Balance, 'ether'),
-            web3.utils.fromWei(postClaimTournament2User2Balance, 'ether')
+            'T2U2-E1',
+            web3.utils.fromWei(preClaimTournament2User2Entry1Balance, 'ether'),
+            web3.utils.fromWei(postClaimTournament2User2Entry1Balance, 'ether')
         )
 
         assert.equal(
-            new BigNumber(postClaimTournament2User2Balance).isGreaterThan(preClaimTournament2User2Balance),
+            new BigNumber(postClaimTournament2User2Entry1Balance).isGreaterThan(preClaimTournament2User2Entry1Balance),
             true
         )
 
         assert.equal(
             tx3.logs[0].args.id,
             tournamentId2
+        )
+        const preClaimTournament2User2Entry2Balance = await token.balanceOf(user2)
+
+        const tx4 = await tournament.claimTournamentPrize(
+            tournamentId2,
+            2,
+            {
+                from: user2
+            }
+        )
+
+        const postClaimTournament2User2Entry2Balance = await token.balanceOf(user2)
+
+        console.log(
+            'T2U2-E2',
+            web3.utils.fromWei(preClaimTournament2User2Entry2Balance, 'ether'),
+            web3.utils.fromWei(postClaimTournament2User2Entry2Balance, 'ether')
+        )
+
+        assert.equal(
+            new BigNumber(postClaimTournament2User2Entry2Balance).isGreaterThan(preClaimTournament2User2Entry2Balance),
+            true
+        )
+
+        assert.equal(
+            tx4.logs[0].args.id,
+            tournamentId2
+        )
+
+        // Claim tournament 3 prizes as user 1
+        const preClaimTournament3User1Entry1Balance = await token.balanceOf(user1)
+
+        const tx5 = await tournament.claimTournamentPrize(
+            tournamentId3,
+            0,
+            {
+                from: user1
+            }
+        )
+
+        const postClaimTournament3User1Entry1Balance = await token.balanceOf(user1)
+
+        console.log(
+            'T3U1-E1',
+            web3.utils.fromWei(preClaimTournament3User1Entry1Balance, 'ether'),
+            web3.utils.fromWei(postClaimTournament3User1Entry1Balance, 'ether')
+        )
+
+        assert.equal(
+            new BigNumber(postClaimTournament3User1Entry1Balance).isGreaterThan(preClaimTournament3User1Entry1Balance),
+            true
+        )
+
+        assert.equal(
+            tx5.logs[0].args.id,
+            tournamentId3
+        )
+
+        const preClaimTournament3User1Entry2Balance = await token.balanceOf(user1)
+
+        const tx6 = await tournament.claimTournamentPrize(
+            tournamentId3,
+            2,
+            {
+                from: user1
+            }
+        )
+
+        const postClaimTournament3User1Entry2Balance = await token.balanceOf(user1)
+
+        console.log(
+            'T3U1-E1',
+            web3.utils.fromWei(preClaimTournament3User1Entry1Balance, 'ether'),
+            web3.utils.fromWei(postClaimTournament3User1Entry2Balance, 'ether')
+        )
+
+        assert.equal(
+            new BigNumber(postClaimTournament3User1Entry2Balance).isGreaterThan(preClaimTournament3User1Entry1Balance),
+            true
+        )
+
+        assert.equal(
+            tx6.logs[0].args.id,
+            tournamentId3
+        )
+
+        // Claim tournament 3 prize as user 2
+        const preClaimTournament3User2Balance = await token.balanceOf(user2)
+
+        const tx7 = await tournament.claimTournamentPrize(
+            tournamentId3,
+            1,
+            {
+                from: user2
+            }
+        )
+
+        const postClaimTournament3User2Balance = await token.balanceOf(user2)
+
+        console.log(
+            'T3U2-E1',
+            web3.utils.fromWei(preClaimTournament3User2Balance, 'ether'),
+            web3.utils.fromWei(postClaimTournament3User2Balance, 'ether')
+        )
+
+        assert.equal(
+            new BigNumber(postClaimTournament3User2Balance).isGreaterThan(preClaimTournament3User2Balance),
+            true
+        )
+
+        assert.equal(
+            tx7.logs[0].args.id,
+            tournamentId3
         )
     })
 

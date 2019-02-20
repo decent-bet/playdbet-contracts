@@ -16,7 +16,6 @@ LibTournament {
 
     using SafeMath for uint256;
 
-
     // Owner of the tournament contract
     address public owner;
     // Admin contract
@@ -513,6 +512,5 @@ LibTournament {
     returns (uint256) {
         return tournaments[id].entries[index].finalStanding;
     }
-
 
 }
