@@ -281,15 +281,6 @@ LibTournament {
         if(finalStandings.length > 0) {
             // Unique final standings must be greater than 0
             require(uniqueFinalStandings > 0);
-            // Check if final standings are valid
-            if(finalStandings.length > 1)
-                for (uint256 i = 1; i < finalStandings.length; i++) {
-                    if(i != finalStandings.length - 1)
-                        require(
-                            finalStandings[i] >= finalStandings[i - 1],
-                            "INVALID_FINAL_STANDINGS"
-                        );
-                }
             // Tournament successfully completed
             // Set finalStandings for the tournament
             for (uint256 i = 0; i < tournaments[id].entries.length; i++) {
