@@ -1,0 +1,14 @@
+version: '3'
+services:
+    thor:
+        build:
+            context: ./thor
+        container_name: thor-playdbet
+        ports:
+            - '127.0.0.1:8669:8669'
+            - '11235:11235'
+            - '11235:11235/udp'
+        command: solo --persist --api-addr 0.0.0.0:8669 --api-cors "*"
+        network_mode: host
+        volumes:
+            - /root/.org.vechain.thor
