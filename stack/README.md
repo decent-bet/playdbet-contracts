@@ -9,9 +9,10 @@ Execute `docker-compose up`. Hardcode the Contracts' Addresses shown below.
 ## Contract Addresses
 
 ```
-Admin: 0xBa51DCEAE13514284fBdB8b3d541E225E9a69666
-Quest: 0x04C466da691Cf7B6c1A0352757f405436ba6c08c
-Token: 0x2B61c861c38fBAac067e6a447881C4e5D9AdbeeC
+Admin: 0xd74313287364cA0fd80425d52c6c6B13538c0247
+Quest: 0x5379897279457f4f8F182f29273E087e505aF8c0
+Token: 0x9485cDB237f5B582f86B125CAd32b420Ad46519D
+Tournament: 0x86F3EC2f5C82C86974f2407c0ac9c627015eCcA0
 ```
 
 ## How was this made?
