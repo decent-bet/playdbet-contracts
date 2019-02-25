@@ -4,6 +4,7 @@
   "main": "index.js",
   "author": "dev <dev@decent.bet>",
   "license": "GPL-3.0",
+  "private": true,
   "scripts": {
     "compile": "node ./lib/compile",
     "migrate": "node ./lib/migrations/run",

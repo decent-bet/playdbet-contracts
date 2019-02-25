@@ -1,0 +1,19 @@
+{
+    "name": "@decent-bet/contract-playdbet",
+    "version": "0.0.1",
+    "description": "Contracts for PlayDBET Platform",
+    "main": "index.js",
+    "repository": {
+        "type": "git",
+        "url": "github.com/decent-bet/playdbet-contracts"
+    },
+    "keywords": [
+        "vechain",
+        "solidity"
+    ],
+    "author": "Roberto E. Zubieta <roberto@decent.bet>",
+    "license": "MIT",
+    "devDependencies": {
+        "ethereum-protocol": "^1.0.1"
+    }
+}
