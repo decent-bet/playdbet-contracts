@@ -14,8 +14,6 @@ function MigrationScript(web3, contractManager, deployer, args) {
     const TOKEN_DECIMALS = 18
     const TOTAL_DBET_SUPPLY = '205903294831970956466297922'
 
-    let contractInfo = {}
-
     const getAccounts = () => {
         return web3.eth.accounts.wallet
     }
@@ -52,7 +50,8 @@ function MigrationScript(web3, contractManager, deployer, args) {
 
                 // Deploy the Admin contract
                 admin = await deployer.deploy(
-                    Admin
+                    Admin,
+                    getDefaultOptions()
                 )
                 console.log('Deployed admin')
 
@@ -69,9 +68,7 @@ function MigrationScript(web3, contractManager, deployer, args) {
                     'Deployed:',
                     '\nAdmin: ' + admin.options.address,
                     '\nQuest: ' + quest.options.address,
-                    '\nToken: ' + token.options.address,
-                    '\n\nContract info:\n',
-                    contractInfo
+                    '\nToken: ' + token.options.address
                 )
             } else if (chain === constants.CHAIN_MAIN) {
             }
