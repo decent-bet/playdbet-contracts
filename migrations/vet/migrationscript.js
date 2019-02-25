@@ -7,7 +7,8 @@ function MigrationScript(web3, contractManager, deployer, args) {
 
     let admin,
         quest,
-        token
+        token,
+        tournament
 
     const TOKEN_NAME = 'Decent.bet Token'
     const TOKEN_SYMBOL = 'DBET'
@@ -30,6 +31,7 @@ function MigrationScript(web3, contractManager, deployer, args) {
         const Admin = contractManager.getContract('Admin')
         const DecentBetToken = contractManager.getContract('DBETVETToken')
         const Quest = contractManager.getContract('Quest')
+        const Tournament = contractManager.getContract('Tournament')
 
         let accounts = await getAccounts()
         defaultAccount = accounts[0].address
@@ -64,11 +66,21 @@ function MigrationScript(web3, contractManager, deployer, args) {
                 )
                 console.log('Deployed quest')
 
+                // Deploy the Tournament contract
+                tournament = await deployer.deploy(
+                    Tournament,
+                    admin.options.address,
+                    token.options.address,
+                    getDefaultOptions()
+                )
+                console.log('Deployed tournament')
+
                 console.log(
                     'Deployed:',
                     '\nAdmin: ' + admin.options.address,
                     '\nQuest: ' + quest.options.address,
-                    '\nToken: ' + token.options.address
+                    '\nToken: ' + token.options.address,
+                    '\nTournament: ' + tournament.options.address
                 )
             } else if (chain === constants.CHAIN_MAIN) {
             }
