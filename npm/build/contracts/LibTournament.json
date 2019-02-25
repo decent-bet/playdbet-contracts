@@ -1,0 +1,979 @@
+{
+  "contractName": "LibTournament",
+  "abi": [],
+  "bytecode": "0x6080604052348015600f57600080fd5b50603580601d6000396000f3fe6080604052600080fdfea165627a7a7230582088df2a2b0b50df386e287b2f7738ae385b5a7ba9b0a8efbd2fc66edfdcc53c2c0029",
+  "deployedBytecode": "0x6080604052600080fdfea165627a7a7230582088df2a2b0b50df386e287b2f7738ae385b5a7ba9b0a8efbd2fc66edfdcc53c2c0029",
+  "sourceMap": "24:1356:11:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;24:1356:11;;;;;;;",
+  "deployedSourceMap": "24:1356:11:-;;;;;",
+  "source": "pragma solidity 0.5.0;\n\ncontract LibTournament {\n\n    enum TournamentStatus {\n        ACTIVE,\n        COMPLETED,\n        FAILED\n    }\n\n    struct Tournament {\n        // Entry fee\n        uint256 entryFee;\n        // How many times can a user enter the tournament\n        uint256 entryLimit;\n        // Minimum entries\n        uint256 minEntries;\n        // Maximum entries\n        uint256 maxEntries;\n        // Rake percent\n        uint256 rakePercent;\n        // Unique id of prize table\n        bytes32 prizeTable;\n        // Participants in tournament\n        TournamentEntry[] entries;\n        // Unique standings - used to determine number of unique final standings excluding tied entries for prize giveaway calculation.\n        // If unique final standings < prize table length, the remaining prize table % will be equally distributed among all addresses\n        uint256 uniqueFinalStandings;\n        // Claimed amounts from entries based on prize table and final standings\n        mapping (uint256 => bool) claimed;\n        // Refunded amounts from entries for tournaments with a failed status\n        mapping (uint256 => bool) refunded;\n        // Tournament status based on enum\n        uint8 status;\n    }\n\n    struct TournamentEntry {\n        // Address of entered user\n        address _address;\n        // Final standing index\n        uint256 finalStanding;\n    }\n\n}\n",
+  "sourcePath": "/home/zubietaroberto/work/playdbet-contracts/contracts/tournament/libs/LibTournament.sol",
+  "ast": {
+    "absolutePath": "/home/zubietaroberto/work/playdbet-contracts/contracts/tournament/libs/LibTournament.sol",
+    "exportedSymbols": {
+      "LibTournament": [
+        3535
+      ]
+    },
+    "id": 3536,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 3497,
+        "literals": [
+          "solidity",
+          "0.5",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:22:11"
+      },
+      {
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": null,
+        "fullyImplemented": true,
+        "id": 3535,
+        "linearizedBaseContracts": [
+          3535
+        ],
+        "name": "LibTournament",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "canonicalName": "LibTournament.TournamentStatus",
+            "id": 3501,
+            "members": [
+              {
+                "id": 3498,
+                "name": "ACTIVE",
+                "nodeType": "EnumValue",
+                "src": "86:6:11"
+              },
+              {
+                "id": 3499,
+                "name": "COMPLETED",
+                "nodeType": "EnumValue",
+                "src": "102:9:11"
+              },
+              {
+                "id": 3500,
+                "name": "FAILED",
+                "nodeType": "EnumValue",
+                "src": "121:6:11"
+              }
+            ],
+            "name": "TournamentStatus",
+            "nodeType": "EnumDefinition",
+            "src": "54:79:11"
+          },
+          {
+            "canonicalName": "LibTournament.Tournament",
+            "id": 3529,
+            "members": [
+              {
+                "constant": false,
+                "id": 3503,
+                "name": "entryFee",
+                "nodeType": "VariableDeclaration",
+                "scope": 3529,
+                "src": "188:16:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 3502,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "188:7:11",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 3505,
+                "name": "entryLimit",
+                "nodeType": "VariableDeclaration",
+                "scope": 3529,
+                "src": "272:18:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 3504,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "272:7:11",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 3507,
+                "name": "minEntries",
+                "nodeType": "VariableDeclaration",
+                "scope": 3529,
+                "src": "327:18:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 3506,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "327:7:11",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 3509,
+                "name": "maxEntries",
+                "nodeType": "VariableDeclaration",
+                "scope": 3529,
+                "src": "382:18:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 3508,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "382:7:11",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 3511,
+                "name": "rakePercent",
+                "nodeType": "VariableDeclaration",
+                "scope": 3529,
+                "src": "434:19:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 3510,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "434:7:11",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 3513,
+                "name": "prizeTable",
+                "nodeType": "VariableDeclaration",
+                "scope": 3529,
+                "src": "499:18:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_bytes32",
+                  "typeString": "bytes32"
+                },
+                "typeName": {
+                  "id": 3512,
+                  "name": "bytes32",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "499:7:11",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes32",
+                    "typeString": "bytes32"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 3516,
+                "name": "entries",
+                "nodeType": "VariableDeclaration",
+                "scope": 3529,
+                "src": "565:25:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_array$_t_struct$_TournamentEntry_$3534_storage_$dyn_storage_ptr",
+                  "typeString": "struct LibTournament.TournamentEntry[]"
+                },
+                "typeName": {
+                  "baseType": {
+                    "contractScope": null,
+                    "id": 3514,
+                    "name": "TournamentEntry",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 3534,
+                    "src": "565:15:11",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_TournamentEntry_$3534_storage_ptr",
+                      "typeString": "struct LibTournament.TournamentEntry"
+                    }
+                  },
+                  "id": 3515,
+                  "length": null,
+                  "nodeType": "ArrayTypeName",
+                  "src": "565:17:11",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_struct$_TournamentEntry_$3534_storage_$dyn_storage_ptr",
+                    "typeString": "struct LibTournament.TournamentEntry[]"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 3518,
+                "name": "uniqueFinalStandings",
+                "nodeType": "VariableDeclaration",
+                "scope": 3529,
+                "src": "871:28:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 3517,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "871:7:11",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 3522,
+                "name": "claimed",
+                "nodeType": "VariableDeclaration",
+                "scope": 3529,
+                "src": "990:33:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_mapping$_t_uint256_$_t_bool_$",
+                  "typeString": "mapping(uint256 => bool)"
+                },
+                "typeName": {
+                  "id": 3521,
+                  "keyType": {
+                    "id": 3519,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "999:7:11",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "nodeType": "Mapping",
+                  "src": "990:25:11",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_mapping$_t_uint256_$_t_bool_$",
+                    "typeString": "mapping(uint256 => bool)"
+                  },
+                  "valueType": {
+                    "id": 3520,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1010:4:11",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 3526,
+                "name": "refunded",
+                "nodeType": "VariableDeclaration",
+                "scope": 3529,
+                "src": "1111:34:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_mapping$_t_uint256_$_t_bool_$",
+                  "typeString": "mapping(uint256 => bool)"
+                },
+                "typeName": {
+                  "id": 3525,
+                  "keyType": {
+                    "id": 3523,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1120:7:11",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "nodeType": "Mapping",
+                  "src": "1111:25:11",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_mapping$_t_uint256_$_t_bool_$",
+                    "typeString": "mapping(uint256 => bool)"
+                  },
+                  "valueType": {
+                    "id": 3524,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1131:4:11",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 3528,
+                "name": "status",
+                "nodeType": "VariableDeclaration",
+                "scope": 3529,
+                "src": "1198:12:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint8",
+                  "typeString": "uint8"
+                },
+                "typeName": {
+                  "id": 3527,
+                  "name": "uint8",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "1198:5:11",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint8",
+                    "typeString": "uint8"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              }
+            ],
+            "name": "Tournament",
+            "nodeType": "StructDefinition",
+            "scope": 3535,
+            "src": "139:1078:11",
+            "visibility": "public"
+          },
+          {
+            "canonicalName": "LibTournament.TournamentEntry",
+            "id": 3534,
+            "members": [
+              {
+                "constant": false,
+                "id": 3531,
+                "name": "_address",
+                "nodeType": "VariableDeclaration",
+                "scope": 3534,
+                "src": "1291:16:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                },
+                "typeName": {
+                  "id": 3530,
+                  "name": "address",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "1291:7:11",
+                  "stateMutability": "nonpayable",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 3533,
+                "name": "finalStanding",
+                "nodeType": "VariableDeclaration",
+                "scope": 3534,
+                "src": "1349:21:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 3532,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "1349:7:11",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              }
+            ],
+            "name": "TournamentEntry",
+            "nodeType": "StructDefinition",
+            "scope": 3535,
+            "src": "1223:154:11",
+            "visibility": "public"
+          }
+        ],
+        "scope": 3536,
+        "src": "24:1356:11"
+      }
+    ],
+    "src": "0:1381:11"
+  },
+  "legacyAST": {
+    "absolutePath": "/home/zubietaroberto/work/playdbet-contracts/contracts/tournament/libs/LibTournament.sol",
+    "exportedSymbols": {
+      "LibTournament": [
+        3535
+      ]
+    },
+    "id": 3536,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 3497,
+        "literals": [
+          "solidity",
+          "0.5",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:22:11"
+      },
+      {
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": null,
+        "fullyImplemented": true,
+        "id": 3535,
+        "linearizedBaseContracts": [
+          3535
+        ],
+        "name": "LibTournament",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "canonicalName": "LibTournament.TournamentStatus",
+            "id": 3501,
+            "members": [
+              {
+                "id": 3498,
+                "name": "ACTIVE",
+                "nodeType": "EnumValue",
+                "src": "86:6:11"
+              },
+              {
+                "id": 3499,
+                "name": "COMPLETED",
+                "nodeType": "EnumValue",
+                "src": "102:9:11"
+              },
+              {
+                "id": 3500,
+                "name": "FAILED",
+                "nodeType": "EnumValue",
+                "src": "121:6:11"
+              }
+            ],
+            "name": "TournamentStatus",
+            "nodeType": "EnumDefinition",
+            "src": "54:79:11"
+          },
+          {
+            "canonicalName": "LibTournament.Tournament",
+            "id": 3529,
+            "members": [
+              {
+                "constant": false,
+                "id": 3503,
+                "name": "entryFee",
+                "nodeType": "VariableDeclaration",
+                "scope": 3529,
+                "src": "188:16:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 3502,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "188:7:11",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 3505,
+                "name": "entryLimit",
+                "nodeType": "VariableDeclaration",
+                "scope": 3529,
+                "src": "272:18:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 3504,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "272:7:11",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 3507,
+                "name": "minEntries",
+                "nodeType": "VariableDeclaration",
+                "scope": 3529,
+                "src": "327:18:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 3506,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "327:7:11",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 3509,
+                "name": "maxEntries",
+                "nodeType": "VariableDeclaration",
+                "scope": 3529,
+                "src": "382:18:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 3508,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "382:7:11",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 3511,
+                "name": "rakePercent",
+                "nodeType": "VariableDeclaration",
+                "scope": 3529,
+                "src": "434:19:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 3510,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "434:7:11",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 3513,
+                "name": "prizeTable",
+                "nodeType": "VariableDeclaration",
+                "scope": 3529,
+                "src": "499:18:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_bytes32",
+                  "typeString": "bytes32"
+                },
+                "typeName": {
+                  "id": 3512,
+                  "name": "bytes32",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "499:7:11",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes32",
+                    "typeString": "bytes32"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 3516,
+                "name": "entries",
+                "nodeType": "VariableDeclaration",
+                "scope": 3529,
+                "src": "565:25:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_array$_t_struct$_TournamentEntry_$3534_storage_$dyn_storage_ptr",
+                  "typeString": "struct LibTournament.TournamentEntry[]"
+                },
+                "typeName": {
+                  "baseType": {
+                    "contractScope": null,
+                    "id": 3514,
+                    "name": "TournamentEntry",
+                    "nodeType": "UserDefinedTypeName",
+                    "referencedDeclaration": 3534,
+                    "src": "565:15:11",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_TournamentEntry_$3534_storage_ptr",
+                      "typeString": "struct LibTournament.TournamentEntry"
+                    }
+                  },
+                  "id": 3515,
+                  "length": null,
+                  "nodeType": "ArrayTypeName",
+                  "src": "565:17:11",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_struct$_TournamentEntry_$3534_storage_$dyn_storage_ptr",
+                    "typeString": "struct LibTournament.TournamentEntry[]"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 3518,
+                "name": "uniqueFinalStandings",
+                "nodeType": "VariableDeclaration",
+                "scope": 3529,
+                "src": "871:28:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 3517,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "871:7:11",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 3522,
+                "name": "claimed",
+                "nodeType": "VariableDeclaration",
+                "scope": 3529,
+                "src": "990:33:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_mapping$_t_uint256_$_t_bool_$",
+                  "typeString": "mapping(uint256 => bool)"
+                },
+                "typeName": {
+                  "id": 3521,
+                  "keyType": {
+                    "id": 3519,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "999:7:11",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "nodeType": "Mapping",
+                  "src": "990:25:11",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_mapping$_t_uint256_$_t_bool_$",
+                    "typeString": "mapping(uint256 => bool)"
+                  },
+                  "valueType": {
+                    "id": 3520,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1010:4:11",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 3526,
+                "name": "refunded",
+                "nodeType": "VariableDeclaration",
+                "scope": 3529,
+                "src": "1111:34:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_mapping$_t_uint256_$_t_bool_$",
+                  "typeString": "mapping(uint256 => bool)"
+                },
+                "typeName": {
+                  "id": 3525,
+                  "keyType": {
+                    "id": 3523,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1120:7:11",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "nodeType": "Mapping",
+                  "src": "1111:25:11",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_mapping$_t_uint256_$_t_bool_$",
+                    "typeString": "mapping(uint256 => bool)"
+                  },
+                  "valueType": {
+                    "id": 3524,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1131:4:11",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 3528,
+                "name": "status",
+                "nodeType": "VariableDeclaration",
+                "scope": 3529,
+                "src": "1198:12:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint8",
+                  "typeString": "uint8"
+                },
+                "typeName": {
+                  "id": 3527,
+                  "name": "uint8",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "1198:5:11",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint8",
+                    "typeString": "uint8"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              }
+            ],
+            "name": "Tournament",
+            "nodeType": "StructDefinition",
+            "scope": 3535,
+            "src": "139:1078:11",
+            "visibility": "public"
+          },
+          {
+            "canonicalName": "LibTournament.TournamentEntry",
+            "id": 3534,
+            "members": [
+              {
+                "constant": false,
+                "id": 3531,
+                "name": "_address",
+                "nodeType": "VariableDeclaration",
+                "scope": 3534,
+                "src": "1291:16:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                },
+                "typeName": {
+                  "id": 3530,
+                  "name": "address",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "1291:7:11",
+                  "stateMutability": "nonpayable",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 3533,
+                "name": "finalStanding",
+                "nodeType": "VariableDeclaration",
+                "scope": 3534,
+                "src": "1349:21:11",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 3532,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "1349:7:11",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              }
+            ],
+            "name": "TournamentEntry",
+            "nodeType": "StructDefinition",
+            "scope": 3535,
+            "src": "1223:154:11",
+            "visibility": "public"
+          }
+        ],
+        "scope": 3536,
+        "src": "24:1356:11"
+      }
+    ],
+    "src": "0:1381:11"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.5.0+commit.1d4f565a.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "3.0.2",
+  "updatedAt": "2019-02-25T15:55:05.915Z",
+  "devdoc": {
+    "methods": {}
+  },
+  "userdoc": {
+    "methods": {}
+  }
+}

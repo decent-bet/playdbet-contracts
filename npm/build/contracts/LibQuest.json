@@ -1,0 +1,565 @@
+{
+  "contractName": "LibQuest",
+  "abi": [],
+  "bytecode": "0x6080604052348015600f57600080fd5b50603580601d6000396000f3fe6080604052600080fdfea165627a7a72305820b3e98af7e0a81877fda267c753445c9b9e4a16f1ca3348f3e6acbb804ed937620029",
+  "deployedBytecode": "0x6080604052600080fdfea165627a7a72305820b3e98af7e0a81877fda267c753445c9b9e4a16f1ca3348f3e6acbb804ed937620029",
+  "sourceMap": "24:654:5:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;24:654:5;;;;;;;",
+  "deployedSourceMap": "24:654:5:-;;;;;",
+  "source": "pragma solidity 0.5.0;\n\ncontract LibQuest {\n\n    // Possible quest statuses for user entries\n    enum QuestStatus {\n        STARTED,\n        SUCCESS,\n        FAILED\n    }\n\n    struct Quest {\n        // Amount to pay in DBETs for quest entry\n        uint256 entryFee;\n        // Maximum time for user to complete quest\n        uint256 timeToComplete;\n        // Prize in DBETs to payout to winners\n        uint256 prize;\n        // True if quest has been set\n        bool exists;\n    }\n\n    struct UserQuestEntry {\n        // Entry time\n        uint256 entryTime;\n        // Quest status\n        uint8 status;\n        // True if entry has been added\n        bool exists;\n    }\n\n}\n",
+  "sourcePath": "/home/zubietaroberto/work/playdbet-contracts/contracts/quest/libs/LibQuest.sol",
+  "ast": {
+    "absolutePath": "/home/zubietaroberto/work/playdbet-contracts/contracts/quest/libs/LibQuest.sol",
+    "exportedSymbols": {
+      "LibQuest": [
+        654
+      ]
+    },
+    "id": 655,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 633,
+        "literals": [
+          "solidity",
+          "0.5",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:22:5"
+      },
+      {
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": null,
+        "fullyImplemented": true,
+        "id": 654,
+        "linearizedBaseContracts": [
+          654
+        ],
+        "name": "LibQuest",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "canonicalName": "LibQuest.QuestStatus",
+            "id": 637,
+            "members": [
+              {
+                "id": 634,
+                "name": "STARTED",
+                "nodeType": "EnumValue",
+                "src": "124:7:5"
+              },
+              {
+                "id": 635,
+                "name": "SUCCESS",
+                "nodeType": "EnumValue",
+                "src": "141:7:5"
+              },
+              {
+                "id": 636,
+                "name": "FAILED",
+                "nodeType": "EnumValue",
+                "src": "158:6:5"
+              }
+            ],
+            "name": "QuestStatus",
+            "nodeType": "EnumDefinition",
+            "src": "97:73:5"
+          },
+          {
+            "canonicalName": "LibQuest.Quest",
+            "id": 646,
+            "members": [
+              {
+                "constant": false,
+                "id": 639,
+                "name": "entryFee",
+                "nodeType": "VariableDeclaration",
+                "scope": 646,
+                "src": "249:16:5",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 638,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "249:7:5",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 641,
+                "name": "timeToComplete",
+                "nodeType": "VariableDeclaration",
+                "scope": 646,
+                "src": "326:22:5",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 640,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "326:7:5",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 643,
+                "name": "prize",
+                "nodeType": "VariableDeclaration",
+                "scope": 646,
+                "src": "405:13:5",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 642,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "405:7:5",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 645,
+                "name": "exists",
+                "nodeType": "VariableDeclaration",
+                "scope": 646,
+                "src": "466:11:5",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_bool",
+                  "typeString": "bool"
+                },
+                "typeName": {
+                  "id": 644,
+                  "name": "bool",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "466:4:5",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              }
+            ],
+            "name": "Quest",
+            "nodeType": "StructDefinition",
+            "scope": 654,
+            "src": "176:308:5",
+            "visibility": "public"
+          },
+          {
+            "canonicalName": "LibQuest.UserQuestEntry",
+            "id": 653,
+            "members": [
+              {
+                "constant": false,
+                "id": 648,
+                "name": "entryTime",
+                "nodeType": "VariableDeclaration",
+                "scope": 653,
+                "src": "544:17:5",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 647,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "544:7:5",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 650,
+                "name": "status",
+                "nodeType": "VariableDeclaration",
+                "scope": 653,
+                "src": "595:12:5",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint8",
+                  "typeString": "uint8"
+                },
+                "typeName": {
+                  "id": 649,
+                  "name": "uint8",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "595:5:5",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint8",
+                    "typeString": "uint8"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 652,
+                "name": "exists",
+                "nodeType": "VariableDeclaration",
+                "scope": 653,
+                "src": "657:11:5",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_bool",
+                  "typeString": "bool"
+                },
+                "typeName": {
+                  "id": 651,
+                  "name": "bool",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "657:4:5",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              }
+            ],
+            "name": "UserQuestEntry",
+            "nodeType": "StructDefinition",
+            "scope": 654,
+            "src": "490:185:5",
+            "visibility": "public"
+          }
+        ],
+        "scope": 655,
+        "src": "24:654:5"
+      }
+    ],
+    "src": "0:679:5"
+  },
+  "legacyAST": {
+    "absolutePath": "/home/zubietaroberto/work/playdbet-contracts/contracts/quest/libs/LibQuest.sol",
+    "exportedSymbols": {
+      "LibQuest": [
+        654
+      ]
+    },
+    "id": 655,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 633,
+        "literals": [
+          "solidity",
+          "0.5",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:22:5"
+      },
+      {
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": null,
+        "fullyImplemented": true,
+        "id": 654,
+        "linearizedBaseContracts": [
+          654
+        ],
+        "name": "LibQuest",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "canonicalName": "LibQuest.QuestStatus",
+            "id": 637,
+            "members": [
+              {
+                "id": 634,
+                "name": "STARTED",
+                "nodeType": "EnumValue",
+                "src": "124:7:5"
+              },
+              {
+                "id": 635,
+                "name": "SUCCESS",
+                "nodeType": "EnumValue",
+                "src": "141:7:5"
+              },
+              {
+                "id": 636,
+                "name": "FAILED",
+                "nodeType": "EnumValue",
+                "src": "158:6:5"
+              }
+            ],
+            "name": "QuestStatus",
+            "nodeType": "EnumDefinition",
+            "src": "97:73:5"
+          },
+          {
+            "canonicalName": "LibQuest.Quest",
+            "id": 646,
+            "members": [
+              {
+                "constant": false,
+                "id": 639,
+                "name": "entryFee",
+                "nodeType": "VariableDeclaration",
+                "scope": 646,
+                "src": "249:16:5",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 638,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "249:7:5",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 641,
+                "name": "timeToComplete",
+                "nodeType": "VariableDeclaration",
+                "scope": 646,
+                "src": "326:22:5",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 640,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "326:7:5",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 643,
+                "name": "prize",
+                "nodeType": "VariableDeclaration",
+                "scope": 646,
+                "src": "405:13:5",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 642,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "405:7:5",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 645,
+                "name": "exists",
+                "nodeType": "VariableDeclaration",
+                "scope": 646,
+                "src": "466:11:5",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_bool",
+                  "typeString": "bool"
+                },
+                "typeName": {
+                  "id": 644,
+                  "name": "bool",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "466:4:5",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              }
+            ],
+            "name": "Quest",
+            "nodeType": "StructDefinition",
+            "scope": 654,
+            "src": "176:308:5",
+            "visibility": "public"
+          },
+          {
+            "canonicalName": "LibQuest.UserQuestEntry",
+            "id": 653,
+            "members": [
+              {
+                "constant": false,
+                "id": 648,
+                "name": "entryTime",
+                "nodeType": "VariableDeclaration",
+                "scope": 653,
+                "src": "544:17:5",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 647,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "544:7:5",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 650,
+                "name": "status",
+                "nodeType": "VariableDeclaration",
+                "scope": 653,
+                "src": "595:12:5",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint8",
+                  "typeString": "uint8"
+                },
+                "typeName": {
+                  "id": 649,
+                  "name": "uint8",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "595:5:5",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint8",
+                    "typeString": "uint8"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 652,
+                "name": "exists",
+                "nodeType": "VariableDeclaration",
+                "scope": 653,
+                "src": "657:11:5",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_bool",
+                  "typeString": "bool"
+                },
+                "typeName": {
+                  "id": 651,
+                  "name": "bool",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "657:4:5",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              }
+            ],
+            "name": "UserQuestEntry",
+            "nodeType": "StructDefinition",
+            "scope": 654,
+            "src": "490:185:5",
+            "visibility": "public"
+          }
+        ],
+        "scope": 655,
+        "src": "24:654:5"
+      }
+    ],
+    "src": "0:679:5"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.5.0+commit.1d4f565a.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "3.0.2",
+  "updatedAt": "2019-02-25T15:55:05.881Z",
+  "devdoc": {
+    "methods": {}
+  },
+  "userdoc": {
+    "methods": {}
+  }
+}
