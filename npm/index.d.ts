@@ -31,4 +31,5 @@ type ContractWrapper = {
 export declare const DBETVETTokenContract: ContractWrapper
 export declare const QuestContract: ContractWrapper
 export declare const AdminContract: ContractWrapper
+export declare const TournamentContract: ContractWrapper
 export declare const VERSION: string
