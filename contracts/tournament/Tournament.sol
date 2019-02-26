@@ -521,4 +521,40 @@ LibTournament {
                 .finalStandings[finalStandingIndex];
     }
 
+    /**
+    * Returns the number of tournament prize winners for a provided final standing position
+    * @param id Unique tournament ID
+    * @param finalStanding Tournament final standing position
+    */
+    function getTournamentPrizeWinnersLength(
+        bytes32 id,
+        uint256 finalStanding
+    )
+    public
+    view
+    returns (uint256) {
+        return tournaments[id]
+                .prizes[finalStanding]
+                .length;
+    }
+
+    /**
+    * Returns a tournament prize winner at a provided final standing and prize winner index
+    * @param id Unique tournament ID
+    * @param finalStanding Tournament final standing position
+    * @param prizeWinnerIndex Index of prize winner in tournaments' prizes array
+    */
+    function getTournamentPrizeWinnerAtIndex(
+        bytes32 id,
+        uint256 finalStanding,
+        uint256 prizeWinnerIndex
+    )
+    public
+    view
+    returns (uint256) {
+        return tournaments[id]
+                .prizes[finalStanding]
+                [prizeWinnerIndex];
+    }
+
 }
