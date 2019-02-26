@@ -1,4 +1,5 @@
 pragma solidity 0.5.0;
+pragma experimental ABIEncoderV2;
 
 contract ITournament {
 
@@ -40,37 +41,41 @@ contract ITournament {
 
     /**
     * Allows the admin to complete the tournament by publishing the final standings
-    * @param id unique ID of the tournament
-    * @param finalStandings final standings of participants in the tournament
+    * @param id Unique ID of the tournament
+    * @param finalStandings Final standings for entries in the tournament. 1d index => entry index, 2d => final standings for entry index
     * @param uniqueFinalStandings Number of unique positions in the final standing array
-    * @return whether the tournament was completed
+    * @return Whether the tournament was completed
     */
     function completeTournament(
         bytes32 id,
-        uint256[] memory finalStandings,
+        uint256[][] memory finalStandings,
         uint256 uniqueFinalStandings
     ) public returns (bool);
 
     /**
     * Allows users to claim their tournament prizes
-    * @param id unique ID of the tournament
-    * @param index final standing index in the tournaments' final standings
-    * @return whether the tournament prize was claimed
+    * @param id Unique ID of the tournament
+    * @param entryIndex Index in the tournaments' entries
+    * @param finalStandingIndex Index in the tournaments' entries final standings
+    * @return Whether the tournament prize was claimed
     */
     function claimTournamentPrize(
         bytes32 id,
-        uint256 index
+        uint256 entryIndex,
+        uint256 finalStandingIndex
     ) public returns (bool);
 
     /**
-    * Allows users to claim refunds for tournaments
-    * @param id unique ID of the tournament
-    * @param index entry index in the tournaments' entries
-    * @return whether the tournament entry fee was refunded
+    * Allows users to claim refunds for tournaments that were not completed
+    * @param id Unique tournament ID
+    * @param entryIndex Entries index in the tournament's entries array
+    * @return Whether entry fees were refunded for tournament entry
     */
     function claimTournamentRefund(
         bytes32 id,
-        uint256 index
-    ) public returns (bool);
+        uint256 entryIndex
+    )
+    public
+    returns (bool);
 
 }

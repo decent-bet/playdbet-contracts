@@ -369,6 +369,42 @@ LibTournament {
             [finalStanding] != 0,
             "INVALID_PRIZE_TABLE_INDEX"
         );
+        uint256 prizeMoney = _calculatePrizeMoney(
+            id,
+            finalStanding
+        );
+        // Transfer prize tokens to sender
+        require(
+            token.transfer(
+                msg.sender,
+                prizeMoney
+            ),
+            "TOKEN_TRANSFER_ERROR"
+        );
+        // Mark prize as claimed
+        tournaments[id].claimed[entryIndex] = true;
+        // Emit log claimed tournament prize event
+        emit LogClaimedTournamentPrize(
+            id,
+            entryIndex,
+            finalStanding,
+            prizeTables[tournaments[id].prizeTable][finalStanding]
+        );
+    }
+
+    /**
+    * Calculates prize money for a provided final standing position in a given prize table id
+    * @param id Prize table ID
+    * @param finalStanding Final standing position
+    * @return Prize money for a final standing position
+    */
+    function _calculatePrizeMoney(
+        bytes32 id,
+        uint256 finalStanding
+    )
+    public
+    view
+    returns (uint256) {
         // Check for other winners with same final standing
         uint256 sharedFinalStandings =
             tournaments[id].prizes[finalStanding].length;
@@ -397,27 +433,10 @@ LibTournament {
             prizePercent = prizePercent.add(excessPrizePercent).div(sharedFinalStandings);
         }
         // Transfer prize percent of total prize money divided by the number of winners for the same final standing index
-        prizeMoney = prizePool
+        return prizePool
             .mul(prizePercent)
             .div(100)
             .div(sharedFinalStandings);
-        // Transfer prize tokens to sender
-        require(
-            token.transfer(
-                msg.sender,
-                prizeMoney
-            ),
-            "TOKEN_TRANSFER_ERROR"
-        );
-        // Mark prize as claimed
-        tournaments[id].claimed[entryIndex] = true;
-        // Emit log claimed tournament prize event
-        emit LogClaimedTournamentPrize(
-            id,
-            entryIndex,
-            finalStanding,
-            prizeTables[tournaments[id].prizeTable][finalStanding]
-        );
     }
 
     /**
