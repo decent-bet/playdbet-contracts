@@ -23,6 +23,8 @@ contract LibTournament {
         bytes32 prizeTable;
         // Participants in tournament
         TournamentEntry[] entries;
+        // Prize table to entries array mapping
+        mapping (uint256 => uint256[]) prizes;
         // Unique standings - used to determine number of unique final standings excluding tied entries for prize giveaway calculation.
         // If unique final standings < prize table length, the remaining prize table % will be equally distributed among all addresses
         uint256 uniqueFinalStandings;
@@ -38,7 +40,7 @@ contract LibTournament {
         // Address of entered user
         address _address;
         // Final standing index
-        uint256 finalStanding;
+        uint256[] finalStandings;
     }
 
 }

@@ -239,10 +239,11 @@ LibTournament {
             ),
             "TOKEN_TRANSFER_ERROR"
         );
+        uint256[] memory finalStandings;
         // Add to tournament
         tournaments[id].entries.push(TournamentEntry({
             _address: msg.sender,
-            finalStanding: 0
+            finalStandings: finalStandings
         }));
         // Emit log entered tournament event
         emit LogEnteredTournament(
@@ -254,13 +255,13 @@ LibTournament {
     /**
     * Allows the admin to complete the tournament by publishing the final standings
     * @param id Unique ID of the tournament
-    * @param finalStandings Final standings for entries in the tournament
+    * @param finalStandings Final standings for entries in the tournament. 1d index => entry index, 2d => final standings for entry index
     * @param uniqueFinalStandings Number of unique positions in the final standing array
     * @return Whether the tournament was completed
     */
     function completeTournament(
         bytes32 id,
-        uint256[] memory finalStandings,
+        uint256[][] memory finalStandings,
         uint256 uniqueFinalStandings
     ) public returns (bool) {
         // Sender must be an admin
@@ -284,7 +285,12 @@ LibTournament {
             // Tournament successfully completed
             // Set finalStandings for the tournament
             for (uint256 i = 0; i < tournaments[id].entries.length; i++) {
-                tournaments[id].entries[i].finalStanding = finalStandings[i];
+                tournaments[id].entries[i].finalStandings = finalStandings[i];
+                for (uint256 j = 0; j < finalStandings[i].length; j++) {
+                    // i => index 1, j => index 2
+                    // Push entry index to prizes mapping in tournament
+                    tournaments[id].prizes[finalStandings[j][i]].push(i);
+                }
             }
             // Set unique final standings
             tournaments[id].uniqueFinalStandings = uniqueFinalStandings;
@@ -318,12 +324,14 @@ LibTournament {
     /**
     * Allows users to claim their tournament prizes
     * @param id Unique ID of the tournament
-    * @param index Index in the tournaments' entries
+    * @param entryIndex Index in the tournaments' entries
+    * @param finalStandingIndex Index in the tournaments' entries final standings
     * @return Whether the tournament prize was claimed
     */
     function claimTournamentPrize(
         bytes32 id,
-        uint256 index
+        uint256 entryIndex,
+        uint256 finalStandingIndex
     ) public returns (bool) {
         // Must be a valid tournament
         require(
@@ -337,35 +345,40 @@ LibTournament {
         );
         // Address at final standings index must be sender
         require(
-            tournaments[id].entries[index]._address == msg.sender,
-            "INVALID_FINAL_STANDINGS_INDEX"
+            tournaments[id].entries[entryIndex]._address == msg.sender,
+            "INVALID_ENTRY_INDEX"
         );
         // User cannot have already claimed their prize
         require(
-            !tournaments[id].claimed[index],
+            !tournaments[id].claimed[entryIndex],
             "INVALID_CLAIMED_STATUS"
         );
+        require(
+            tournaments[id].entries[entryIndex].finalStandings.length >
+            finalStandingIndex,
+            "INVALID_FINAL_STANDINGS_INDEX"
+        );
+        uint256 finalStanding =
+            tournaments[id]
+            .entries[entryIndex]
+            .finalStandings[finalStandingIndex];
         // Prize table must have a valid prize at final standings index
         require(
             prizeTables
             [tournaments[id].prizeTable]
-            [tournaments[id].entries[index].finalStanding] != 0,
+            [finalStanding] != 0,
             "INVALID_PRIZE_TABLE_INDEX"
         );
         // Check for other winners with same final standing
-        uint256 sharedFinalStandings = 0;
-        for(uint256 i = 0; i < tournaments[id].entries.length; i++) {
-            if(
-                tournaments[id].entries[i].finalStanding ==
-                tournaments[id].entries[index].finalStanding
-            )
-                sharedFinalStandings++;
-        }
+        uint256 sharedFinalStandings =
+            tournaments[id].prizes[finalStanding].length;
         // Calculate prize pool
-        uint256 prizePool = (tournaments[id].entries.length
-                    .mul(tournaments[id].entryFee))
-                    .sub(getRakeFee(id));
-        uint256 prizePercent = (prizeTables[tournaments[id].prizeTable][index]);
+        uint256 prizePool =
+            (tournaments[id].entries.length
+            .mul(tournaments[id].entryFee))
+            .sub(getRakeFee(id));
+        uint256 prizePercent =
+            (prizeTables[tournaments[id].prizeTable][finalStanding]);
         uint256 prizeMoney;
         // If the amount of prize winners is greater than the number of unique final standings,
         // split excess token % split among all addresses in final standings
@@ -397,25 +410,25 @@ LibTournament {
             "TOKEN_TRANSFER_ERROR"
         );
         // Mark prize as claimed
-        tournaments[id].claimed[index] = true;
+        tournaments[id].claimed[entryIndex] = true;
         // Emit log claimed tournament prize event
         emit LogClaimedTournamentPrize(
             id,
-            tournaments[id].entries[index].finalStanding,
-            index,
-            prizeTables[tournaments[id].prizeTable][index]
+            entryIndex,
+            finalStanding,
+            prizeTables[tournaments[id].prizeTable][finalStanding]
         );
     }
 
     /**
     * Allows users to claim refunds for tournaments that were not completed
     * @param id Unique tournament ID
-    * @param index Entries index in the tournament's entries array
+    * @param entryIndex Entries index in the tournament's entries array
     * @return Whether entry fees were refunded for tournament entry
     */
     function claimTournamentRefund(
         bytes32 id,
-        uint256 index
+        uint256 entryIndex
     )
     public
     returns (bool) {
@@ -429,14 +442,14 @@ LibTournament {
             tournaments[id].status == uint8(TournamentStatus.FAILED),
             "INVALID_TOURNAMENT_STATUS"
         );
-        // Address at entries index must be sender
+        // Address at entries entryIndex must be sender
         require(
-            tournaments[id].entries[index]._address == msg.sender,
-            "INVALID_FINAL_STANDINGS_INDEX"
+            tournaments[id].entries[entryIndex]._address == msg.sender,
+            "INVALID_ENTRY_INDEX"
         );
         // User cannot have already claimed their refund
         require(
-            !tournaments[id].refunded[index],
+            !tournaments[id].refunded[entryIndex],
             "INVALID_REFUNDED_STATUS"
         );
         // Transfer entry fee to sender
@@ -448,10 +461,10 @@ LibTournament {
             "TOKEN_TRANSFER_ERROR"
         );
         // Mark entry as refunded
-        tournaments[id].refunded[index] = true;
+        tournaments[id].refunded[entryIndex] = true;
         emit LogRefundedTournamentEntry(
             id,
-            index
+            entryIndex
         );
     }
 
@@ -475,33 +488,37 @@ LibTournament {
     /**
     * Returns an entry address at a tournament entries index
     * @param id Unique tournament ID
-    * @param index Tournament entry index
+    * @param entryIndex Tournament entry index
     * @return Tournament entry at index
     */
     function getTournamentEntry(
         bytes32 id,
-        uint256 index
+        uint256 entryIndex
     )
     public
     view
     returns (TournamentEntry memory) {
-        return tournaments[id].entries[index];
+        return tournaments[id].entries[entryIndex];
     }
 
     /**
     * Returns a final standing for a tournament
     * @param id Unique tournament ID
-    * @param index Tournament entry index
+    * @param entryIndex Tournament entry index
+    * @param finalStandingIndex Tournament entry final standing index
     * @return Tournament final standing at index
     */
     function getTournamentFinalStanding(
         bytes32 id,
-        uint256 index
+        uint256 entryIndex,
+        uint256 finalStandingIndex
     )
     public
     view
     returns (uint256) {
-        return tournaments[id].entries[index].finalStanding;
+        return tournaments[id]
+                .entries[entryIndex]
+                .finalStandings[finalStandingIndex];
     }
 
 }
