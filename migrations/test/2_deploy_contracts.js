@@ -47,12 +47,14 @@ let deploy = async (deployer, network) => {
                 TOTAL_DBET_SUPPLY
             )
             token = await getContractInstanceAndInfo(DecentBetToken)
+            console.log('Deployed token')
 
             // Deploy the admin contract
             await deployer.deploy(
                 Admin
             )
             admin = await getContractInstanceAndInfo(Admin)
+            console.log('Deployed admin')
 
             // Deploy the quest contract
             await deployer.deploy(
@@ -61,6 +63,7 @@ let deploy = async (deployer, network) => {
                 token.address
             )
             quest = await getContractInstanceAndInfo(Quest)
+            console.log('Deployed quest')
 
             // Deploy the tournament contract
             await deployer.deploy(
@@ -69,6 +72,7 @@ let deploy = async (deployer, network) => {
                 token.address
             )
             tournament = await getContractInstanceAndInfo(Tournament)
+            console.log('Deployed tournament')
 
             console.log(
                 'Deployed:',
