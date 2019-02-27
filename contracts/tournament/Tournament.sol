@@ -281,7 +281,10 @@ LibTournament {
         );
         if(finalStandings.length > 0) {
             // Unique final standings must be greater than 0
-            require(uniqueFinalStandings > 0);
+            require(
+                uniqueFinalStandings > 0,
+                "INVALID_UNIQUE_FINAL_STANDINGS"
+            );
             // Tournament successfully completed
             // Set finalStandings for the tournament
             for (uint256 i = 0; i < tournaments[id].entries.length; i++) {
@@ -289,7 +292,7 @@ LibTournament {
                 for (uint256 j = 0; j < finalStandings[i].length; j++) {
                     // i => index 1, j => index 2
                     // Push entry index to prizes mapping in tournament
-                    tournaments[id].prizes[finalStandings[j][i]].push(i);
+                    tournaments[id].prizes[finalStandings[i][j]].push(i);
                 }
             }
             // Set unique final standings
@@ -350,7 +353,7 @@ LibTournament {
         );
         // User cannot have already claimed their prize
         require(
-            !tournaments[id].claimed[entryIndex],
+            !tournaments[id].claimed[entryIndex][finalStandingIndex],
             "INVALID_CLAIMED_STATUS"
         );
         require(
@@ -382,7 +385,7 @@ LibTournament {
             "TOKEN_TRANSFER_ERROR"
         );
         // Mark prize as claimed
-        tournaments[id].claimed[entryIndex] = true;
+        tournaments[id].claimed[entryIndex][finalStandingIndex] = true;
         // Emit log claimed tournament prize event
         emit LogClaimedTournamentPrize(
             id,

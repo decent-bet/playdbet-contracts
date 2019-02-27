@@ -28,8 +28,8 @@ contract LibTournament {
         // Unique standings - used to determine number of unique final standings excluding tied entries for prize giveaway calculation.
         // If unique final standings < prize table length, the remaining prize table % will be equally distributed among all addresses
         uint256 uniqueFinalStandings;
-        // Claimed amounts from entries based on prize table and final standings
-        mapping (uint256 => bool) claimed;
+        // Claimed amounts from entries => finalStandingIndex based on prize table and final standings
+        mapping (uint256 => mapping(uint256 => bool)) claimed;
         // Refunded amounts from entries for tournaments with a failed status
         mapping (uint256 => bool) refunded;
         // Tournament status based on enum
