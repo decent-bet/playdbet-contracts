@@ -408,7 +408,6 @@ LibTournament {
         uint256 finalStanding
     )
     public
-    view
     returns (uint256) {
         // Check for other winners with same final standing
         uint256 sharedFinalStandings =
@@ -435,7 +434,7 @@ LibTournament {
             ) {
                 excessPrizePercent = excessPrizePercent.add(prizeTables[tournaments[id].prizeTable][i]);
             }
-            prizePercent = prizePercent.add(excessPrizePercent.div(sharedFinalStandings));
+            prizePercent = prizePercent.add(excessPrizePercent.div(tournaments[id].uniqueFinalStandings));
         }
         // Transfer prize percent of total prize money divided by the number of winners for the same final standing index
         return prizePool
