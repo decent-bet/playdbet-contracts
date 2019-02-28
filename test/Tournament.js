@@ -44,8 +44,8 @@ const getValidTournamentParams = entryLimit => {
 const getValidTournamentCompletionParams = () => {
     const finalStandings1 = [[0]] // Indices of entries
     const uniqueFinalStandings1 = 1
-    const finalStandings2 = [[0, 1], [0, 1], [2]] // Final standings for entries in the tournament
-    const uniqueFinalStandings2 = 3
+    const finalStandings2 = [[0, 1], [0, 1], []] // Final standings for entries in the tournament
+    const uniqueFinalStandings2 = 2
     const finalStandings3 = [[0], [1], []]
     const uniqueFinalStandings3 = 2
     return {
@@ -675,14 +675,9 @@ contract('Tournament', accounts => {
     })
 
     it('allows user to claim tournament prize with valid id and index', async () => {
-        // const finalStandings1 = [[0]] // Indices of entries
-        // const uniqueFinalStandings1 = 1
-        // const finalStandings2 = [[0, 1], [0, 1], [2]] // Final standings for entries in the tournament
-        // const uniqueFinalStandings2 = 3
-        // const finalStandings3 = [[0], [1]]
-        // const uniqueFinalStandings3 = 2
         // Claim tournament 1 prize as user 1
-        const preClaimTournament1User1Balance = await token.balanceOf(user1)
+        const preClaimTournament1User1Balance =
+            web3.utils.fromWei(await token.balanceOf(user1), 'ether')
 
         const tx1 = await tournament.claimTournamentPrize(
             tournamentId1,
@@ -693,19 +688,24 @@ contract('Tournament', accounts => {
             }
         )
 
-        const postClaimTournament1User1Balance = await token.balanceOf(user1)
+        const postClaimTournament1User1Balance =
+            web3.utils.fromWei(await token.balanceOf(user1), 'ether')
 
         console.log(
             'T1U1',
-            web3.utils.fromWei(preClaimTournament1User1Balance, 'ether'),
-            web3.utils.fromWei(postClaimTournament1User1Balance, 'ether'),
+            preClaimTournament1User1Balance,
+            postClaimTournament1User1Balance,
             tx1.logs[0].args.finalStanding.toString(),
             tx1.logs[0].args.prizeFromTable.toString(),
             tx1.logs[0].args.prizeMoney.toString()
         )
 
         assert.equal(
-            new BigNumber(postClaimTournament1User1Balance).isGreaterThan(preClaimTournament1User1Balance),
+            new BigNumber(
+                postClaimTournament1User1Balance
+            ).isEqualTo(
+                new BigNumber(preClaimTournament1User1Balance).plus(new BigNumber(50).multipliedBy(0.8))
+            ),
             true
         )
 
@@ -715,7 +715,8 @@ contract('Tournament', accounts => {
         )
 
         // Claim tournament 2 prize as user1
-        const preClaimTournament2User1Balance = await token.balanceOf(user1)
+        const preClaimTournament2User1Balance =
+            web3.utils.fromWei(await token.balanceOf(user1), 'ether')
 
         const tx2e0fs0 = await tournament.claimTournamentPrize(
             tournamentId2,
@@ -725,7 +726,8 @@ contract('Tournament', accounts => {
                 from: user1
             }
         )
-        const postClaimTournament2User1Entry0Fs0Balance = await token.balanceOf(user1)
+        const postClaimTournament2User1Entry0Fs0Balance =
+            web3.utils.fromWei(await token.balanceOf(user1), 'ether')
 
         const tx2e0fs1 = await tournament.claimTournamentPrize(
             tournamentId2,
@@ -736,13 +738,14 @@ contract('Tournament', accounts => {
             }
         )
 
-        const postClaimTournament2User1Entry0Fs1Balance = await token.balanceOf(user1)
+        const postClaimTournament2User1Entry0Fs1Balance =
+            web3.utils.fromWei(await token.balanceOf(user1), 'ether')
 
         console.log(
             'T2U1-E0',
-            web3.utils.fromWei(preClaimTournament2User1Balance, 'ether'),
-            web3.utils.fromWei(postClaimTournament2User1Entry0Fs0Balance, 'ether'),
-            web3.utils.fromWei(postClaimTournament2User1Entry0Fs1Balance, 'ether'),
+            preClaimTournament2User1Balance,
+            postClaimTournament2User1Entry0Fs0Balance,
+            postClaimTournament2User1Entry0Fs1Balance,
             tx2e0fs0.logs[0].args.finalStanding.toString(),
             tx2e0fs0.logs[0].args.prizeFromTable.toString(),
             tx2e0fs0.logs[0].args.prizeMoney.toString(),
@@ -751,9 +754,51 @@ contract('Tournament', accounts => {
             tx2e0fs1.logs[0].args.prizeMoney.toString()
         )
 
+        // Ensure claim calculations for T2U1E0FS0 is correct
         assert.equal(
-            new BigNumber(postClaimTournament2User1Entry0Fs1Balance)
-                .isGreaterThan(preClaimTournament2User1Balance),
+            new BigNumber(
+                postClaimTournament2User1Entry0Fs0Balance
+            ).isEqualTo(
+                new BigNumber(
+                    preClaimTournament2User1Balance
+                ).plus(
+                    new BigNumber(150)      // Total entry fee
+                        .multipliedBy(0.8)  // After rake fee
+                        .multipliedBy(
+                            new BigNumber(50) // Final standing 0 Prize percent
+                                .plus(
+                                    new BigNumber(20) // Excess prize percent
+                                        .multipliedBy(0.5) // Divide by number of unique final standings
+                                )
+                        )
+                        .multipliedBy(0.01) // Divide by 100 for percent
+                        .multipliedBy(0.5)  // Divide by number of shared final standings
+                )
+            ),
+            true
+        )
+
+        // Ensure claim calculations for T2U1E1FS1 is correct
+        assert.equal(
+            new BigNumber(
+                postClaimTournament2User1Entry0Fs1Balance
+            ).isEqualTo(
+                new BigNumber(
+                    postClaimTournament2User1Entry0Fs0Balance
+                ).plus(
+                    new BigNumber(150)      // Total entry fee
+                        .multipliedBy(0.8)  // After rake fee
+                        .multipliedBy(
+                            new BigNumber(30) // Final standing 1 Prize percent
+                                .plus(
+                                    new BigNumber(20) // Excess prize percent
+                                        .multipliedBy(0.5) // Divide by number of unique final standings
+                                )
+                        )
+                        .multipliedBy(0.01) // Divide by 100 for percent
+                        .multipliedBy(0.5)  // Divide by number of shared final standings
+                )
+            ),
             true
         )
 
@@ -768,7 +813,8 @@ contract('Tournament', accounts => {
         )
 
         // Claim tournament 2 prizes as user2
-        const preClaimTournament2User2Entry1Balance = await token.balanceOf(user2)
+        const preClaimTournament2User2Entry1Balance =
+            web3.utils.fromWei(await token.balanceOf(user2), 'ether')
 
         const tx2e1fs0 = await tournament.claimTournamentPrize(
             tournamentId2,
@@ -779,7 +825,8 @@ contract('Tournament', accounts => {
             }
         )
 
-        const postClaimTournament2User2Entry1Fs0Balance = await token.balanceOf(user2)
+        const postClaimTournament2User2Entry1Fs0Balance =
+            web3.utils.fromWei(await token.balanceOf(user2), 'ether')
 
         const tx2e1fs1 = await tournament.claimTournamentPrize(
             tournamentId2,
@@ -790,7 +837,8 @@ contract('Tournament', accounts => {
             }
         )
 
-        const postClaimTournament2User2Entry1Fs1Balance = await token.balanceOf(user2)
+        const postClaimTournament2User2Entry1Fs1Balance =
+            web3.utils.fromWei(await token.balanceOf(user2), 'ether')
 
         console.log(
             'T2U2-E1',
@@ -805,15 +853,51 @@ contract('Tournament', accounts => {
             tx2e1fs1.logs[0].args.prizeMoney.toString()
         )
 
+        // Ensure claim calculations for T2U2E1FS0 is correct
         assert.equal(
-            new BigNumber(postClaimTournament2User2Entry1Fs0Balance)
-                .isGreaterThan(preClaimTournament2User2Entry1Balance),
+            new BigNumber(
+                postClaimTournament2User2Entry1Fs0Balance
+            ).isEqualTo(
+                new BigNumber(
+                    preClaimTournament2User2Entry1Balance
+                ).plus(
+                    new BigNumber(150)      // Total entry fee
+                        .multipliedBy(0.8)  // After rake fee
+                        .multipliedBy(
+                            new BigNumber(50) // Final standing 0 Prize percent
+                                .plus(
+                                    new BigNumber(20) // Excess prize percent
+                                        .multipliedBy(0.5) // Divide by number of unique final standings
+                                )
+                        )
+                        .multipliedBy(0.01) // Divide by 100 for percent
+                        .multipliedBy(0.5)  // Divide by number of shared final standings
+                )
+            ),
             true
         )
 
+        // Ensure claim calculations for T2U2E1FS1 is correct
         assert.equal(
-            new BigNumber(postClaimTournament2User2Entry1Fs1Balance)
-                .isGreaterThan(postClaimTournament2User2Entry1Fs0Balance),
+            new BigNumber(
+                postClaimTournament2User2Entry1Fs1Balance
+            ).isEqualTo(
+                new BigNumber(
+                    postClaimTournament2User2Entry1Fs0Balance
+                ).plus(
+                    new BigNumber(150)      // Total entry fee
+                        .multipliedBy(0.8)  // After rake fee
+                        .multipliedBy(
+                            new BigNumber(30) // Final standing 0 Prize percent
+                                .plus(
+                                    new BigNumber(20) // Excess prize percent
+                                        .multipliedBy(0.5) // Divide by number of unique final standings
+                                )
+                        )
+                        .multipliedBy(0.01) // Divide by 100 for percent
+                        .multipliedBy(0.5)  // Divide by number of shared final standings
+                )
+            ),
             true
         )
 
@@ -826,40 +910,41 @@ contract('Tournament', accounts => {
             tx2e1fs1.logs[0].args.id,
             tournamentId2
         )
-        const preClaimTournament2User2Entry2Balance = await token.balanceOf(user2)
-
-        const tx4 = await tournament.claimTournamentPrize(
-            tournamentId2,
-            2,
-            0,
-            {
-                from: user2
-            }
-        )
-
-        const postClaimTournament2User2Entry2Balance = await token.balanceOf(user2)
-
-        console.log(
-            'T2U2-E2',
-            web3.utils.fromWei(preClaimTournament2User2Entry2Balance, 'ether'),
-            web3.utils.fromWei(postClaimTournament2User2Entry2Balance, 'ether'),
-            tx4.logs[0].args.finalStanding.toString(),
-            tx4.logs[0].args.prizeFromTable.toString(),
-            tx4.logs[0].args.prizeMoney.toString()
-        )
-
-        assert.equal(
-            new BigNumber(postClaimTournament2User2Entry2Balance).isGreaterThan(preClaimTournament2User2Entry2Balance),
-            true
-        )
-
-        assert.equal(
-            tx4.logs[0].args.id,
-            tournamentId2
-        )
+        // const preClaimTournament2User2Entry2Balance = await token.balanceOf(user2)
+        //
+        // const tx4 = await tournament.claimTournamentPrize(
+        //     tournamentId2,
+        //     2,
+        //     0,
+        //     {
+        //         from: user2
+        //     }
+        // )
+        //
+        // const postClaimTournament2User2Entry2Balance = await token.balanceOf(user2)
+        //
+        // console.log(
+        //     'T2U2-E2',
+        //     web3.utils.fromWei(preClaimTournament2User2Entry2Balance, 'ether'),
+        //     web3.utils.fromWei(postClaimTournament2User2Entry2Balance, 'ether'),
+        //     tx4.logs[0].args.finalStanding.toString(),
+        //     tx4.logs[0].args.prizeFromTable.toString(),
+        //     tx4.logs[0].args.prizeMoney.toString()
+        // )
+        //
+        // assert.equal(
+        //     new BigNumber(postClaimTournament2User2Entry2Balance).isGreaterThan(preClaimTournament2User2Entry2Balance),
+        //     true
+        // )
+        //
+        // assert.equal(
+        //     tx4.logs[0].args.id,
+        //     tournamentId2
+        // )
 
         // Claim tournament 3 prizes as user 1
-        const preClaimTournament3User1Entry0Balance = await token.balanceOf(user1)
+        const preClaimTournament3User1Entry0Balance =
+            web3.utils.fromWei(await token.balanceOf(user1), 'ether')
 
         const tx5 = await tournament.claimTournamentPrize(
             tournamentId3,
@@ -870,7 +955,8 @@ contract('Tournament', accounts => {
             }
         )
 
-        const postClaimTournament3User1Entry0Balance = await token.balanceOf(user1)
+        const postClaimTournament3User1Entry0Balance =
+            web3.utils.fromWei(await token.balanceOf(user1), 'ether')
 
         console.log(
             'T3U1-E0',
@@ -881,8 +967,27 @@ contract('Tournament', accounts => {
             tx5.logs[0].args.prizeMoney.toString()
         )
 
+        // Ensure claim calculations for T3U1E0 is correct
         assert.equal(
-            new BigNumber(postClaimTournament3User1Entry0Balance).isGreaterThan(preClaimTournament3User1Entry0Balance),
+            new BigNumber(
+                postClaimTournament3User1Entry0Balance
+            ).isEqualTo(
+                new BigNumber(
+                    preClaimTournament3User1Entry0Balance
+                ).plus(
+                    new BigNumber(150)      // Total entry fee
+                        .multipliedBy(0.8)  // After rake fee
+                        .multipliedBy(
+                            new BigNumber(50) // Final standing 0 Prize percent
+                                .plus(
+                                    new BigNumber(20) // Excess prize percent
+                                        .multipliedBy(0.5) // Divide by number of unique final standings
+                                )
+                        )
+                        .multipliedBy(0.01) // Divide by 100 for percent
+                        .multipliedBy(1)  // Divide by number of shared final standings
+                )
+            ),
             true
         )
 
@@ -892,7 +997,8 @@ contract('Tournament', accounts => {
         )
 
         // Claim tournament 3 prize as user 2
-        const preClaimTournament3User2Entry1Balance = await token.balanceOf(user2)
+        const preClaimTournament3User2Entry1Balance =
+            web3.utils.fromWei(await token.balanceOf(user2), 'ether')
 
         const tx6 = await tournament.claimTournamentPrize(
             tournamentId3,
@@ -903,7 +1009,8 @@ contract('Tournament', accounts => {
             }
         )
 
-        const postClaimTournament3User2Entry1Balance = await token.balanceOf(user2)
+        const postClaimTournament3User2Entry1Balance =
+            web3.utils.fromWei(await token.balanceOf(user2), 'ether')
 
         console.log(
             'T3U2-E1',
@@ -914,9 +1021,28 @@ contract('Tournament', accounts => {
             tx6.logs[0].args.prizeMoney.toString()
         )
 
+
+        // Ensure claim calculations for T3U2E1 is correct
         assert.equal(
-            new BigNumber(postClaimTournament3User2Entry1Balance)
-                .isGreaterThan(preClaimTournament3User2Entry1Balance),
+            new BigNumber(
+                postClaimTournament3User2Entry1Balance
+            ).isEqualTo(
+                new BigNumber(
+                    preClaimTournament3User2Entry1Balance
+                ).plus(
+                    new BigNumber(150)      // Total entry fee
+                        .multipliedBy(0.8)  // After rake fee
+                        .multipliedBy(
+                            new BigNumber(30) // Final standing 1 Prize percent
+                                .plus(
+                                    new BigNumber(20) // Excess prize percent
+                                        .multipliedBy(0.5) // Divide by number of unique final standings
+                                )
+                        )
+                        .multipliedBy(0.01) // Divide by 100 for percent
+                        .multipliedBy(1)  // Divide by number of shared final standings
+                )
+            ),
             true
         )
 
