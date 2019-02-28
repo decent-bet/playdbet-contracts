@@ -698,7 +698,10 @@ contract('Tournament', accounts => {
         console.log(
             'T1U1',
             web3.utils.fromWei(preClaimTournament1User1Balance, 'ether'),
-            web3.utils.fromWei(postClaimTournament1User1Balance, 'ether')
+            web3.utils.fromWei(postClaimTournament1User1Balance, 'ether'),
+            tx1.logs[0].args.finalStanding.toString(),
+            tx1.logs[0].args.prizeFromTable.toString(),
+            tx1.logs[0].args.prizeMoney.toString()
         )
 
         assert.equal(
@@ -739,7 +742,13 @@ contract('Tournament', accounts => {
             'T2U1-E0',
             web3.utils.fromWei(preClaimTournament2User1Balance, 'ether'),
             web3.utils.fromWei(postClaimTournament2User1Entry0Fs0Balance, 'ether'),
-            web3.utils.fromWei(postClaimTournament2User1Entry0Fs1Balance, 'ether')
+            web3.utils.fromWei(postClaimTournament2User1Entry0Fs1Balance, 'ether'),
+            tx2e0fs0.logs[0].args.finalStanding.toString(),
+            tx2e0fs0.logs[0].args.prizeFromTable.toString(),
+            tx2e0fs0.logs[0].args.prizeMoney.toString(),
+            tx2e0fs1.logs[0].args.finalStanding.toString(),
+            tx2e0fs1.logs[0].args.prizeFromTable.toString(),
+            tx2e0fs1.logs[0].args.prizeMoney.toString()
         )
 
         assert.equal(
@@ -787,7 +796,13 @@ contract('Tournament', accounts => {
             'T2U2-E1',
             web3.utils.fromWei(preClaimTournament2User2Entry1Balance, 'ether'),
             web3.utils.fromWei(postClaimTournament2User2Entry1Fs0Balance, 'ether'),
-            web3.utils.fromWei(postClaimTournament2User2Entry1Fs1Balance, 'ether')
+            web3.utils.fromWei(postClaimTournament2User2Entry1Fs1Balance, 'ether'),
+            tx2e1fs0.logs[0].args.finalStanding.toString(),
+            tx2e1fs0.logs[0].args.prizeFromTable.toString(),
+            tx2e1fs0.logs[0].args.prizeMoney.toString(),
+            tx2e1fs1.logs[0].args.finalStanding.toString(),
+            tx2e1fs1.logs[0].args.prizeFromTable.toString(),
+            tx2e1fs1.logs[0].args.prizeMoney.toString()
         )
 
         assert.equal(
@@ -827,7 +842,10 @@ contract('Tournament', accounts => {
         console.log(
             'T2U2-E2',
             web3.utils.fromWei(preClaimTournament2User2Entry2Balance, 'ether'),
-            web3.utils.fromWei(postClaimTournament2User2Entry2Balance, 'ether')
+            web3.utils.fromWei(postClaimTournament2User2Entry2Balance, 'ether'),
+            tx4.logs[0].args.finalStanding.toString(),
+            tx4.logs[0].args.prizeFromTable.toString(),
+            tx4.logs[0].args.prizeMoney.toString()
         )
 
         assert.equal(
@@ -857,7 +875,10 @@ contract('Tournament', accounts => {
         console.log(
             'T3U1-E0',
             web3.utils.fromWei(preClaimTournament3User1Entry0Balance, 'ether'),
-            web3.utils.fromWei(postClaimTournament3User1Entry0Balance, 'ether')
+            web3.utils.fromWei(postClaimTournament3User1Entry0Balance, 'ether'),
+            tx5.logs[0].args.finalStanding.toString(),
+            tx5.logs[0].args.prizeFromTable.toString(),
+            tx5.logs[0].args.prizeMoney.toString()
         )
 
         assert.equal(
@@ -884,9 +905,12 @@ contract('Tournament', accounts => {
         const postClaimTournament3User1Entry2Balance = await token.balanceOf(user1)
 
         console.log(
-            'T3U1-E1',
+            'T3U1-E2',
             web3.utils.fromWei(preClaimTournament3User1Entry2Balance, 'ether'),
-            web3.utils.fromWei(postClaimTournament3User1Entry2Balance, 'ether')
+            web3.utils.fromWei(postClaimTournament3User1Entry2Balance, 'ether'),
+            tx6.logs[0].args.finalStanding.toString(),
+            tx6.logs[0].args.prizeFromTable.toString(),
+            tx6.logs[0].args.prizeMoney.toString()
         )
 
         assert.equal(
@@ -916,7 +940,10 @@ contract('Tournament', accounts => {
         console.log(
             'T3U2-E1',
             web3.utils.fromWei(preClaimTournament3User2Entry1Balance, 'ether'),
-            web3.utils.fromWei(postClaimTournament3User2Entry1Balance, 'ether')
+            web3.utils.fromWei(postClaimTournament3User2Entry1Balance, 'ether'),
+            tx7.logs[0].args.finalStanding.toString(),
+            tx7.logs[0].args.prizeFromTable.toString(),
+            tx7.logs[0].args.prizeMoney.toString()
         )
 
         assert.equal(

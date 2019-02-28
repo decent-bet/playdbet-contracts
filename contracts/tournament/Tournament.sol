@@ -57,7 +57,8 @@ LibTournament {
         bytes32 indexed id,
         uint256 entryIndex,
         uint256 finalStanding,
-        uint256 prize
+        uint256 prizeFromTable,
+        uint256 prizeMoney
     );
     // Log refunded tournament entry
     event LogRefundedTournamentEntry(
@@ -391,7 +392,8 @@ LibTournament {
             id,
             entryIndex,
             finalStanding,
-            prizeTables[tournaments[id].prizeTable][finalStanding]
+            prizeTables[tournaments[id].prizeTable][finalStanding],
+            prizeMoney
         );
     }
 
