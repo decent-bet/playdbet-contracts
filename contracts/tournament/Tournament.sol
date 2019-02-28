@@ -420,13 +420,14 @@ LibTournament {
         uint256 prizePercent =
             (prizeTables[tournaments[id].prizeTable][finalStanding]);
         uint256 prizeMoney;
+        uint256 excessPrizePercent;
+        uint256 multiplier = 1000;
         // If the amount of prize winners is greater than the number of unique final standings,
         // split excess token % split among all addresses in final standings
         if(
             prizeTables[tournaments[id].prizeTable].length >
             tournaments[id].uniqueFinalStandings
         ) {
-            uint256 excessPrizePercent;
             for(
                 uint256 i = tournaments[id].uniqueFinalStandings;
                 i < prizeTables[tournaments[id].prizeTable].length;
@@ -434,11 +435,20 @@ LibTournament {
             ) {
                 excessPrizePercent = excessPrizePercent.add(prizeTables[tournaments[id].prizeTable][i]);
             }
-            prizePercent = prizePercent.add(excessPrizePercent.div(tournaments[id].uniqueFinalStandings));
+            excessPrizePercent =
+                excessPrizePercent
+                    .mul(prizePercent)
+                    .mul(multiplier)
+                    .div(
+                        uint256(100)
+                        .sub(excessPrizePercent)
+                    );
         }
+        prizePercent = prizePercent.mul(multiplier).add(excessPrizePercent);
         // Transfer prize percent of total prize money divided by the number of winners for the same final standing index
         return prizePool
             .mul(prizePercent)
+            .div(multiplier)
             .div(100)
             .div(sharedFinalStandings);
     }

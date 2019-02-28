@@ -70,27 +70,38 @@ const assertClaimCalculations = (
     if(excessPrizePercent) {
         excessPrizePercent =
             new BigNumber(excessPrizePercent)
-                .dividedBy(uniqueFinalStandings)
+                .multipliedBy(finalStandingPercent)
+                .dividedBy(new BigNumber(100).minus(excessPrizePercent))
     } else
         excessPrizePercent = 0
+    console.log({excessPrizePercent: excessPrizePercent.toString()})
+    const calculatedPrize =
+        new BigNumber(totalEntryFee)    // Total entry fee
+            .multipliedBy(0.8)          // After rake fee
+            .multipliedBy(
+                new BigNumber(finalStandingPercent) // Final standing 0 Prize percent
+                    .plus(
+                        excessPrizePercent
+                    )
+            )
+            .multipliedBy(0.01) // Divide by 100 for percent
+            .dividedBy(sharedFinalStandings)  // Divide by number of shared final standings
+    const calculatedPostBalance =
+        new BigNumber(
+            preBalance
+        ).plus(
+            calculatedPrize
+        )
+    console.log({
+        postBalance: postBalance.toString(),
+        calculatedPostBalance: calculatedPostBalance.toString(),
+        calculatedPrize: calculatedPrize.toString()
+    })
     assert.equal(
         new BigNumber(
             postBalance
         ).isEqualTo(
-            new BigNumber(
-                preBalance
-            ).plus(
-                new BigNumber(totalEntryFee)      // Total entry fee
-                    .multipliedBy(0.8)  // After rake fee
-                    .multipliedBy(
-                        new BigNumber(finalStandingPercent) // Final standing 0 Prize percent
-                            .plus(
-                                excessPrizePercent
-                            )
-                    )
-                    .multipliedBy(0.01) // Divide by 100 for percent
-                    .dividedBy(sharedFinalStandings)  // Divide by number of shared final standings
-            )
+            calculatedPostBalance
         ),
         true
     )
@@ -855,9 +866,9 @@ contract('Tournament', accounts => {
 
         console.log(
             'T2U2-E1',
-            web3.utils.fromWei(preClaimTournament2User2Entry1Balance, 'ether'),
-            web3.utils.fromWei(postClaimTournament2User2Entry1Fs0Balance, 'ether'),
-            web3.utils.fromWei(postClaimTournament2User2Entry1Fs1Balance, 'ether'),
+            postClaimTournament2User2Entry1Fs1Balance,
+            postClaimTournament2User2Entry1Fs0Balance,
+            postClaimTournament2User2Entry1Fs1Balance,
             tx2e1fs0.logs[0].args.finalStanding.toString(),
             tx2e1fs0.logs[0].args.prizeFromTable.toString(),
             tx2e1fs0.logs[0].args.prizeMoney.toString(),
@@ -947,8 +958,8 @@ contract('Tournament', accounts => {
 
         console.log(
             'T3U1-E0',
-            web3.utils.fromWei(preClaimTournament3User1Entry0Balance, 'ether'),
-            web3.utils.fromWei(postClaimTournament3User1Entry0Balance, 'ether'),
+            preClaimTournament3User1Entry0Balance, 'ether',
+            postClaimTournament3User1Entry0Balance, 'ether',
             tx5.logs[0].args.finalStanding.toString(),
             tx5.logs[0].args.prizeFromTable.toString(),
             tx5.logs[0].args.prizeMoney.toString()
@@ -988,8 +999,8 @@ contract('Tournament', accounts => {
 
         console.log(
             'T3U2-E1',
-            web3.utils.fromWei(preClaimTournament3User2Entry1Balance, 'ether'),
-            web3.utils.fromWei(postClaimTournament3User2Entry1Balance, 'ether'),
+            preClaimTournament3User2Entry1Balance,
+            postClaimTournament3User2Entry1Balance,
             tx6.logs[0].args.finalStanding.toString(),
             tx6.logs[0].args.prizeFromTable.toString(),
             tx6.logs[0].args.prizeMoney.toString()
