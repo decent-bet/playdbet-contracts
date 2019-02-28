@@ -433,7 +433,7 @@ LibTournament {
             ) {
                 excessPrizePercent = excessPrizePercent.add(prizeTables[tournaments[id].prizeTable][i]);
             }
-            prizePercent = prizePercent.add(excessPrizePercent).div(sharedFinalStandings);
+            prizePercent = prizePercent.add(excessPrizePercent.div(sharedFinalStandings));
         }
         // Transfer prize percent of total prize money divided by the number of winners for the same final standing index
         return prizePool

@@ -388,78 +388,143 @@ contract('Tournament', accounts => {
 
     it('allows user to enter running tournament with valid balances and allowances', async () => {
         // User 1 enters tournament 1
+        const preEnterTournament1User1Balance = await token.balanceOf(user1)
         const tx1 = await tournament.enterTournament(
             tournamentId1,
             {
                 from: user1
             }
         )
+        const postEnterTournament1User1Balance = await token.balanceOf(user1)
+
+        console.log(
+            'Enter T1U1',
+            web3.utils.fromWei(preEnterTournament1User1Balance.toString(), 'ether'),
+            web3.utils.fromWei(postEnterTournament1User1Balance.toString(), 'ether')
+        )
+
         assert.equal(
             tx1.logs[0].args.id,
             tournamentId1
         )
         // User 1 enters tournament 2
+        const preEnterTournament2User1Balance = await token.balanceOf(user1)
         const tx2 = await tournament.enterTournament(
             tournamentId2,
             {
                 from: user1
             }
         )
+        const postEnterTournament2User1Balance = await token.balanceOf(user1)
+
+        console.log(
+            'Enter T2U1',
+            web3.utils.fromWei(preEnterTournament2User1Balance.toString(), 'ether'),
+            web3.utils.fromWei(postEnterTournament2User1Balance.toString(), 'ether')
+        )
+
         assert.equal(
             tx2.logs[0].args.id,
             tournamentId2
         )
+
         // User 2 enters tournament 2
+        const preEnterTournament2User2_1Balance = await token.balanceOf(user2)
         const tx3 = await tournament.enterTournament(
             tournamentId2,
             {
                 from: user2
             }
         )
+        const postEnterTournament2User2_1Balance = await token.balanceOf(user2)
+
+        console.log(
+            'Enter T2U2_1',
+            web3.utils.fromWei(preEnterTournament2User2_1Balance.toString(), 'ether'),
+            web3.utils.fromWei(postEnterTournament2User2_1Balance.toString(), 'ether')
+        )
+
         assert.equal(
             tx3.logs[0].args.id,
             tournamentId2
         )
         // User 2 enters tournament 2 again
+        const preEnterTournament2User2_2Balance = await token.balanceOf(user2)
         const tx4 = await tournament.enterTournament(
             tournamentId2,
             {
                 from: user2
             }
         )
+        const postEnterTournament2User2_2Balance = await token.balanceOf(user2)
+
+        console.log(
+            'Enter T2U2_2',
+            web3.utils.fromWei(preEnterTournament2User2_2Balance.toString(), 'ether'),
+            web3.utils.fromWei(postEnterTournament2User2_2Balance.toString(), 'ether')
+        )
+
         assert.equal(
             tx4.logs[0].args.id,
             tournamentId2
         )
         // User 1 enters tournament 3
+        const preEnterTournament3User1_1Balance = await token.balanceOf(user1)
         const tx5 = await tournament.enterTournament(
             tournamentId3,
             {
                 from: user1
             }
         )
+        const postEnterTournament3User1_1Balance = await token.balanceOf(user1)
+
+        console.log(
+            'Enter T3U1_1',
+            web3.utils.fromWei(preEnterTournament3User1_1Balance.toString(), 'ether'),
+            web3.utils.fromWei(postEnterTournament3User1_1Balance.toString(), 'ether')
+        )
+
         assert.equal(
             tx5.logs[0].args.id,
             tournamentId3
         )
         // User 2 enters tournament 3
+        const preEnterTournament3User2Balance = await token.balanceOf(user2)
         const tx6 = await tournament.enterTournament(
             tournamentId3,
             {
                 from: user2
             }
         )
+        const postEnterTournament3User2Balance = await token.balanceOf(user2)
+
+        console.log(
+            'Enter T3U2',
+            web3.utils.fromWei(preEnterTournament3User2Balance.toString(), 'ether'),
+            web3.utils.fromWei(postEnterTournament3User2Balance.toString(), 'ether')
+        )
+
         assert.equal(
             tx6.logs[0].args.id,
             tournamentId3
         )
+
         // User 1 enters tournament 3 again
+        const preEnterTournament3User1_2Balance = await token.balanceOf(user1)
         const tx7 = await tournament.enterTournament(
             tournamentId3,
             {
                 from: user1
             }
         )
+        const postEnterTournament3User1_2Balance = await token.balanceOf(user1)
+
+        console.log(
+            'Enter T3U1_2',
+            web3.utils.fromWei(preEnterTournament3User1_2Balance.toString(), 'ether'),
+            web3.utils.fromWei(postEnterTournament3User1_2Balance.toString(), 'ether')
+        )
+
         assert.equal(
             tx7.logs[0].args.id,
             tournamentId3
@@ -610,6 +675,12 @@ contract('Tournament', accounts => {
     })
 
     it('allows user to claim tournament prize with valid id and index', async () => {
+        // const finalStandings1 = [[0]] // Indices of entries
+        // const uniqueFinalStandings1 = 1
+        // const finalStandings2 = [[0, 1], [0, 1], [2]] // Final standings for entries in the tournament
+        // const uniqueFinalStandings2 = 3
+        // const finalStandings3 = [[0], [1], [2]]
+        // const uniqueFinalStandings3 = 3
         // Claim tournament 1 prize as user 1
         const preClaimTournament1User1Balance = await token.balanceOf(user1)
 
@@ -643,7 +714,7 @@ contract('Tournament', accounts => {
         // Claim tournament 2 prize as user1
         const preClaimTournament2User1Balance = await token.balanceOf(user1)
 
-        const tx2 = await tournament.claimTournamentPrize(
+        const tx2e0fs0 = await tournament.claimTournamentPrize(
             tournamentId2,
             0,
             0,
@@ -651,29 +722,46 @@ contract('Tournament', accounts => {
                 from: user1
             }
         )
+        const postClaimTournament2User1Entry0Fs0Balance = await token.balanceOf(user1)
 
-        const postClaimTournament2User1Balance = await token.balanceOf(user1)
+        const tx2e0fs1 = await tournament.claimTournamentPrize(
+            tournamentId2,
+            0,
+            1,
+            {
+                from: user1
+            }
+        )
+
+        const postClaimTournament2User1Entry0Fs1Balance = await token.balanceOf(user1)
 
         console.log(
-            'T2U1',
+            'T2U1-E0',
             web3.utils.fromWei(preClaimTournament2User1Balance, 'ether'),
-            web3.utils.fromWei(postClaimTournament2User1Balance, 'ether')
+            web3.utils.fromWei(postClaimTournament2User1Entry0Fs0Balance, 'ether'),
+            web3.utils.fromWei(postClaimTournament2User1Entry0Fs1Balance, 'ether')
         )
 
         assert.equal(
-            new BigNumber(postClaimTournament2User1Balance).isGreaterThan(preClaimTournament2User1Balance),
+            new BigNumber(postClaimTournament2User1Entry0Fs1Balance)
+                .isGreaterThan(preClaimTournament2User1Balance),
             true
         )
 
         assert.equal(
-            tx2.logs[0].args.id,
+            tx2e0fs0.logs[0].args.id,
+            tournamentId2
+        )
+
+        assert.equal(
+            tx2e0fs1.logs[0].args.id,
             tournamentId2
         )
 
         // Claim tournament 2 prizes as user2
         const preClaimTournament2User2Entry1Balance = await token.balanceOf(user2)
 
-        const tx3 = await tournament.claimTournamentPrize(
+        const tx2e1fs0 = await tournament.claimTournamentPrize(
             tournamentId2,
             1,
             0,
@@ -682,138 +770,164 @@ contract('Tournament', accounts => {
             }
         )
 
-        const postClaimTournament2User2Entry1Balance = await token.balanceOf(user2)
+        const postClaimTournament2User2Entry1Fs0Balance = await token.balanceOf(user2)
+
+        const tx2e1fs1 = await tournament.claimTournamentPrize(
+            tournamentId2,
+            1,
+            1,
+            {
+                from: user2
+            }
+        )
+
+        const postClaimTournament2User2Entry1Fs1Balance = await token.balanceOf(user2)
 
         console.log(
             'T2U2-E1',
             web3.utils.fromWei(preClaimTournament2User2Entry1Balance, 'ether'),
-            web3.utils.fromWei(postClaimTournament2User2Entry1Balance, 'ether')
+            web3.utils.fromWei(postClaimTournament2User2Entry1Fs0Balance, 'ether'),
+            web3.utils.fromWei(postClaimTournament2User2Entry1Fs1Balance, 'ether')
         )
 
         assert.equal(
-            new BigNumber(postClaimTournament2User2Entry1Balance).isGreaterThan(preClaimTournament2User2Entry1Balance),
+            new BigNumber(postClaimTournament2User2Entry1Fs0Balance)
+                .isGreaterThan(preClaimTournament2User2Entry1Balance),
             true
         )
 
         assert.equal(
-            tx3.logs[0].args.id,
+            new BigNumber(postClaimTournament2User2Entry1Fs1Balance)
+                .isGreaterThan(postClaimTournament2User2Entry1Fs0Balance),
+            true
+        )
+
+        assert.equal(
+            tx2e1fs0.logs[0].args.id,
             tournamentId2
         )
-        // const preClaimTournament2User2Entry2Balance = await token.balanceOf(user2)
-        //
-        // const tx4 = await tournament.claimTournamentPrize(
-        //     tournamentId2,
-        //     2,
-        //     {
-        //         from: user2
-        //     }
-        // )
-        //
-        // const postClaimTournament2User2Entry2Balance = await token.balanceOf(user2)
-        //
-        // console.log(
-        //     'T2U2-E2',
-        //     web3.utils.fromWei(preClaimTournament2User2Entry2Balance, 'ether'),
-        //     web3.utils.fromWei(postClaimTournament2User2Entry2Balance, 'ether')
-        // )
-        //
-        // assert.equal(
-        //     new BigNumber(postClaimTournament2User2Entry2Balance).isGreaterThan(preClaimTournament2User2Entry2Balance),
-        //     true
-        // )
-        //
-        // assert.equal(
-        //     tx4.logs[0].args.id,
-        //     tournamentId2
-        // )
-        //
-        // // Claim tournament 3 prizes as user 1
-        // const preClaimTournament3User1Entry1Balance = await token.balanceOf(user1)
-        //
-        // const tx5 = await tournament.claimTournamentPrize(
-        //     tournamentId3,
-        //     0,
-        //     0,
-        //     {
-        //         from: user1
-        //     }
-        // )
-        //
-        // const postClaimTournament3User1Entry1Balance = await token.balanceOf(user1)
-        //
-        // console.log(
-        //     'T3U1-E1',
-        //     web3.utils.fromWei(preClaimTournament3User1Entry1Balance, 'ether'),
-        //     web3.utils.fromWei(postClaimTournament3User1Entry1Balance, 'ether')
-        // )
-        //
-        // assert.equal(
-        //     new BigNumber(postClaimTournament3User1Entry1Balance).isGreaterThan(preClaimTournament3User1Entry1Balance),
-        //     true
-        // )
-        //
-        // assert.equal(
-        //     tx5.logs[0].args.id,
-        //     tournamentId3
-        // )
-        //
-        // const preClaimTournament3User1Entry2Balance = await token.balanceOf(user1)
-        //
-        // const tx6 = await tournament.claimTournamentPrize(
-        //     tournamentId3,
-        //     2,
-        //     2,
-        //     {
-        //         from: user1
-        //     }
-        // )
-        //
-        // const postClaimTournament3User1Entry2Balance = await token.balanceOf(user1)
-        //
-        // console.log(
-        //     'T3U1-E1',
-        //     web3.utils.fromWei(preClaimTournament3User1Entry1Balance, 'ether'),
-        //     web3.utils.fromWei(postClaimTournament3User1Entry2Balance, 'ether')
-        // )
-        //
-        // assert.equal(
-        //     new BigNumber(postClaimTournament3User1Entry2Balance).isGreaterThan(preClaimTournament3User1Entry1Balance),
-        //     true
-        // )
-        //
-        // assert.equal(
-        //     tx6.logs[0].args.id,
-        //     tournamentId3
-        // )
-        //
-        // // Claim tournament 3 prize as user 2
-        // const preClaimTournament3User2Balance = await token.balanceOf(user2)
-        //
-        // const tx7 = await tournament.claimTournamentPrize(
-        //     tournamentId3,
-        //     1,
-        //     {
-        //         from: user2
-        //     }
-        // )
-        //
-        // const postClaimTournament3User2Balance = await token.balanceOf(user2)
-        //
-        // console.log(
-        //     'T3U2-E1',
-        //     web3.utils.fromWei(preClaimTournament3User2Balance, 'ether'),
-        //     web3.utils.fromWei(postClaimTournament3User2Balance, 'ether')
-        // )
-        //
-        // assert.equal(
-        //     new BigNumber(postClaimTournament3User2Balance).isGreaterThan(preClaimTournament3User2Balance),
-        //     true
-        // )
-        //
-        // assert.equal(
-        //     tx7.logs[0].args.id,
-        //     tournamentId3
-        // )
+
+        assert.equal(
+            tx2e1fs1.logs[0].args.id,
+            tournamentId2
+        )
+        const preClaimTournament2User2Entry2Balance = await token.balanceOf(user2)
+
+        const tx4 = await tournament.claimTournamentPrize(
+            tournamentId2,
+            2,
+            0,
+            {
+                from: user2
+            }
+        )
+
+        const postClaimTournament2User2Entry2Balance = await token.balanceOf(user2)
+
+        console.log(
+            'T2U2-E2',
+            web3.utils.fromWei(preClaimTournament2User2Entry2Balance, 'ether'),
+            web3.utils.fromWei(postClaimTournament2User2Entry2Balance, 'ether')
+        )
+
+        assert.equal(
+            new BigNumber(postClaimTournament2User2Entry2Balance).isGreaterThan(preClaimTournament2User2Entry2Balance),
+            true
+        )
+
+        assert.equal(
+            tx4.logs[0].args.id,
+            tournamentId2
+        )
+
+        // Claim tournament 3 prizes as user 1
+        const preClaimTournament3User1Entry0Balance = await token.balanceOf(user1)
+
+        const tx5 = await tournament.claimTournamentPrize(
+            tournamentId3,
+            0,
+            0,
+            {
+                from: user1
+            }
+        )
+
+        const postClaimTournament3User1Entry0Balance = await token.balanceOf(user1)
+
+        console.log(
+            'T3U1-E0',
+            web3.utils.fromWei(preClaimTournament3User1Entry0Balance, 'ether'),
+            web3.utils.fromWei(postClaimTournament3User1Entry0Balance, 'ether')
+        )
+
+        assert.equal(
+            new BigNumber(postClaimTournament3User1Entry0Balance).isGreaterThan(preClaimTournament3User1Entry0Balance),
+            true
+        )
+
+        assert.equal(
+            tx5.logs[0].args.id,
+            tournamentId3
+        )
+
+        const preClaimTournament3User1Entry2Balance = await token.balanceOf(user1)
+
+        const tx6 = await tournament.claimTournamentPrize(
+            tournamentId3,
+            2,
+            0,
+            {
+                from: user1
+            }
+        )
+
+        const postClaimTournament3User1Entry2Balance = await token.balanceOf(user1)
+
+        console.log(
+            'T3U1-E1',
+            web3.utils.fromWei(preClaimTournament3User1Entry2Balance, 'ether'),
+            web3.utils.fromWei(postClaimTournament3User1Entry2Balance, 'ether')
+        )
+
+        assert.equal(
+            new BigNumber(postClaimTournament3User1Entry2Balance).isGreaterThan(preClaimTournament3User1Entry2Balance),
+            true
+        )
+
+        assert.equal(
+            tx6.logs[0].args.id,
+            tournamentId3
+        )
+
+        // Claim tournament 3 prize as user 2
+        const preClaimTournament3User2Entry1Balance = await token.balanceOf(user2)
+
+        const tx7 = await tournament.claimTournamentPrize(
+            tournamentId3,
+            1,
+            0,
+            {
+                from: user2
+            }
+        )
+
+        const postClaimTournament3User2Entry1Balance = await token.balanceOf(user2)
+
+        console.log(
+            'T3U2-E1',
+            web3.utils.fromWei(preClaimTournament3User2Entry1Balance, 'ether'),
+            web3.utils.fromWei(postClaimTournament3User2Entry1Balance, 'ether')
+        )
+
+        assert.equal(
+            new BigNumber(postClaimTournament3User2Entry1Balance).isGreaterThan(preClaimTournament3User2Entry1Balance),
+            true
+        )
+
+        assert.equal(
+            tx7.logs[0].args.id,
+            tournamentId3
+        )
     })
 
     it('throws if user claims a previously claimed entry', async () => {
