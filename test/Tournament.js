@@ -74,18 +74,17 @@ const assertClaimCalculations = (
                 .dividedBy(new BigNumber(100).minus(excessPrizePercent))
     } else
         excessPrizePercent = 0
-    console.log({excessPrizePercent: excessPrizePercent.toString()})
     const calculatedPrize =
-        new BigNumber(totalEntryFee)    // Total entry fee
-            .multipliedBy(0.8)          // After rake fee
+        new BigNumber(totalEntryFee)                    // Total entry fee
+            .multipliedBy(0.8)                          // After rake fee
             .multipliedBy(
-                new BigNumber(finalStandingPercent) // Final standing 0 Prize percent
+                new BigNumber(finalStandingPercent)     // Final standing 0 Prize percent
                     .plus(
                         excessPrizePercent
                     )
             )
-            .multipliedBy(0.01) // Divide by 100 for percent
-            .dividedBy(sharedFinalStandings)  // Divide by number of shared final standings
+            .multipliedBy(0.01)                         // Divide by 100 for percent calculation
+            .dividedBy(sharedFinalStandings)            // Divide by number of shared final standings
     const calculatedPostBalance =
         new BigNumber(
             preBalance
