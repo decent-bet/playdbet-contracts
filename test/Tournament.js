@@ -58,6 +58,44 @@ const getValidTournamentCompletionParams = () => {
     }
 }
 
+const assertClaimCalculations = (
+    postBalance,
+    preBalance,
+    totalEntryFee,
+    finalStandingPercent,
+    uniqueFinalStandings,
+    excessPrizePercent,
+    sharedFinalStandings
+) => {
+    if(excessPrizePercent) {
+        excessPrizePercent =
+            new BigNumber(excessPrizePercent)
+                .dividedBy(uniqueFinalStandings)
+    } else
+        excessPrizePercent = 0
+    assert.equal(
+        new BigNumber(
+            postBalance
+        ).isEqualTo(
+            new BigNumber(
+                preBalance
+            ).plus(
+                new BigNumber(totalEntryFee)      // Total entry fee
+                    .multipliedBy(0.8)  // After rake fee
+                    .multipliedBy(
+                        new BigNumber(finalStandingPercent) // Final standing 0 Prize percent
+                            .plus(
+                                excessPrizePercent
+                            )
+                    )
+                    .multipliedBy(0.01) // Divide by 100 for percent
+                    .dividedBy(sharedFinalStandings)  // Divide by number of shared final standings
+            )
+        ),
+        true
+    )
+}
+
 contract('Tournament', accounts => {
     it('initializes tournament contract', async () => {
         owner = accounts[0]
@@ -700,13 +738,14 @@ contract('Tournament', accounts => {
             tx1.logs[0].args.prizeMoney.toString()
         )
 
-        assert.equal(
-            new BigNumber(
-                postClaimTournament1User1Balance
-            ).isEqualTo(
-                new BigNumber(preClaimTournament1User1Balance).plus(new BigNumber(50).multipliedBy(0.8))
-            ),
-            true
+        assertClaimCalculations(
+            postClaimTournament1User1Balance,
+            preClaimTournament1User1Balance,
+            50,
+            50,
+            1,
+            50,
+            1
         )
 
         assert.equal(
@@ -755,51 +794,25 @@ contract('Tournament', accounts => {
         )
 
         // Ensure claim calculations for T2U1E0FS0 is correct
-        assert.equal(
-            new BigNumber(
-                postClaimTournament2User1Entry0Fs0Balance
-            ).isEqualTo(
-                new BigNumber(
-                    preClaimTournament2User1Balance
-                ).plus(
-                    new BigNumber(150)      // Total entry fee
-                        .multipliedBy(0.8)  // After rake fee
-                        .multipliedBy(
-                            new BigNumber(50) // Final standing 0 Prize percent
-                                .plus(
-                                    new BigNumber(20) // Excess prize percent
-                                        .multipliedBy(0.5) // Divide by number of unique final standings
-                                )
-                        )
-                        .multipliedBy(0.01) // Divide by 100 for percent
-                        .multipliedBy(0.5)  // Divide by number of shared final standings
-                )
-            ),
-            true
+        assertClaimCalculations(
+            postClaimTournament2User1Entry0Fs0Balance,
+            preClaimTournament2User1Balance,
+            150,
+            50,
+            2,
+            20,
+            2
         )
 
         // Ensure claim calculations for T2U1E1FS1 is correct
-        assert.equal(
-            new BigNumber(
-                postClaimTournament2User1Entry0Fs1Balance
-            ).isEqualTo(
-                new BigNumber(
-                    postClaimTournament2User1Entry0Fs0Balance
-                ).plus(
-                    new BigNumber(150)      // Total entry fee
-                        .multipliedBy(0.8)  // After rake fee
-                        .multipliedBy(
-                            new BigNumber(30) // Final standing 1 Prize percent
-                                .plus(
-                                    new BigNumber(20) // Excess prize percent
-                                        .multipliedBy(0.5) // Divide by number of unique final standings
-                                )
-                        )
-                        .multipliedBy(0.01) // Divide by 100 for percent
-                        .multipliedBy(0.5)  // Divide by number of shared final standings
-                )
-            ),
-            true
+        assertClaimCalculations(
+            postClaimTournament2User1Entry0Fs1Balance,
+            postClaimTournament2User1Entry0Fs0Balance,
+            150,
+            30,
+            2,
+            20,
+            2
         )
 
         assert.equal(
@@ -854,51 +867,25 @@ contract('Tournament', accounts => {
         )
 
         // Ensure claim calculations for T2U2E1FS0 is correct
-        assert.equal(
-            new BigNumber(
-                postClaimTournament2User2Entry1Fs0Balance
-            ).isEqualTo(
-                new BigNumber(
-                    preClaimTournament2User2Entry1Balance
-                ).plus(
-                    new BigNumber(150)      // Total entry fee
-                        .multipliedBy(0.8)  // After rake fee
-                        .multipliedBy(
-                            new BigNumber(50) // Final standing 0 Prize percent
-                                .plus(
-                                    new BigNumber(20) // Excess prize percent
-                                        .multipliedBy(0.5) // Divide by number of unique final standings
-                                )
-                        )
-                        .multipliedBy(0.01) // Divide by 100 for percent
-                        .multipliedBy(0.5)  // Divide by number of shared final standings
-                )
-            ),
-            true
+        assertClaimCalculations(
+            postClaimTournament2User2Entry1Fs0Balance,
+            preClaimTournament2User2Entry1Balance,
+            150,
+            50,
+            2,
+            20,
+            2
         )
 
         // Ensure claim calculations for T2U2E1FS1 is correct
-        assert.equal(
-            new BigNumber(
-                postClaimTournament2User2Entry1Fs1Balance
-            ).isEqualTo(
-                new BigNumber(
-                    postClaimTournament2User2Entry1Fs0Balance
-                ).plus(
-                    new BigNumber(150)      // Total entry fee
-                        .multipliedBy(0.8)  // After rake fee
-                        .multipliedBy(
-                            new BigNumber(30) // Final standing 0 Prize percent
-                                .plus(
-                                    new BigNumber(20) // Excess prize percent
-                                        .multipliedBy(0.5) // Divide by number of unique final standings
-                                )
-                        )
-                        .multipliedBy(0.01) // Divide by 100 for percent
-                        .multipliedBy(0.5)  // Divide by number of shared final standings
-                )
-            ),
-            true
+        assertClaimCalculations(
+            postClaimTournament2User2Entry1Fs1Balance,
+            postClaimTournament2User2Entry1Fs0Balance,
+            150,
+            30,
+            2,
+            20,
+            2
         )
 
         assert.equal(
@@ -968,27 +955,14 @@ contract('Tournament', accounts => {
         )
 
         // Ensure claim calculations for T3U1E0 is correct
-        assert.equal(
-            new BigNumber(
-                postClaimTournament3User1Entry0Balance
-            ).isEqualTo(
-                new BigNumber(
-                    preClaimTournament3User1Entry0Balance
-                ).plus(
-                    new BigNumber(150)      // Total entry fee
-                        .multipliedBy(0.8)  // After rake fee
-                        .multipliedBy(
-                            new BigNumber(50) // Final standing 0 Prize percent
-                                .plus(
-                                    new BigNumber(20) // Excess prize percent
-                                        .multipliedBy(0.5) // Divide by number of unique final standings
-                                )
-                        )
-                        .multipliedBy(0.01) // Divide by 100 for percent
-                        .multipliedBy(1)  // Divide by number of shared final standings
-                )
-            ),
-            true
+        assertClaimCalculations(
+            postClaimTournament3User1Entry0Balance,
+            preClaimTournament3User1Entry0Balance,
+            150,
+            50,
+            2,
+            20,
+            1
         )
 
         assert.equal(
@@ -1023,27 +997,14 @@ contract('Tournament', accounts => {
 
 
         // Ensure claim calculations for T3U2E1 is correct
-        assert.equal(
-            new BigNumber(
-                postClaimTournament3User2Entry1Balance
-            ).isEqualTo(
-                new BigNumber(
-                    preClaimTournament3User2Entry1Balance
-                ).plus(
-                    new BigNumber(150)      // Total entry fee
-                        .multipliedBy(0.8)  // After rake fee
-                        .multipliedBy(
-                            new BigNumber(30) // Final standing 1 Prize percent
-                                .plus(
-                                    new BigNumber(20) // Excess prize percent
-                                        .multipliedBy(0.5) // Divide by number of unique final standings
-                                )
-                        )
-                        .multipliedBy(0.01) // Divide by 100 for percent
-                        .multipliedBy(1)  // Divide by number of shared final standings
-                )
-            ),
-            true
+        assertClaimCalculations(
+            postClaimTournament3User2Entry1Balance,
+            preClaimTournament3User2Entry1Balance,
+            150,
+            30,
+            2,
+            20,
+            1
         )
 
         assert.equal(
