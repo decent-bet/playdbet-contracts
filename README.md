@@ -1,11 +1,11 @@
 # PlayDbet Contracts
 
-Solidity based smart contracts that power the PlayVig x DBET contracts.
+Solidity based smart contracts that power the PlayVig x DBET contracts. Details about the contract architecture and functionality can be found in the [Architecture Wiki](https://github.com/decent-bet/playdbet-contracts/wiki/Architecture)
 
 The contracts are split into the following types:
 
-* Quest
-* Tournament
+* [Quest](https://github.com/decent-bet/playdbet-contracts/wiki/Architecture#Quests)
+* [Tournament](https://github.com/decent-bet/playdbet-contracts/wiki/Architecture#Tournaments)
 
 ## Pre-requisites
 
