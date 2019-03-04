@@ -3,9 +3,9 @@ const Web3 = require('web3')
 const contracts = require('./utils/contracts')
 const utils = require('./utils/utils')
 
-const OUTCOME_SUCCESS = 1
-const OUTCOME_FAILED = 2
-const OUTCOME_INVALID = 3
+const OUTCOME_SUCCESS = 2
+const OUTCOME_FAILED = 3
+const OUTCOME_INVALID = 4
 
 let admin,
     quest,
@@ -17,9 +17,7 @@ let user2
 
 const web3 = new Web3()
 
-const timeTravel = async timeDiff => {
-    await utils.timeTravel(timeDiff)
-}
+const timeTravel = async timeDiff => await utils.timeTravel(timeDiff)
 
 const getValidQuestParams = () => {
     const id = web3.utils.fromUtf8('123')
@@ -271,9 +269,10 @@ contract('Quest', accounts => {
             user1,
             id
         )
+        const questEntryStatus_started = 1
         assert.equal(
-            userQuestEntry[2],
-            true
+            userQuestEntry[1],
+            questEntryStatus_started
         )
     })
 
@@ -351,7 +350,7 @@ contract('Quest', accounts => {
         )
         assert.equal(
             userQuestEntry[1],
-            true
+            OUTCOME_SUCCESS
         )
     })
 

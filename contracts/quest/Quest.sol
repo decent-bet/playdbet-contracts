@@ -184,10 +184,6 @@ LibQuest {
                 (userQuestEntries[user][id].entryTime).add(quests[id].timeToComplete) >=
                 block.timestamp
             );
-        // User quest entry status must be started
-        require(
-            userQuestEntries[user][id].status == uint8(QuestEntryStatus.STARTED)
-        );
         // Update quest entry status
         userQuestEntries[user][id].status = outcome;
         // Pay out user if quest was successfully finished
