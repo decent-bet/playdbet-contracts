@@ -61,8 +61,8 @@ const getValidTournamentCompletionParams = () => {
     const uniqueFinalStandings3 = 2
 
     // Winner take all
-    const finalStandings4 = [[0], [1], [2], [3]]
-    const uniqueFinalStandings4 = 4
+    const finalStandings4 = [[0, 1], [0, 1], [2], [3]]
+    const uniqueFinalStandings4 = 3
     return {
         finalStandings1,
         uniqueFinalStandings1,
@@ -1244,28 +1244,47 @@ contract('Tournament', accounts => {
             postClaimTournamentUser1Balance,
             preClaimTournamentUser1Balance,
             200,
-            1
+            2
+        )
+
+        // Claim tournament prize as user 2
+        const preClaimTournamentUser2Balance =
+            web3.utils.fromWei(await token.balanceOf(user2), 'ether')
+
+        const tx6 = await tournament.claimTournamentPrize(
+            winnerTakeAllTournamentId,
+            1,
+            0,
+            {
+                from: user2
+            }
+        )
+
+        const postClaimTournamentUser2Balance =
+            web3.utils.fromWei(await token.balanceOf(user2), 'ether')
+
+        console.log(
+            preClaimTournamentUser2Balance,
+            postClaimTournamentUser2Balance,
+            tx6.logs[0].args.finalStanding.toString(),
+            tx6.logs[0].args.prizeFromTable.toString(),
+            tx6.logs[0].args.prizeMoney.toString()
+        )
+
+        assertWinnerTakeAllClaimCalculations(
+            postClaimTournamentUser2Balance,
+            preClaimTournamentUser2Balance,
+            200,
+            2
         )
 
         assert.equal(
-            tx5.logs[0].args.id,
+            tx6.logs[0].args.id,
             winnerTakeAllTournamentId
         )
     })
 
     it('throws if non-winner claims winner take all tournament prize', async () => {
-        // User 2 claims entry 1
-        await utils.assertFail(
-            tournament.claimTournamentPrize(
-                winnerTakeAllTournamentId,
-                1,
-                1,
-                {
-                    from: user2
-                }
-            )
-        )
-
         // User 1 claims entry 2
         await utils.assertFail(
             tournament.claimTournamentPrize(

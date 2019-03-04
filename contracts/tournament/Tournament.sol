@@ -381,7 +381,10 @@ LibTournament {
             .entries[entryIndex]
             .finalStandings[finalStandingIndex];
         // Prize table must have a valid prize at final standings index
-        if (tournaments[id].details.prizeType == uint8(TournamentPrizeType.STANDARD))
+        if (
+            tournaments[id].details.prizeType ==
+            uint8(TournamentPrizeType.STANDARD)
+        )
             require(
                 prizeTables
                 [tournaments[id].details.prizeTable]
