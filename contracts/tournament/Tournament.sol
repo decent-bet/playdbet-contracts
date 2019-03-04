@@ -210,16 +210,16 @@ LibTournament {
     ) public returns (bool) {
         // Must be a valid tournament
         require(
-            tournaments[id].entryFee != 0,
+            tournaments[id].details.entryFee != 0,
             "INVALID_TOURNAMENT_ID"
         );
         // Cannot have already entered the tournament if entryLimit is false
-        if(tournaments[id].entryLimit > 1) {
+        if(tournaments[id].details.entryLimit > 1) {
             uint256 entryCount = 0;
             for (uint256 i = 0; i < tournaments[id].entries.length; i++) {
                 if(tournaments[id].entries[i]._address == msg.sender) {
                     require(
-                        ++entryCount <= tournaments[id].entryLimit,
+                        ++entryCount <= tournaments[id].details.entryLimit,
                         "ENTRY_LIMIT_EXCEEDED"
                     );
                 }
@@ -233,13 +233,13 @@ LibTournament {
         // Cannot be over max entry count
         require(
             tournaments[id].entries.length !=
-            tournaments[id].maxEntries,
+            tournaments[id].details.maxEntries,
             "MAX_ENTRY_COUNT_EXCEEDED"
         );
         // Must have a balance and allowance >= entryFee
         require(
-            token.balanceOf(msg.sender) >= tournaments[id].entryFee &&
-            token.allowance(msg.sender, address(this)) >= tournaments[id].entryFee,
+            token.balanceOf(msg.sender) >= tournaments[id].details.entryFee &&
+            token.allowance(msg.sender, address(this)) >= tournaments[id].details.entryFee,
             "INVALID_TOKEN_BALANCE_OR_ALLOWANCE"
         );
         // Transfer tokens to contract
@@ -247,7 +247,7 @@ LibTournament {
             token.transferFrom(
                 msg.sender,
                 address(this),
-                tournaments[id].entryFee
+                tournaments[id].details.entryFee
             ),
             "TOKEN_TRANSFER_ERROR"
         );
