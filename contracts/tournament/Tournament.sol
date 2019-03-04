@@ -123,6 +123,7 @@ LibTournament {
     * @param minEntries The minimum number of entries for the tournament
     * @param maxEntries The maximum number of entries for the tournament
     * @param rakePercent Percentage of the prize pool retained by Decent.bet
+    * @param prizeType Type of prize for tournament
     * @param prizeTable Unique ID of prize table to be used for the tournament
     * @return Unique ID of the created tournament
     */
@@ -132,6 +133,7 @@ LibTournament {
         uint256 minEntries,
         uint256 maxEntries,
         uint256 rakePercent,
+        uint8 prizeType,
         bytes32 prizeTable
     ) public returns (bytes32) {
         // Creator must be an admin
@@ -161,8 +163,15 @@ LibTournament {
             rakePercent < 100,
             "INVALID_RAKE_PERCENT"
         );
-        // Must be a valid prize table
-        require(prizeTables[prizeTable][0] != 0);
+        // Must be a valid prize type
+        require(
+            prizeType >= uint8(TournamentPrizeType.STANDARD) ||
+            prizeType <= uint8(TournamentPrizeType.WINNER_TAKE_ALL)
+        );
+        // If prize type is standard, prize table must be valid
+        if(prizeType == uint8(TournamentPrizeType.STANDARD))
+            require(prizeTables[prizeTable][0] != 0);
+
         bytes32 id = keccak256(
             abi.encode(
                 "tournament_",
@@ -176,12 +185,14 @@ LibTournament {
         );
 
         // Assign params
-        tournaments[id].entryFee = entryFee;
-        tournaments[id].entryLimit = entryLimit;
-        tournaments[id].minEntries = minEntries;
-        tournaments[id].maxEntries = maxEntries;
-        tournaments[id].prizeTable = prizeTable;
-        tournaments[id].rakePercent = rakePercent;
+        tournaments[id].details = TournamentDetails({
+            entryFee: entryFee,
+            entryLimit: entryLimit,
+            minEntries: minEntries,
+            maxEntries: maxEntries,
+            prizeTable: prizeTable,
+            rakePercent: rakePercent
+        });
 
         // Emit log new tournament event
         emit LogNewTournament(
