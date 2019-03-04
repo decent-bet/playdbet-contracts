@@ -14,13 +14,14 @@ contract ITournament {
 
     /**
     * Creates a tournament that users can enter
-    * @param entryFee fee to enter the tournament
+    * @param entryFee Fee to enter the tournament
     * @param entryLimit Entry limit for each unique address
-    * @param minEntries the minimum number of entries for the tournament
-    * @param maxEntries the maximum number of entries for the tournament
-    * @param rakePercent percentage of the prize pool retained by Decent.bet
-    * @param prizeTable unique ID of prize table to be used for the tournament
-    * @return unique ID of the created tournament
+    * @param minEntries The minimum number of entries for the tournament
+    * @param maxEntries The maximum number of entries for the tournament
+    * @param rakePercent Percentage of the prize pool retained by Decent.bet
+    * @param prizeType Type of prize for tournament
+    * @param prizeTable Unique ID of prize table to be used for the tournament
+    * @return Unique ID of the created tournament
     */
     function createTournament(
         uint256 entryFee,
@@ -28,6 +29,7 @@ contract ITournament {
         uint256 minEntries,
         uint256 maxEntries,
         uint256 rakePercent,
+        uint8 prizeType,
         bytes32 prizeTable
     ) public returns (bytes32);
 

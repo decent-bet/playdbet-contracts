@@ -165,7 +165,7 @@ LibTournament {
         );
         // Must be a valid prize type
         require(
-            prizeType >= uint8(TournamentPrizeType.STANDARD) ||
+            prizeType >= uint8(TournamentPrizeType.STANDARD) &&
             prizeType <= uint8(TournamentPrizeType.WINNER_TAKE_ALL)
         );
         // If prize type is standard, prize table must be valid
@@ -191,6 +191,7 @@ LibTournament {
             minEntries: minEntries,
             maxEntries: maxEntries,
             prizeTable: prizeTable,
+            prizeType: prizeType,
             rakePercent: rakePercent
         });
 
@@ -378,10 +379,10 @@ LibTournament {
             .entries[entryIndex]
             .finalStandings[finalStandingIndex];
         // Prize table must have a valid prize at final standings index
-        if(tournaments[id].prizeType == uint8(TournamentPrizeType.STANDARD))
+        if(tournaments[id].details.prizeType == uint8(TournamentPrizeType.STANDARD))
             require(
                 prizeTables
-                [tournaments[id].prizeTable]
+                [tournaments[id].details.prizeTable]
                 [finalStanding] != 0,
                 "INVALID_PRIZE_TABLE_INDEX"
             );
@@ -404,7 +405,7 @@ LibTournament {
             id,
             entryIndex,
             finalStanding,
-            prizeTables[tournaments[id].prizeTable][finalStanding],
+            prizeTables[tournaments[id].details.prizeTable][finalStanding],
             prizeMoney
         );
     }
@@ -422,12 +423,12 @@ LibTournament {
     public
     view
     returns (uint256) {
-        if(tournaments[id].prizeType == uint8(TournamentPrizeType.STANDARD))
+        if(tournaments[id].details.prizeType == uint8(TournamentPrizeType.STANDARD))
             return _calculatePrizeMoneyForStandardPrizeType(
                 id,
                 finalStanding
             );
-        else if(tournaments[id].prizeType == uint8(TournamentPrizeType.WINNER_TAKE_ALL)) {
+        else if(tournaments[id].details.prizeType == uint8(TournamentPrizeType.WINNER_TAKE_ALL)) {
             return _calculatePrizeMoneyForWinnerTakeAllPrizeType(
                 id,
                 finalStanding
@@ -454,25 +455,24 @@ LibTournament {
             tournaments[id].prizes[finalStanding].length;
         // Calculate prize pool
         uint256 prizePool = (tournaments[id].entries.length
-            .mul(tournaments[id].entryFee))
+            .mul(tournaments[id].details.entryFee))
             .sub(getRakeFee(id));
         uint256 prizePercent =
-            (prizeTables[tournaments[id].prizeTable][finalStanding]);
-        uint256 prizeMoney;
+            (prizeTables[tournaments[id].details.prizeTable][finalStanding]);
         uint256 excessPrizePercent;
         uint256 multiplier = 1000;
         // If the amount of prize winners is greater than the number of unique final standings,
         // split excess token % split among all addresses in final standings
         if(
-            prizeTables[tournaments[id].prizeTable].length >
+            prizeTables[tournaments[id].details.prizeTable].length >
             tournaments[id].uniqueFinalStandings
         ) {
             for(
                 uint256 i = tournaments[id].uniqueFinalStandings;
-                i < prizeTables[tournaments[id].prizeTable].length;
+                i < prizeTables[tournaments[id].details.prizeTable].length;
                 i++
             ) {
-                excessPrizePercent = excessPrizePercent.add(prizeTables[tournaments[id].prizeTable][i]);
+                excessPrizePercent = excessPrizePercent.add(prizeTables[tournaments[id].details.prizeTable][i]);
             }
             excessPrizePercent =
                 excessPrizePercent
@@ -511,7 +511,7 @@ LibTournament {
             tournaments[id].prizes[finalStanding].length;
         // Calculate prize pool
         uint256 prizePool = (tournaments[id].entries.length
-            .mul(tournaments[id].entryFee))
+            .mul(tournaments[id].details.entryFee))
             .sub(getRakeFee(id));
         return prizePool
             .div(sharedFinalStandings);
@@ -553,7 +553,7 @@ LibTournament {
         require(
             token.transfer(
                 msg.sender,
-                tournaments[id].entryFee
+                tournaments[id].details.entryFee
             ),
             "TOKEN_TRANSFER_ERROR"
         );

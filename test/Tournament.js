@@ -19,6 +19,9 @@ let tournamentId1
 let tournamentId2
 let tournamentId3
 
+const PRIZE_TYPE_STANDARD = 0
+const PRIZE_TYPE_WINNER_TAKE_ALL = 1
+
 const getValidPrizeTable = () => {
     return [
         50,
@@ -27,17 +30,22 @@ const getValidPrizeTable = () => {
     ]
 }
 
-const getValidTournamentParams = entryLimit => {
+const getValidTournamentParams = (
+    entryLimit,
+    prizeType
+) => {
     const entryFee = web3.utils.toWei('50', 'ether')
     const minEntries = 1
     const maxEntries = 10
     const rakePercent = 20
+    prizeType = prizeType ? prizeType : PRIZE_TYPE_STANDARD
     return {
         entryFee,
         entryLimit,
         minEntries,
         maxEntries,
-        rakePercent
+        rakePercent,
+        prizeType
     }
 }
 
@@ -189,7 +197,8 @@ contract('Tournament', accounts => {
             entryLimit,
             minEntries,
             maxEntries,
-            rakePercent
+            rakePercent,
+            prizeType
         } = getValidTournamentParams(1)
 
         await utils.assertFail(
@@ -199,6 +208,7 @@ contract('Tournament', accounts => {
                 minEntries,
                 maxEntries,
                 rakePercent,
+                prizeType,
                 prizeTableId,
                 {
                     from: user2
@@ -213,7 +223,8 @@ contract('Tournament', accounts => {
             entryLimit,
             minEntries,
             maxEntries,
-            rakePercent
+            rakePercent,
+            prizeType
         } = getValidTournamentParams(1)
 
         // Invalid entry fee
@@ -224,6 +235,7 @@ contract('Tournament', accounts => {
                 minEntries,
                 maxEntries,
                 rakePercent,
+                prizeType,
                 prizeTableId,
                 {
                     from: owner
@@ -239,12 +251,14 @@ contract('Tournament', accounts => {
                 '0',
                 maxEntries,
                 rakePercent,
+                prizeType,
                 prizeTableId,
                 {
                     from: owner
                 }
             )
         )
+        console.log('Invalid min entries')
 
         // Invalid max entries
         await utils.assertFail(
@@ -254,12 +268,14 @@ contract('Tournament', accounts => {
                 minEntries,
                 '0',
                 rakePercent,
+                prizeType,
                 prizeTableId,
                 {
                     from: owner
                 }
             )
         )
+        console.log('Invalid max entries')
 
         // Invalid rake percent
         await utils.assertFail(
@@ -269,12 +285,31 @@ contract('Tournament', accounts => {
                 minEntries,
                 maxEntries,
                 '0',
+                prizeType,
                 prizeTableId,
                 {
                     from: owner
                 }
             )
         )
+        console.log('Invalid rake percent')
+
+        // Invalid prize type
+        await utils.assertFail(
+            tournament.createTournament(
+                entryFee,
+                entryLimit,
+                minEntries,
+                maxEntries,
+                rakePercent,
+                100,
+                prizeTableId,
+                {
+                    from: owner
+                }
+            )
+        )
+        console.log('Invalid prize type')
 
         // Invalid prize table ID
         await utils.assertFail(
@@ -284,12 +319,14 @@ contract('Tournament', accounts => {
                 minEntries,
                 maxEntries,
                 rakePercent,
+                prizeType,
                 web3.utils.fromUtf8('invalid'),
                 {
                     from: owner
                 }
             )
         )
+        console.log('Invalid prize table ID')
     })
 
     it('allows admins to create tournaments with valid params', async () => {
@@ -298,7 +335,8 @@ contract('Tournament', accounts => {
             entryLimit,
             minEntries,
             maxEntries,
-            rakePercent
+            rakePercent,
+            prizeType
         } = getValidTournamentParams(1)
 
         const tx1 = await tournament.createTournament(
@@ -307,6 +345,7 @@ contract('Tournament', accounts => {
             minEntries,
             maxEntries,
             rakePercent,
+            prizeType,
             prizeTableId,
             {
                 from: owner
@@ -327,6 +366,7 @@ contract('Tournament', accounts => {
             minEntries,
             maxEntries,
             rakePercent,
+            prizeType,
             prizeTableId,
             {
                 from: owner
@@ -347,6 +387,7 @@ contract('Tournament', accounts => {
             minEntries,
             maxEntries,
             rakePercent,
+            prizeType,
             prizeTableId,
             {
                 from: owner
