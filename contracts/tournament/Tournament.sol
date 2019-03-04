@@ -348,7 +348,9 @@ LibTournament {
         bytes32 id,
         uint256 entryIndex,
         uint256 finalStandingIndex
-    ) public returns (bool) {
+    )
+    public
+    returns (bool) {
         // Must be a valid tournament
         require(
             tournaments[id].details.entryFee != 0,
