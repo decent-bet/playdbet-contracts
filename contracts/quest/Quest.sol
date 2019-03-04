@@ -138,7 +138,8 @@ LibQuest {
         // Add user quest entry
         userQuestEntries[user][id] = UserQuestEntry({
             entryTime: block.timestamp,
-            status: uint8(QuestEntryStatus.STARTED)
+            status: uint8(QuestEntryStatus.STARTED),
+            refunded: false
         });
         require(
             token.transferFrom(
@@ -254,7 +255,7 @@ LibQuest {
         require(
             token.transferFrom(
                 admin.platformWallet(),
-                user,
+                msg.sender,
                 quests[id].entryFee
             )
         );
