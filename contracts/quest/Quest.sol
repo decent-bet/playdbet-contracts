@@ -244,9 +244,14 @@ LibQuest {
         // TODO: Check if this's necessary
         // User cannot have crossed timeToComplete from time of starting quest
         require(
-            userQuestEntries[msg.sender][id].entryTime.add(quests[id].timeToComplete) <=
+            userQuestEntries[msg.sender][id].entryTime.add(quests[id].timeToComplete) >=
             block.timestamp
         );
+        // User quest entry cannot already be refunded
+        require(
+            !userQuestEntries[msg.sender][id].refunded
+        );
+        userQuestEntries[msg.sender][id].refunded = true;
         // Transfer entryFee to user
         require(
             token.transferFrom(
@@ -260,6 +265,5 @@ LibQuest {
             msg.sender
         );
     }
-
 
 }
