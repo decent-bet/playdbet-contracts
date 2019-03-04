@@ -1253,4 +1253,42 @@ contract('Tournament', accounts => {
         )
     })
 
+    it('throws if non-winner claims winner take all tournament prize', async () => {
+        // User 2 claims entry 1
+        await utils.assertFail(
+            tournament.claimTournamentPrize(
+                winnerTakeAllTournamentId,
+                1,
+                1,
+                {
+                    from: user2
+                }
+            )
+        )
+
+        // User 1 claims entry 2
+        await utils.assertFail(
+            tournament.claimTournamentPrize(
+                winnerTakeAllTournamentId,
+                2,
+                2,
+                {
+                    from: user1
+                }
+            )
+        )
+
+        // User 2 claims entry 3
+        await utils.assertFail(
+            tournament.claimTournamentPrize(
+                winnerTakeAllTournamentId,
+                3,
+                3,
+                {
+                    from: user2
+                }
+            )
+        )
+    })
+
 })
