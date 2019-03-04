@@ -283,7 +283,7 @@ LibTournament {
         );
         // Must be a valid tournament
         require(
-            tournaments[id].entryFee != 0,
+            tournaments[id].details.entryFee != 0,
             "INVALID_TOURNAMENT_ID"
         );
         // Tournament cannot have been completed
@@ -350,7 +350,7 @@ LibTournament {
     ) public returns (bool) {
         // Must be a valid tournament
         require(
-            tournaments[id].entryFee != 0,
+            tournaments[id].details.entryFee != 0,
             "INVALID_TOURNAMENT_ID"
         );
         // Tournament should have been completed
@@ -478,7 +478,7 @@ LibTournament {
     returns (bool) {
         // Must be a valid tournament
         require(
-            tournaments[id].entryFee != 0,
+            tournaments[id].details.entryFee != 0,
             "INVALID_TOURNAMENT_ID"
         );
         // Tournament should have a failed status
@@ -523,9 +523,9 @@ LibTournament {
     public
     view
     returns (uint256) {
-        return (tournaments[id].entryFee)
+        return (tournaments[id].details.entryFee)
             .mul(tournaments[id].entries.length)
-            .mul(tournaments[id].rakePercent)
+            .mul(tournaments[id].details.rakePercent)
             .div(100);
     }
 
