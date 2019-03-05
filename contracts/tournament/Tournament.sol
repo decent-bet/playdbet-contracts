@@ -396,13 +396,19 @@ LibTournament {
             uint8(TournamentPrizeType.WINNER_TAKE_ALL)
         )
             // Only #1 wins if prize type is winner take all
-            require(finalStanding == 0);
+            require(
+                finalStanding == 0,
+                "INVALID_FINAL_STANDING"
+            );
         else if (
             tournaments[id].details.prizeType ==
             uint8(TournamentPrizeType.FIFTY_FIFTY)
         )
             // Top 50% wins with 50-50 prize type
-            require(finalStanding < tournaments[id].uniqueFinalStandings.div(2));
+            require(
+                finalStanding < tournaments[id].uniqueFinalStandings.div(2),
+                "INVALID_FINAL_STANDING"
+            );
         uint256 prizeMoney = _calculatePrizeMoney(
             id,
             finalStanding
@@ -564,8 +570,8 @@ LibTournament {
             .mul(tournaments[id].details.entryFee))
             .sub(getRakeFee(id));
         return prizePool
-            .div(sharedFinalStandings)
-            .div(winnerCount);
+            .div(winnerCount)
+            .div(sharedFinalStandings);
     }
 
     /**

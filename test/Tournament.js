@@ -20,9 +20,11 @@ let standardTournamentId2
 let standardTournamentId3
 
 let winnerTakeAllTournamentId
+let fiftyFiftyTournamentId
 
 const PRIZE_TYPE_STANDARD = 0
 const PRIZE_TYPE_WINNER_TAKE_ALL = 1
+const PRIZE_TYPE_FIFTY_FIFTY = 2
 
 const getValidPrizeTable = () => {
     return [
@@ -63,6 +65,10 @@ const getValidTournamentCompletionParams = () => {
     // Winner take all
     const finalStandings4 = [[0, 1], [0, 1], [2], [3]]
     const uniqueFinalStandings4 = 3
+
+    // 50-50
+    const finalStandings5 = [[2], [5], [6], [7], [9], [0], [1], [3], [4], [8]]
+    const uniqueFinalStandings5 = 10
     return {
         finalStandings1,
         uniqueFinalStandings1,
@@ -71,7 +77,9 @@ const getValidTournamentCompletionParams = () => {
         finalStandings3,
         uniqueFinalStandings3,
         finalStandings4,
-        uniqueFinalStandings4
+        uniqueFinalStandings4,
+        finalStandings5,
+        uniqueFinalStandings5
     }
 }
 
@@ -1307,6 +1315,126 @@ contract('Tournament', accounts => {
                     from: user2
                 }
             )
+        )
+    })
+
+    it('allows admins to create 50-50 tournaments with valid params', async () => {
+        const {
+            entryFee,
+            entryLimit,
+            minEntries,
+            maxEntries,
+            rakePercent,
+            prizeType
+        } = getValidTournamentParams(
+            1,
+            PRIZE_TYPE_FIFTY_FIFTY
+        )
+
+        const tx = await tournament.createTournament(
+            entryFee,
+            entryLimit,
+            minEntries,
+            maxEntries,
+            rakePercent,
+            prizeType,
+            prizeTableId,
+            {
+                from: owner
+            }
+        )
+
+        fiftyFiftyTournamentId = tx.logs[0].args.id
+        let tournamentCountAtCreation = tx.logs[0].args.count
+
+        assert.equal(
+            tournamentCountAtCreation,
+            '4'
+        )
+    })
+
+    it('allows user to claim 50-50 tournament prizes with valid IDs and indices', async () => {
+        const enterFiftyFiftyTournament = async user => {
+            const tx = await tournament.enterTournament(
+                fiftyFiftyTournamentId,
+                {
+                    from: user
+                }
+            )
+            assert.equal(
+                tx.logs[0].args.id,
+                fiftyFiftyTournamentId
+            )
+        }
+        // Create 10 alternating entries from user1 and user2
+        for(let i = 0; i < 5; i++) {
+            await enterFiftyFiftyTournament(user1)
+            await enterFiftyFiftyTournament(user2)
+        }
+        console.log('All users entered to 50-50 tournament')
+
+        const {
+            finalStandings5,
+            uniqueFinalStandings5
+        } = getValidTournamentCompletionParams()
+
+        // Complete tournament
+        await tournament.completeTournament(
+            fiftyFiftyTournamentId,
+            finalStandings5,
+            uniqueFinalStandings5,
+            {
+                from: owner
+            }
+        )
+        console.log('Completed 50-50 tournament')
+
+        // Claim tournament prize as user 1, entry 0
+        const preClaimTournamentUser1Entry0Balance =
+            web3.utils.fromWei(await token.balanceOf(user1), 'ether')
+
+        const tx1 = await tournament.claimTournamentPrize(
+            fiftyFiftyTournamentId,
+            0,
+            0,
+            {
+                from: user1
+            }
+        )
+
+        const postClaimTournamentUser1Entry0Balance =
+            web3.utils.fromWei(await token.balanceOf(user1), 'ether')
+
+        console.log(
+            preClaimTournamentUser1Entry0Balance,
+            postClaimTournamentUser1Entry0Balance,
+            tx1.logs[0].args.finalStanding.toString(),
+            tx1.logs[0].args.prizeFromTable.toString(),
+            tx1.logs[0].args.prizeMoney.toString()
+        )
+
+        // Claim tournament prize as user 2, entry 5
+        const preClaimTournamentUser2Entry5Balance =
+            web3.utils.fromWei(await token.balanceOf(user2), 'ether')
+
+        const tx2 = await tournament.claimTournamentPrize(
+            fiftyFiftyTournamentId,
+            5,
+            0,
+            {
+                from: user2
+            }
+        )
+
+        const postClaimTournamentUser2Entry5Balance =
+            web3.utils.fromWei(await token.balanceOf(user2), 'ether')
+
+        console.log(
+            preClaimTournamentUser2Entry5Balance,
+            postClaimTournamentUser2Entry5Balance,
+            tx2.logs[0].args.finalStanding.toString(),
+            tx2.logs[0].args.prizeFromTable.toString(),
+            tx2.logs[0].args.prizeMoney.toString()
         )
     })
 
