@@ -428,7 +428,10 @@ LibTournament {
             id,
             entryIndex,
             finalStanding,
-            prizeTables[tournaments[id].details.prizeTable][finalStanding],
+            tournaments[id].details.prizeType ==
+                uint8(TournamentPrizeType.STANDARD) ?
+                    prizeTables[tournaments[id].details.prizeTable][finalStanding] :
+                    0,
             prizeMoney
         );
     }

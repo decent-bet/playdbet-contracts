@@ -165,6 +165,45 @@ const assertWinnerTakeAllClaimCalculations = (
     )
 }
 
+const assertFiftyFiftyClaimCalculations = (
+    postBalance,
+    preBalance,
+    totalEntryFee,
+    sharedFinalStandings,
+    uniqueFinalStandings
+) => {
+    const calculatedPrize =
+        new BigNumber(totalEntryFee)                    // Total entry fee
+            .multipliedBy(0.8)
+            .dividedBy(
+                new BigNumber(uniqueFinalStandings)     // Divide by number of unique final standings divided by 2
+                    .dividedBy(2)
+            )
+            .dividedBy(sharedFinalStandings)            // Divide by number of shared final standings
+
+    const calculatedPostBalance =
+        new BigNumber(
+            preBalance
+        ).plus(
+            calculatedPrize
+        )
+
+    console.log({
+        preBalance: preBalance.toString(),
+        postBalance: postBalance.toString(),
+        calculatedPostBalance: calculatedPostBalance.toString(),
+        calculatedPrize: calculatedPrize.toString()
+    })
+    assert.equal(
+        new BigNumber(
+            postBalance
+        ).isEqualTo(
+            calculatedPostBalance
+        ),
+        true
+    )
+}
+
 contract('Tournament', accounts => {
     it('initializes tournament contract', async () => {
         owner = accounts[0]
@@ -1389,52 +1428,79 @@ contract('Tournament', accounts => {
         )
         console.log('Completed 50-50 tournament')
 
-        // Claim tournament prize as user 1, entry 0
-        const preClaimTournamentUser1Entry0Balance =
-            web3.utils.fromWei(await token.balanceOf(user1), 'ether')
+        const claimAndAssertTournamentPrize = async (
+            user,
+            entryIndex,
+            finalStandingIndex
+        ) => {
+            // Claim tournament prize as user
+            const preClaimTournamentBalance =
+                web3.utils.fromWei(await token.balanceOf(user), 'ether')
 
-        const tx1 = await tournament.claimTournamentPrize(
-            fiftyFiftyTournamentId,
+            const tx = await tournament.claimTournamentPrize(
+                fiftyFiftyTournamentId,
+                entryIndex,
+                finalStandingIndex,
+                {
+                    from: user
+                }
+            )
+
+            const postClaimTournamentBalance =
+                web3.utils.fromWei(await token.balanceOf(user), 'ether')
+
+            console.log(
+                'Entry index: ', entryIndex,
+                'Final standing index: ', finalStandingIndex,
+                preClaimTournamentBalance,
+                postClaimTournamentBalance,
+                tx.logs[0].args.finalStanding.toString(),
+                tx.logs[0].args.prizeFromTable.toString(),
+                tx.logs[0].args.prizeMoney.toString()
+            )
+
+            assertFiftyFiftyClaimCalculations(
+                postClaimTournamentBalance,
+                preClaimTournamentBalance,
+                50 * 10,
+                1,
+                10
+            )
+        }
+
+        // Entry index 0, Final standing index 0
+        await claimAndAssertTournamentPrize(
+            user1,
             0,
-            0,
-            {
-                from: user1
-            }
+            0
         )
 
-        const postClaimTournamentUser1Entry0Balance =
-            web3.utils.fromWei(await token.balanceOf(user1), 'ether')
-
-        console.log(
-            preClaimTournamentUser1Entry0Balance,
-            postClaimTournamentUser1Entry0Balance,
-            tx1.logs[0].args.finalStanding.toString(),
-            tx1.logs[0].args.prizeFromTable.toString(),
-            tx1.logs[0].args.prizeMoney.toString()
-        )
-
-        // Claim tournament prize as user 2, entry 5
-        const preClaimTournamentUser2Entry5Balance =
-            web3.utils.fromWei(await token.balanceOf(user2), 'ether')
-
-        const tx2 = await tournament.claimTournamentPrize(
-            fiftyFiftyTournamentId,
+        // Entry index 5, Final standing index 0
+        await claimAndAssertTournamentPrize(
+            user2,
             5,
-            0,
-            {
-                from: user2
-            }
+            0
         )
 
-        const postClaimTournamentUser2Entry5Balance =
-            web3.utils.fromWei(await token.balanceOf(user2), 'ether')
+        // Entry index 6, Final standing index 0
+        await claimAndAssertTournamentPrize(
+            user1,
+            6,
+            0
+        )
 
-        console.log(
-            preClaimTournamentUser2Entry5Balance,
-            postClaimTournamentUser2Entry5Balance,
-            tx2.logs[0].args.finalStanding.toString(),
-            tx2.logs[0].args.prizeFromTable.toString(),
-            tx2.logs[0].args.prizeMoney.toString()
+        // Entry index 7, Final standing index 0
+        await claimAndAssertTournamentPrize(
+            user2,
+            7,
+            0
+        )
+
+        // Entry index 8, Final standing index 0
+        await claimAndAssertTournamentPrize(
+            user1,
+            8,
+            0
         )
     })
 
