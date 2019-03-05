@@ -415,77 +415,55 @@ contract('Tournament', accounts => {
     })
 
     it('allows admins to create standard tournaments with valid params', async () => {
-        const {
-            entryFee,
-            entryLimit,
-            minEntries,
-            maxEntries,
-            rakePercent,
-            prizeType
-        } = getValidTournamentParams(1)
+        const createTournament = async (
+            _entryLimit,
+            _tournamentCountAtCreation
+        ) => {
+            const {
+                entryFee,
+                entryLimit,
+                minEntries,
+                maxEntries,
+                rakePercent,
+                prizeType
+            } = getValidTournamentParams(_entryLimit)
+
+            const tx = await tournament.createTournament(
+                entryFee,
+                entryLimit,
+                minEntries,
+                maxEntries,
+                rakePercent,
+                prizeType,
+                prizeTableId,
+                {
+                    from: owner
+                }
+            )
+
+            let tournamentId = tx.logs[0].args.id
+            let tournamentCountAtCreation = tx.logs[0].args.count
+
+            assert.equal(
+                tournamentCountAtCreation,
+                _tournamentCountAtCreation
+            )
+
+            return tournamentId
+        }
 
         // Standard tournaments
-        const tx1 = await tournament.createTournament(
-            entryFee,
-            entryLimit,
-            minEntries,
-            maxEntries,
-            rakePercent,
-            prizeType,
-            prizeTableId,
-            {
-                from: owner
-            }
+        standardTournamentId1 = await createTournament(
+            1,
+            0
         )
-
-        standardTournamentId1 = tx1.logs[0].args.id
-        let tournamentCountAtCreation = tx1.logs[0].args.count
-
-        assert.equal(
-            tournamentCountAtCreation,
-            '0'
+        standardTournamentId2 = await createTournament(
+            1,
+            1
         )
-
-        const tx2 = await tournament.createTournament(
-            entryFee,
-            entryLimit,
-            minEntries,
-            maxEntries,
-            rakePercent,
-            prizeType,
-            prizeTableId,
-            {
-                from: owner
-            }
-        )
-
-        standardTournamentId2 = tx2.logs[0].args.id
-        tournamentCountAtCreation = tx2.logs[0].args.count
-
-        assert.equal(
-            tournamentCountAtCreation,
-            '1'
-        )
-
-        const tx3 = await tournament.createTournament(
-            entryFee,
-            entryLimit,
-            minEntries,
-            maxEntries,
-            rakePercent,
-            prizeType,
-            prizeTableId,
-            {
-                from: owner
-            }
-        )
-
-        standardTournamentId3 = tx3.logs[0].args.id
-        tournamentCountAtCreation = tx3.logs[0].args.count
-
-        assert.equal(
-            tournamentCountAtCreation,
-            '2'
+        standardTournamentId3 = await createTournament(
+            1,
+            2
         )
     })
 
