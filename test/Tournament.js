@@ -562,146 +562,66 @@ contract('Tournament', accounts => {
     })
 
     it('allows user to enter running tournaments with valid balances and allowances', async () => {
+        const enterTournament = async (
+            user,
+            tournamentId
+        ) => {
+            const preEnterTournamentUserBalance =
+                await token.balanceOf(user)
+            const tx = await tournament.enterTournament(
+                tournamentId,
+                {
+                    from: user
+                }
+            )
+            const postEnterTournamentUserBalance =
+                await token.balanceOf(user)
+
+            console.log(
+                'Tournament', tournamentId,
+                'User', user,
+                web3.utils.fromWei(preEnterTournamentUserBalance.toString(), 'ether'),
+                web3.utils.fromWei(postEnterTournamentUserBalance.toString(), 'ether')
+            )
+
+            assert.equal(
+                tx.logs[0].args.id,
+                tournamentId
+            )
+        }
         // User 1 enters tournament 1
-        const preEnterTournament1User1Balance = await token.balanceOf(user1)
-        const tx1 = await tournament.enterTournament(
-            standardTournamentId1,
-            {
-                from: user1
-            }
-        )
-        const postEnterTournament1User1Balance = await token.balanceOf(user1)
-
-        console.log(
-            'Enter T1U1',
-            web3.utils.fromWei(preEnterTournament1User1Balance.toString(), 'ether'),
-            web3.utils.fromWei(postEnterTournament1User1Balance.toString(), 'ether')
-        )
-
-        assert.equal(
-            tx1.logs[0].args.id,
+        await enterTournament(
+            user1,
             standardTournamentId1
         )
         // User 1 enters tournament 2
-        const preEnterTournament2User1Balance = await token.balanceOf(user1)
-        const tx2 = await tournament.enterTournament(
-            standardTournamentId2,
-            {
-                from: user1
-            }
-        )
-        const postEnterTournament2User1Balance = await token.balanceOf(user1)
-
-        console.log(
-            'Enter T2U1',
-            web3.utils.fromWei(preEnterTournament2User1Balance.toString(), 'ether'),
-            web3.utils.fromWei(postEnterTournament2User1Balance.toString(), 'ether')
-        )
-
-        assert.equal(
-            tx2.logs[0].args.id,
+        await enterTournament(
+            user1,
             standardTournamentId2
         )
-
         // User 2 enters tournament 2
-        const preEnterTournament2User2_1Balance = await token.balanceOf(user2)
-        const tx3 = await tournament.enterTournament(
-            standardTournamentId2,
-            {
-                from: user2
-            }
-        )
-        const postEnterTournament2User2_1Balance = await token.balanceOf(user2)
-
-        console.log(
-            'Enter T2U2_1',
-            web3.utils.fromWei(preEnterTournament2User2_1Balance.toString(), 'ether'),
-            web3.utils.fromWei(postEnterTournament2User2_1Balance.toString(), 'ether')
-        )
-
-        assert.equal(
-            tx3.logs[0].args.id,
+        await enterTournament(
+            user2,
             standardTournamentId2
         )
         // User 2 enters tournament 2 again
-        const preEnterTournament2User2_2Balance = await token.balanceOf(user2)
-        const tx4 = await tournament.enterTournament(
-            standardTournamentId2,
-            {
-                from: user2
-            }
-        )
-        const postEnterTournament2User2_2Balance = await token.balanceOf(user2)
-
-        console.log(
-            'Enter T2U2_2',
-            web3.utils.fromWei(preEnterTournament2User2_2Balance.toString(), 'ether'),
-            web3.utils.fromWei(postEnterTournament2User2_2Balance.toString(), 'ether')
-        )
-
-        assert.equal(
-            tx4.logs[0].args.id,
+        await enterTournament(
+            user2,
             standardTournamentId2
         )
         // User 1 enters tournament 3
-        const preEnterTournament3User1_1Balance = await token.balanceOf(user1)
-        const tx5 = await tournament.enterTournament(
-            standardTournamentId3,
-            {
-                from: user1
-            }
-        )
-        const postEnterTournament3User1_1Balance = await token.balanceOf(user1)
-
-        console.log(
-            'Enter T3U1_1',
-            web3.utils.fromWei(preEnterTournament3User1_1Balance.toString(), 'ether'),
-            web3.utils.fromWei(postEnterTournament3User1_1Balance.toString(), 'ether')
-        )
-
-        assert.equal(
-            tx5.logs[0].args.id,
+        await enterTournament(
+            user1,
             standardTournamentId3
         )
         // User 2 enters tournament 3
-        const preEnterTournament3User2Balance = await token.balanceOf(user2)
-        const tx6 = await tournament.enterTournament(
-            standardTournamentId3,
-            {
-                from: user2
-            }
-        )
-        const postEnterTournament3User2Balance = await token.balanceOf(user2)
-
-        console.log(
-            'Enter T3U2',
-            web3.utils.fromWei(preEnterTournament3User2Balance.toString(), 'ether'),
-            web3.utils.fromWei(postEnterTournament3User2Balance.toString(), 'ether')
-        )
-
-        assert.equal(
-            tx6.logs[0].args.id,
+        await enterTournament(
+            user2,
             standardTournamentId3
         )
-
         // User 1 enters tournament 3 again
-        const preEnterTournament3User1_2Balance = await token.balanceOf(user1)
-        const tx7 = await tournament.enterTournament(
-            standardTournamentId3,
-            {
-                from: user1
-            }
-        )
-        const postEnterTournament3User1_2Balance = await token.balanceOf(user1)
-
-        console.log(
-            'Enter T3U1_2',
-            web3.utils.fromWei(preEnterTournament3User1_2Balance.toString(), 'ether'),
-            web3.utils.fromWei(postEnterTournament3User1_2Balance.toString(), 'ether')
-        )
-
-        assert.equal(
-            tx7.logs[0].args.id,
+        await enterTournament(
+            user1,
             standardTournamentId3
         )
     })
