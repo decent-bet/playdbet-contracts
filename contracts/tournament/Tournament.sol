@@ -123,6 +123,7 @@ LibTournament {
     * @param minEntries The minimum number of entries for the tournament
     * @param maxEntries The maximum number of entries for the tournament
     * @param rakePercent Percentage of the prize pool retained by Decent.bet
+    * @param prizeType Type of prize for tournament
     * @param prizeTable Unique ID of prize table to be used for the tournament
     * @return Unique ID of the created tournament
     */
@@ -132,6 +133,7 @@ LibTournament {
         uint256 minEntries,
         uint256 maxEntries,
         uint256 rakePercent,
+        uint8 prizeType,
         bytes32 prizeTable
     ) public returns (bytes32) {
         // Creator must be an admin
@@ -161,8 +163,15 @@ LibTournament {
             rakePercent < 100,
             "INVALID_RAKE_PERCENT"
         );
-        // Must be a valid prize table
-        require(prizeTables[prizeTable][0] != 0);
+        // Must be a valid prize type
+        require(
+            prizeType >= uint8(TournamentPrizeType.STANDARD) &&
+            prizeType <= uint8(TournamentPrizeType.FIFTY_FIFTY)
+        );
+        // If prize type is standard, prize table must be valid
+        if(prizeType == uint8(TournamentPrizeType.STANDARD))
+            require(prizeTables[prizeTable][0] != 0);
+
         bytes32 id = keccak256(
             abi.encode(
                 "tournament_",
@@ -176,12 +185,15 @@ LibTournament {
         );
 
         // Assign params
-        tournaments[id].entryFee = entryFee;
-        tournaments[id].entryLimit = entryLimit;
-        tournaments[id].minEntries = minEntries;
-        tournaments[id].maxEntries = maxEntries;
-        tournaments[id].prizeTable = prizeTable;
-        tournaments[id].rakePercent = rakePercent;
+        tournaments[id].details = TournamentDetails({
+            entryFee: entryFee,
+            entryLimit: entryLimit,
+            minEntries: minEntries,
+            maxEntries: maxEntries,
+            prizeTable: prizeTable,
+            prizeType: prizeType,
+            rakePercent: rakePercent
+        });
 
         // Emit log new tournament event
         emit LogNewTournament(
@@ -199,16 +211,16 @@ LibTournament {
     ) public returns (bool) {
         // Must be a valid tournament
         require(
-            tournaments[id].entryFee != 0,
+            tournaments[id].details.entryFee != 0,
             "INVALID_TOURNAMENT_ID"
         );
         // Cannot have already entered the tournament if entryLimit is false
-        if(tournaments[id].entryLimit > 1) {
+        if(tournaments[id].details.entryLimit > 1) {
             uint256 entryCount = 0;
             for (uint256 i = 0; i < tournaments[id].entries.length; i++) {
                 if(tournaments[id].entries[i]._address == msg.sender) {
                     require(
-                        ++entryCount <= tournaments[id].entryLimit,
+                        ++entryCount <= tournaments[id].details.entryLimit,
                         "ENTRY_LIMIT_EXCEEDED"
                     );
                 }
@@ -222,13 +234,13 @@ LibTournament {
         // Cannot be over max entry count
         require(
             tournaments[id].entries.length !=
-            tournaments[id].maxEntries,
+            tournaments[id].details.maxEntries,
             "MAX_ENTRY_COUNT_EXCEEDED"
         );
         // Must have a balance and allowance >= entryFee
         require(
-            token.balanceOf(msg.sender) >= tournaments[id].entryFee &&
-            token.allowance(msg.sender, address(this)) >= tournaments[id].entryFee,
+            token.balanceOf(msg.sender) >= tournaments[id].details.entryFee &&
+            token.allowance(msg.sender, address(this)) >= tournaments[id].details.entryFee,
             "INVALID_TOKEN_BALANCE_OR_ALLOWANCE"
         );
         // Transfer tokens to contract
@@ -236,7 +248,7 @@ LibTournament {
             token.transferFrom(
                 msg.sender,
                 address(this),
-                tournaments[id].entryFee
+                tournaments[id].details.entryFee
             ),
             "TOKEN_TRANSFER_ERROR"
         );
@@ -272,7 +284,7 @@ LibTournament {
         );
         // Must be a valid tournament
         require(
-            tournaments[id].entryFee != 0,
+            tournaments[id].details.entryFee != 0,
             "INVALID_TOURNAMENT_ID"
         );
         // Tournament cannot have been completed
@@ -336,10 +348,12 @@ LibTournament {
         bytes32 id,
         uint256 entryIndex,
         uint256 finalStandingIndex
-    ) public returns (bool) {
+    )
+    public
+    returns (bool) {
         // Must be a valid tournament
         require(
-            tournaments[id].entryFee != 0,
+            tournaments[id].details.entryFee != 0,
             "INVALID_TOURNAMENT_ID"
         );
         // Tournament should have been completed
@@ -367,12 +381,34 @@ LibTournament {
             .entries[entryIndex]
             .finalStandings[finalStandingIndex];
         // Prize table must have a valid prize at final standings index
-        require(
-            prizeTables
-            [tournaments[id].prizeTable]
-            [finalStanding] != 0,
-            "INVALID_PRIZE_TABLE_INDEX"
-        );
+        if (
+            tournaments[id].details.prizeType ==
+            uint8(TournamentPrizeType.STANDARD)
+        )
+            require(
+                prizeTables
+                [tournaments[id].details.prizeTable]
+                [finalStanding] != 0,
+                "INVALID_PRIZE_TABLE_INDEX"
+            );
+        else if (
+            tournaments[id].details.prizeType ==
+            uint8(TournamentPrizeType.WINNER_TAKE_ALL)
+        )
+            // Only #1 wins if prize type is winner take all
+            require(
+                finalStanding == 0,
+                "INVALID_FINAL_STANDING"
+            );
+        else if (
+            tournaments[id].details.prizeType ==
+            uint8(TournamentPrizeType.FIFTY_FIFTY)
+        )
+            // Top 50% wins with 50-50 prize type
+            require(
+                finalStanding < tournaments[id].uniqueFinalStandings.div(2),
+                "INVALID_FINAL_STANDING"
+            );
         uint256 prizeMoney = _calculatePrizeMoney(
             id,
             finalStanding
@@ -392,13 +428,16 @@ LibTournament {
             id,
             entryIndex,
             finalStanding,
-            prizeTables[tournaments[id].prizeTable][finalStanding],
+            tournaments[id].details.prizeType ==
+                uint8(TournamentPrizeType.STANDARD) ?
+                    prizeTables[tournaments[id].details.prizeTable][finalStanding] :
+                    0,
             prizeMoney
         );
     }
 
     /**
-    * Calculates prize money for a provided final standing position in a given prize table id
+    * Calculates prize money for a provided final standing position in a given unique tournament id
     * @param id Prize table ID
     * @param finalStanding Final standing position
     * @return Prize money for a final standing position
@@ -408,48 +447,121 @@ LibTournament {
         uint256 finalStanding
     )
     public
+    view
+    returns (uint256) {
+        if(tournaments[id].details.prizeType == uint8(TournamentPrizeType.STANDARD))
+            return _calculatePrizeMoneyForStandardPrizeType(
+                id,
+                finalStanding
+            );
+        else if(tournaments[id].details.prizeType == uint8(TournamentPrizeType.WINNER_TAKE_ALL)) {
+            return _calculatePrizeMoneyForWinnerTakeAllPrizeType(
+                id,
+                finalStanding
+            );
+        }
+        else if(tournaments[id].details.prizeType == uint8(TournamentPrizeType.FIFTY_FIFTY)) {
+            return _calculatePrizeMoneyForFiftyFiftyPrizeType(
+                id,
+                finalStanding
+            );
+        }
+    }
+
+    /**
+    * Calculates prize money for a provided final standing position in a given unique tournament ID
+    * having a standard prize type
+    * @param id Prize table ID
+    * @param finalStanding Final standing position
+    * @return Prize money for a final standing position
+    */
+    function _calculatePrizeMoneyForStandardPrizeType(
+        bytes32 id,
+        uint256 finalStanding
+    )
+    public
+    view
     returns (uint256) {
         // Check for other winners with same final standing
         uint256 sharedFinalStandings =
             tournaments[id].prizes[finalStanding].length;
-        // Calculate prize pool
-        uint256 prizePool =
-            (tournaments[id].entries.length
-            .mul(tournaments[id].entryFee))
-            .sub(getRakeFee(id));
         uint256 prizePercent =
-            (prizeTables[tournaments[id].prizeTable][finalStanding]);
-        uint256 prizeMoney;
+            (prizeTables[tournaments[id].details.prizeTable][finalStanding]);
         uint256 excessPrizePercent;
         uint256 multiplier = 1000;
         // If the amount of prize winners is greater than the number of unique final standings,
         // split excess token % split among all addresses in final standings
         if(
-            prizeTables[tournaments[id].prizeTable].length >
+            prizeTables[tournaments[id].details.prizeTable].length >
             tournaments[id].uniqueFinalStandings
         ) {
             for(
                 uint256 i = tournaments[id].uniqueFinalStandings;
-                i < prizeTables[tournaments[id].prizeTable].length;
+                i < prizeTables[tournaments[id].details.prizeTable].length;
                 i++
             ) {
-                excessPrizePercent = excessPrizePercent.add(prizeTables[tournaments[id].prizeTable][i]);
+                excessPrizePercent = excessPrizePercent.add(prizeTables[tournaments[id].details.prizeTable][i]);
             }
             excessPrizePercent =
                 excessPrizePercent
-                    .mul(prizePercent)
-                    .mul(multiplier)
-                    .div(
-                        uint256(100)
-                        .sub(excessPrizePercent)
-                    );
+                .mul(prizePercent)
+                .mul(multiplier)
+                .div(
+                    uint256(100)
+                    .sub(excessPrizePercent)
+                );
         }
         prizePercent = prizePercent.mul(multiplier).add(excessPrizePercent);
         // Transfer prize percent of total prize money divided by the number of winners for the same final standing index
-        return prizePool
+        return getPrizePool(id)
             .mul(prizePercent)
             .div(multiplier)
             .div(100)
+            .div(sharedFinalStandings);
+    }
+
+    /**
+    * Calculates prize money for a provided final standing position in a given unique tournament ID
+    * having a winner take all prize type
+    * @param id Prize table ID
+    * @param finalStanding Final standing position
+    * @return Prize money for a final standing position
+    */
+    function _calculatePrizeMoneyForWinnerTakeAllPrizeType(
+        bytes32 id,
+        uint256 finalStanding
+    )
+    public
+    view
+    returns (uint256) {
+        // Check for other winners with same final standing
+        uint256 sharedFinalStandings =
+            tournaments[id].prizes[finalStanding].length;
+        return getPrizePool(id)
+            .div(sharedFinalStandings);
+    }
+
+    /**
+    * Calculates prize money for a provided final standing position in a given unique tournament ID
+    * having a 50-50 prize type
+    * @param id Prize table ID
+    * @param finalStanding Final standing position
+    * @return Prize money for a final standing position
+    */
+    function _calculatePrizeMoneyForFiftyFiftyPrizeType(
+        bytes32 id,
+        uint256 finalStanding
+    )
+    public
+    view
+    returns (uint256) {
+        // Check for other winners with same final standing
+        uint256 sharedFinalStandings =
+            tournaments[id].prizes[finalStanding].length;
+        uint256 winnerCount =
+            tournaments[id].uniqueFinalStandings.div(2);
+        return getPrizePool(id)
+            .div(winnerCount)
             .div(sharedFinalStandings);
     }
 
@@ -467,7 +579,7 @@ LibTournament {
     returns (bool) {
         // Must be a valid tournament
         require(
-            tournaments[id].entryFee != 0,
+            tournaments[id].details.entryFee != 0,
             "INVALID_TOURNAMENT_ID"
         );
         // Tournament should have a failed status
@@ -489,7 +601,7 @@ LibTournament {
         require(
             token.transfer(
                 msg.sender,
-                tournaments[id].entryFee
+                tournaments[id].details.entryFee
             ),
             "TOKEN_TRANSFER_ERROR"
         );
@@ -499,6 +611,22 @@ LibTournament {
             id,
             entryIndex
         );
+    }
+
+    /**
+    * Returns the prize pool for a given tournament ID
+    * @param id Unique tournament ID
+    * @return Total prize pool in wei
+    */
+    function getPrizePool(
+        bytes32 id
+    )
+    public
+    view
+    returns (uint256) {
+        return (tournaments[id].entries.length
+            .mul(tournaments[id].details.entryFee))
+            .sub(getRakeFee(id));
     }
 
     /**
@@ -512,9 +640,9 @@ LibTournament {
     public
     view
     returns (uint256) {
-        return (tournaments[id].entryFee)
+        return (tournaments[id].details.entryFee)
             .mul(tournaments[id].entries.length)
-            .mul(tournaments[id].rakePercent)
+            .mul(tournaments[id].details.rakePercent)
             .div(100);
     }
 
