@@ -485,10 +485,6 @@ LibTournament {
         // Check for other winners with same final standing
         uint256 sharedFinalStandings =
             tournaments[id].prizes[finalStanding].length;
-        // Calculate prize pool
-        uint256 prizePool = (tournaments[id].entries.length
-            .mul(tournaments[id].details.entryFee))
-            .sub(getRakeFee(id));
         uint256 prizePercent =
             (prizeTables[tournaments[id].details.prizeTable][finalStanding]);
         uint256 excessPrizePercent;
@@ -517,7 +513,7 @@ LibTournament {
         }
         prizePercent = prizePercent.mul(multiplier).add(excessPrizePercent);
         // Transfer prize percent of total prize money divided by the number of winners for the same final standing index
-        return prizePool
+        return getPrizePool(id)
             .mul(prizePercent)
             .div(multiplier)
             .div(100)
@@ -541,11 +537,7 @@ LibTournament {
         // Check for other winners with same final standing
         uint256 sharedFinalStandings =
             tournaments[id].prizes[finalStanding].length;
-        // Calculate prize pool
-        uint256 prizePool = (tournaments[id].entries.length
-            .mul(tournaments[id].details.entryFee))
-            .sub(getRakeFee(id));
-        return prizePool
+        return getPrizePool(id)
             .div(sharedFinalStandings);
     }
 
@@ -568,11 +560,7 @@ LibTournament {
             tournaments[id].prizes[finalStanding].length;
         uint256 winnerCount =
             tournaments[id].uniqueFinalStandings.div(2);
-        // Calculate prize pool
-        uint256 prizePool = (tournaments[id].entries.length
-            .mul(tournaments[id].details.entryFee))
-            .sub(getRakeFee(id));
-        return prizePool
+        return getPrizePool(id)
             .div(winnerCount)
             .div(sharedFinalStandings);
     }
@@ -623,6 +611,22 @@ LibTournament {
             id,
             entryIndex
         );
+    }
+
+    /**
+    * Returns the prize pool for a given tournament ID
+    * @param id Unique tournament ID
+    * @return Total prize pool in wei
+    */
+    function getPrizePool(
+        bytes32 id
+    )
+    public
+    view
+    returns (uint256) {
+        return (tournaments[id].entries.length
+            .mul(tournaments[id].details.entryFee))
+            .sub(getRakeFee(id));
     }
 
     /**
