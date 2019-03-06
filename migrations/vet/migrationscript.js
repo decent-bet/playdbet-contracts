@@ -93,7 +93,6 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
                 builder.addContract("DBETVETTokenContract", DecentBetToken, token.options.address, chain);
                 builder.addContract("TournamentContract", Tournament, tournament.options.address, chain);
 
-                
             } else if (chain === constants.CHAIN_MAIN) {
             }
 
