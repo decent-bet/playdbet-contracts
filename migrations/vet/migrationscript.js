@@ -1,8 +1,9 @@
+const fs = require('fs')
 const appRoot = require('app-root-path')
-
+const ContractImportBuilder = require(`${appRoot}/entity-builder`)
 const constants = require(`${appRoot}/lib/constants`)
 
-function MigrationScript(web3, contractManager, deployer, args) {
+function MigrationScript(web3, contractManager, deployer, builder, args) {
     let defaultAccount
 
     let admin,
@@ -82,8 +83,21 @@ function MigrationScript(web3, contractManager, deployer, args) {
                     '\nToken: ' + token.options.address,
                     '\nTournament: ' + tournament.options.address
                 )
+
+                builder.onWrite = (output) => {
+                    fs.writeFileSync(`${appRoot}/npm/index.js`, output)
+                }
+
+                builder.addContract("AdminContract", Admin, admin.options.address, chain);
+                builder.addContract("QuestContract", Quest, quest.options.address, chain);
+                builder.addContract("DBETVETTokenContract", DecentBetToken, token.options.address, chain);
+                builder.addContract("TournamentContract", Tournament, tournament.options.address, chain);
+
+                
             } else if (chain === constants.CHAIN_MAIN) {
             }
+
+
         } catch (e) {
             console.log('Error deploying contracts:', e.message, e.stack)
         }
@@ -91,5 +105,7 @@ function MigrationScript(web3, contractManager, deployer, args) {
 }
 
 module.exports = (web3, dbet, deployer, args) => {
-    return new MigrationScript(web3, dbet, deployer, args)
+    const builder = new ContractImportBuilder();
+    builder.setOutput(`${appRoot}/npm/index.js`);
+    return new MigrationScript(web3, dbet, deployer, builder, args)
 }
