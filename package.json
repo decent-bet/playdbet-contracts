@@ -15,6 +15,7 @@
     "test-tournament": "truffle test ./test/Tournament.js"
   },
   "dependencies": {
+    "@decent-bet/connex-entity-builder": "^1.0.0",
     "app-root-path": "^2.1.0",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-plugin-transform-runtime": "^6.23.0",

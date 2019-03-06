@@ -1,6 +1,6 @@
 const fs = require('fs')
 const appRoot = require('app-root-path')
-const ContractImportBuilder = require(`${appRoot}/entity-builder`)
+const ContractImportBuilder = require(`@decent-bet/connex-entity-builder`)
 const constants = require(`${appRoot}/lib/constants`)
 
 function MigrationScript(web3, contractManager, deployer, builder, args) {
