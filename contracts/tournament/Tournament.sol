@@ -166,7 +166,7 @@ LibTournament {
         // Must be a valid prize type
         require(
             prizeType >= uint8(TournamentPrizeType.STANDARD) &&
-            prizeType <= uint8(TournamentPrizeType.WINNER_TAKE_ALL)
+            prizeType <= uint8(TournamentPrizeType.FIFTY_FIFTY)
         );
         // If prize type is standard, prize table must be valid
         if(prizeType == uint8(TournamentPrizeType.STANDARD))
@@ -395,7 +395,20 @@ LibTournament {
             tournaments[id].details.prizeType ==
             uint8(TournamentPrizeType.WINNER_TAKE_ALL)
         )
-            require(finalStanding == 0);
+            // Only #1 wins if prize type is winner take all
+            require(
+                finalStanding == 0,
+                "INVALID_FINAL_STANDING"
+            );
+        else if (
+            tournaments[id].details.prizeType ==
+            uint8(TournamentPrizeType.FIFTY_FIFTY)
+        )
+            // Top 50% wins with 50-50 prize type
+            require(
+                finalStanding < tournaments[id].uniqueFinalStandings.div(2),
+                "INVALID_FINAL_STANDING"
+            );
         uint256 prizeMoney = _calculatePrizeMoney(
             id,
             finalStanding
@@ -415,7 +428,10 @@ LibTournament {
             id,
             entryIndex,
             finalStanding,
-            prizeTables[tournaments[id].details.prizeTable][finalStanding],
+            tournaments[id].details.prizeType ==
+                uint8(TournamentPrizeType.STANDARD) ?
+                    prizeTables[tournaments[id].details.prizeTable][finalStanding] :
+                    0,
             prizeMoney
         );
     }
@@ -444,6 +460,12 @@ LibTournament {
                 finalStanding
             );
         }
+        else if(tournaments[id].details.prizeType == uint8(TournamentPrizeType.FIFTY_FIFTY)) {
+            return _calculatePrizeMoneyForFiftyFiftyPrizeType(
+                id,
+                finalStanding
+            );
+        }
     }
 
     /**
@@ -463,10 +485,6 @@ LibTournament {
         // Check for other winners with same final standing
         uint256 sharedFinalStandings =
             tournaments[id].prizes[finalStanding].length;
-        // Calculate prize pool
-        uint256 prizePool = (tournaments[id].entries.length
-            .mul(tournaments[id].details.entryFee))
-            .sub(getRakeFee(id));
         uint256 prizePercent =
             (prizeTables[tournaments[id].details.prizeTable][finalStanding]);
         uint256 excessPrizePercent;
@@ -495,7 +513,7 @@ LibTournament {
         }
         prizePercent = prizePercent.mul(multiplier).add(excessPrizePercent);
         // Transfer prize percent of total prize money divided by the number of winners for the same final standing index
-        return prizePool
+        return getPrizePool(id)
             .mul(prizePercent)
             .div(multiplier)
             .div(100)
@@ -519,11 +537,31 @@ LibTournament {
         // Check for other winners with same final standing
         uint256 sharedFinalStandings =
             tournaments[id].prizes[finalStanding].length;
-        // Calculate prize pool
-        uint256 prizePool = (tournaments[id].entries.length
-            .mul(tournaments[id].details.entryFee))
-            .sub(getRakeFee(id));
-        return prizePool
+        return getPrizePool(id)
+            .div(sharedFinalStandings);
+    }
+
+    /**
+    * Calculates prize money for a provided final standing position in a given unique tournament ID
+    * having a 50-50 prize type
+    * @param id Prize table ID
+    * @param finalStanding Final standing position
+    * @return Prize money for a final standing position
+    */
+    function _calculatePrizeMoneyForFiftyFiftyPrizeType(
+        bytes32 id,
+        uint256 finalStanding
+    )
+    public
+    view
+    returns (uint256) {
+        // Check for other winners with same final standing
+        uint256 sharedFinalStandings =
+            tournaments[id].prizes[finalStanding].length;
+        uint256 winnerCount =
+            tournaments[id].uniqueFinalStandings.div(2);
+        return getPrizePool(id)
+            .div(winnerCount)
             .div(sharedFinalStandings);
     }
 
@@ -573,6 +611,22 @@ LibTournament {
             id,
             entryIndex
         );
+    }
+
+    /**
+    * Returns the prize pool for a given tournament ID
+    * @param id Unique tournament ID
+    * @return Total prize pool in wei
+    */
+    function getPrizePool(
+        bytes32 id
+    )
+    public
+    view
+    returns (uint256) {
+        return (tournaments[id].entries.length
+            .mul(tournaments[id].details.entryFee))
+            .sub(getRakeFee(id));
     }
 
     /**

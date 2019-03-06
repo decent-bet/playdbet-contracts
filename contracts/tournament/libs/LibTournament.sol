@@ -10,7 +10,8 @@ contract LibTournament {
 
     enum TournamentPrizeType {
         STANDARD,
-        WINNER_TAKE_ALL
+        WINNER_TAKE_ALL,
+        FIFTY_FIFTY
     }
 
     struct Tournament {
