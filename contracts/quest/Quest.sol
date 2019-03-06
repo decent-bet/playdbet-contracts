@@ -30,6 +30,10 @@ LibQuest {
     event LogNewQuest(
         bytes32 indexed id
     );
+    // On cancel quest
+    event LogCancelQuest(
+        bytes32 indexed id
+    );
     // On pay for quest
     event LogPayForQuest(
         bytes32 indexed id,
@@ -38,6 +42,11 @@ LibQuest {
     );
     // On set quest outcome
     event LogSetQuestOutcome(
+        bytes32 indexed id,
+        address indexed user
+    );
+    // On refund user
+    event LogRefundQuestEntry(
         bytes32 indexed id,
         address indexed user
     );
@@ -74,7 +83,7 @@ LibQuest {
         // Id cannot be default bytes32 value and cannot already exist on-chain
         require(
             id != 0 &&
-            !quests[id].exists
+            quests[id].status == uint8(QuestStatus.INACTIVE)
         );
         // Check if uints are greater than 0
         require(
@@ -87,7 +96,7 @@ LibQuest {
             entryFee: entryFee,
             timeToComplete: timeToComplete,
             prize: prize,
-            exists: true
+            status: uint8(QuestStatus.ACTIVE)
         });
         // Emit new quest event
         emit LogNewQuest(
@@ -107,7 +116,7 @@ LibQuest {
         address user
     ) public returns (bool) {
         // Must be a valid quest ID
-        require(quests[id].exists);
+        require(quests[id].status == uint8(QuestStatus.ACTIVE));
         // Balance of user must be greater or equal to quest entry fee
         require(
             (
@@ -124,13 +133,13 @@ LibQuest {
         );
         // User cannot have already started quest
         require(
-            !userQuestEntries[user][id].exists
+            userQuestEntries[user][id].status == uint8(QuestEntryStatus.NOT_STARTED)
         );
         // Add user quest entry
         userQuestEntries[user][id] = UserQuestEntry({
             entryTime: block.timestamp,
-            status: uint8(QuestStatus.STARTED),
-            exists: true
+            status: uint8(QuestEntryStatus.STARTED),
+            refunded: false
         });
         require(
             token.transferFrom(
@@ -160,29 +169,25 @@ LibQuest {
     ) public returns (bool) {
         // Allow only admins to set quest outcomes
         require(admin.admins(msg.sender));
-        // User quest entry must exist
+        // User quest entry status must be STARTED
         require(
-            userQuestEntries[user][id].exists
+            userQuestEntries[user][id].status == uint8(QuestEntryStatus.STARTED)
         );
         // Must be a valid outcome
         require(
-            outcome == uint8(QuestStatus.SUCCESS) ||
-            outcome == uint8(QuestStatus.FAILED)
+            outcome == uint8(QuestEntryStatus.SUCCESS) ||
+            outcome == uint8(QuestEntryStatus.FAILED)
         );
         // Outcome cannot be success if entry took longer than timeToComplete to complete
-        if(outcome == uint8(QuestStatus.SUCCESS))
+        if(outcome == uint8(QuestEntryStatus.SUCCESS))
             require(
                 (userQuestEntries[user][id].entryTime).add(quests[id].timeToComplete) >=
                 block.timestamp
             );
-        // User quest entry status must be started
-        require(
-            userQuestEntries[user][id].status == uint8(QuestStatus.STARTED)
-        );
         // Update quest entry status
         userQuestEntries[user][id].status = outcome;
         // Pay out user if quest was successfully finished
-        if(outcome == uint8(QuestStatus.SUCCESS))
+        if(outcome == uint8(QuestEntryStatus.SUCCESS))
             require(
                 token.transferFrom(
                     admin.platformWallet(),
@@ -193,6 +198,71 @@ LibQuest {
         emit LogSetQuestOutcome(
             id,
             user
+        );
+    }
+
+    /**
+    * Allows admins to cancel quests
+    * @param id Unique quest ID
+    * @return whether quest was cancelled
+    */
+    function cancelQuest(
+        bytes32 id
+    )
+    public
+    returns (bool) {
+        // Allow only admins to cancel quests
+        require(admin.admins(msg.sender));
+        // Quest must be active
+        require(quests[id].status == uint8(QuestStatus.ACTIVE));
+        // Cancel quest
+        quests[id].status = uint8(QuestStatus.CANCELLED);
+        // Emit cancel quest event
+        emit LogCancelQuest(
+            id
+        );
+    }
+
+    /**
+    * Allow users with quest entries to claim refunds for cancelled quests
+    * @param id Cancelled quest ID
+    * @return whether refunds were claimed
+    */
+    function claimRefund(
+        bytes32 id
+    )
+    public
+    returns (bool) {
+        // Quest entry must be started
+        require(
+            userQuestEntries[msg.sender][id].status == uint8(QuestEntryStatus.STARTED)
+        );
+        // Quest should be cancelled
+        require(
+            quests[id].status == uint8(QuestStatus.CANCELLED)
+        );
+        // TODO: Check if this's necessary
+        // User cannot have crossed timeToComplete from time of starting quest
+        require(
+            userQuestEntries[msg.sender][id].entryTime.add(quests[id].timeToComplete) >=
+            block.timestamp
+        );
+        // User quest entry cannot already be refunded
+        require(
+            !userQuestEntries[msg.sender][id].refunded
+        );
+        userQuestEntries[msg.sender][id].refunded = true;
+        // Transfer entryFee to user
+        require(
+            token.transferFrom(
+                admin.platformWallet(),
+                msg.sender,
+                quests[id].entryFee
+            )
+        );
+        emit LogRefundQuestEntry(
+            id,
+            msg.sender
         );
     }
 

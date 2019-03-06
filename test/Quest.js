@@ -3,9 +3,9 @@ const Web3 = require('web3')
 const contracts = require('./utils/contracts')
 const utils = require('./utils/utils')
 
-const OUTCOME_SUCCESS = 1
-const OUTCOME_FAILED = 2
-const OUTCOME_INVALID = 3
+const OUTCOME_SUCCESS = 2
+const OUTCOME_FAILED = 3
+const OUTCOME_INVALID = 4
 
 let admin,
     quest,
@@ -14,12 +14,12 @@ let admin,
 let owner
 let user1
 let user2
+let user3
+let user4
 
 const web3 = new Web3()
 
-const timeTravel = async timeDiff => {
-    await utils.timeTravel(timeDiff)
-}
+const timeTravel = async timeDiff => await utils.timeTravel(timeDiff)
 
 const getValidQuestParams = () => {
     const id = web3.utils.fromUtf8('123')
@@ -40,6 +40,8 @@ contract('Quest', accounts => {
         owner = accounts[0]
         user1 = accounts[1]
         user2 = accounts[2]
+        user3 = accounts[3]
+        user4 = accounts[4]
 
         quest = await contracts.Quest.deployed()
         token = await contracts.DBETVETToken.deployed()
@@ -246,15 +248,13 @@ contract('Quest', accounts => {
         const {
             entryFee,
             timeToComplete,
-            prize,
-            exists
+            prize
         } = (await quest.quests(id))
 
         console.log({
             entryFee: web3.utils.fromWei(entryFee.toString(), 'ether'),
             timeToComplete: timeToComplete.toString(),
-            prize: web3.utils.fromWei(prize.toString(), 'ether'),
-            exists
+            prize: web3.utils.fromWei(prize.toString(), 'ether')
         })
 
         // Pay for quest with sufficient allowance and balance
@@ -271,9 +271,10 @@ contract('Quest', accounts => {
             user1,
             id
         )
+        const questEntryStatus_started = 1
         assert.equal(
-            userQuestEntry[2],
-            true
+            userQuestEntry[1],
+            questEntryStatus_started
         )
     })
 
@@ -285,6 +286,18 @@ contract('Quest', accounts => {
                 user1,
                 {
                     from: user1
+                }
+            )
+        )
+    })
+
+    it('throws if non-admin cancels quest', async () => {
+        const {id} = getValidQuestParams()
+        await utils.assertFail(
+            quest.cancelQuest(
+                id,
+                {
+                    from: user2
                 }
             )
         )
@@ -337,6 +350,18 @@ contract('Quest', accounts => {
         )
     })
 
+    it('throws if users claim refunds for non-cancelled quests', async () => {
+        const {id} = getValidQuestParams()
+        await utils.assertFail(
+            quest.claimRefund(
+                id,
+                {
+                    from: user1
+                }
+            )
+        )
+    })
+
     it('allows admin to set quest outcome with valid values', async () => {
         const {id} = getValidQuestParams()
         await quest.setQuestOutcome(
@@ -351,7 +376,7 @@ contract('Quest', accounts => {
         )
         assert.equal(
             userQuestEntry[1],
-            true
+            OUTCOME_SUCCESS
         )
     })
 
@@ -386,6 +411,114 @@ contract('Quest', accounts => {
                 id,
                 user2,
                 OUTCOME_SUCCESS
+            )
+        )
+    })
+
+    it('allows admins to cancel quests with an active status', async () => {
+        const {id} = getValidQuestParams()
+
+        /** Pay for user3/user4 quest entries for next test cases **/
+        // Transfer DBETs to user3
+        await token.transfer(
+            user3,
+            web3.utils.toWei('10000', 'ether')
+        )
+
+        // Transfer DBETs to user4
+        await token.transfer(
+            user4,
+            web3.utils.toWei('10000', 'ether')
+        )
+
+        // Approve quest contract to send user3's tokens
+        await token.approve(
+            quest.address,
+            web3.utils.toWei('100000', 'ether'),
+            {
+                from: user3
+            }
+        )
+
+        // Approve quest contract to send user4's tokens
+        await token.approve(
+            quest.address,
+            web3.utils.toWei('100000', 'ether'),
+            {
+                from: user4
+            }
+        )
+
+        // Pay for quest with sufficient allowance and balance as user3
+        await quest.payForQuest(
+            id,
+            user3,
+            {
+                from: user3
+            }
+        )
+        // Pay for quest with sufficient allowance and balance as user4
+        await quest.payForQuest(
+            id,
+            user4,
+            {
+                from: user4
+            }
+        )
+
+        await quest.cancelQuest(
+            id
+        )
+        const _quest = await quest.quests(id)
+        const questStatus_cancelled = 2
+        assert.equal(
+            _quest[3],
+            questStatus_cancelled
+        )
+    })
+
+    it('throws if admin cancels quest with a non-active status', async () => {
+        const {id} = getValidQuestParams()
+        await utils.assertFail(
+            quest.cancelQuest(
+                id
+            )
+        )
+    })
+
+    it('allows users to claim refunds for cancelled quests before timeToComplete has elapsed', async () => {
+        const {id} = getValidQuestParams()
+
+        // Claim refund
+        const tx = await quest.claimRefund(
+            id,
+            {
+                from: user3
+            }
+        )
+
+        const userQuestEntry = await quest.userQuestEntries(
+            user3,
+            id
+        )
+        assert.equal(
+            userQuestEntry[2],
+            true
+        )
+    })
+
+    it('throws if users claim refunds for cancelled quests after timeToComplete has elapsed', async () => {
+        const {id} = getValidQuestParams()
+
+        await timeTravel(2 * 60 * 60)
+
+        // Time for quest has completed
+        await utils.assertFail(
+            quest.claimRefund(
+                id,
+                {
+                    from: user4
+                }
             )
         )
     })
