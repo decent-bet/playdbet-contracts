@@ -2,6 +2,8 @@ const appRoot = require('app-root-path')
 
 const constants = require(`${appRoot}/lib/constants`)
 
+const PostMigration = require('./post-migration')
+
 function MigrationScript(web3, contractManager, deployer, args) {
     let defaultAccount
 
@@ -22,7 +24,7 @@ function MigrationScript(web3, contractManager, deployer, args) {
     const getDefaultOptions = () => {
         return {
             from: defaultAccount,
-            gas: 8000000
+            gas: 3000000
         }
     }
 
@@ -82,6 +84,19 @@ function MigrationScript(web3, contractManager, deployer, args) {
                     '\nToken: ' + token.options.address,
                     '\nTournament: ' + tournament.options.address
                 )
+
+                const postMigration = new PostMigration(
+                    web3,
+                    defaultAccount,
+                    {
+                        admin,
+                        quest,
+                        token,
+                        tournament
+                    }
+                )
+                await postMigration.run()
+
             } else if (chain === constants.CHAIN_MAIN) {
             }
         } catch (e) {
