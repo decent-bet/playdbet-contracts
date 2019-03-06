@@ -8,19 +8,14 @@ contract LibTournament {
         FAILED
     }
 
+    enum TournamentPrizeType {
+        STANDARD,
+        WINNER_TAKE_ALL
+    }
+
     struct Tournament {
-        // Entry fee
-        uint256 entryFee;
-        // How many times can a user enter the tournament
-        uint256 entryLimit;
-        // Minimum entries
-        uint256 minEntries;
-        // Maximum entries
-        uint256 maxEntries;
-        // Rake percent
-        uint256 rakePercent;
-        // Unique id of prize table
-        bytes32 prizeTable;
+        // Tournament details
+        TournamentDetails details;
         // Participants in tournament
         TournamentEntry[] entries;
         // Prize table to entries array mapping
@@ -34,6 +29,23 @@ contract LibTournament {
         mapping (uint256 => bool) refunded;
         // Tournament status based on enum
         uint8 status;
+    }
+
+    struct TournamentDetails {
+        // Entry fee
+        uint256 entryFee;
+        // How many times can a user enter the tournament
+        uint256 entryLimit;
+        // Minimum entries
+        uint256 minEntries;
+        // Maximum entries
+        uint256 maxEntries;
+        // Rake percent
+        uint256 rakePercent;
+        // Prize type
+        uint8 prizeType;
+        // Unique id of prize table
+        bytes32 prizeTable;
     }
 
     struct TournamentEntry {
