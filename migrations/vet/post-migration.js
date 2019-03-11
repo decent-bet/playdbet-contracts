@@ -134,6 +134,15 @@ function PostMigration (
             prizeType,
             prizeTable
         } = tournament
+        console.log('Creating tournament', {
+            entryFee,
+            entryLimit,
+            minEntries,
+            maxEntries,
+            rakePercent,
+            prizeType,
+            prizeTable
+        })
         const tx = await contract.methods.createTournament(
             entryFee,
             entryLimit,
