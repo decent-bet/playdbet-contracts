@@ -98,7 +98,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0xda9BcC2C58989119f6af41228D8e9C3170F94f7a",
+            "0x27": "0xD123Bc2A9Fce3890f7Bab774E9297Ed4c0D4C1a1",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0x4a": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0xa4": "0xd74313287364cA0fd80425d52c6c6B13538c0247"
@@ -225,7 +225,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0x60f04499EdeBD0bB9b59E1166f89cF137814f670",
+            "0x27": "0xb68A63CE1F3362b7bC0CB9d928f4F7285490c891",
             "0xc7": "0x55db2feE8A2A039BCA83b014cf0b455a31E77Cda",
             "0x4a": "0x55db2feE8A2A039BCA83b014cf0b455a31E77Cda",
             "0xa4": "0x5379897279457f4f8F182f29273E087e505aF8c0"
@@ -430,7 +430,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0x7620746Faea08294fB161455f0e9A24eEcd72FcB",
+            "0x27": "0x069529cae2DE5E42D64dCfE794DA3E1Dee2ef378",
             "0xc7": "0x1b8EC6C2A45ccA481Da6F243Df0d7A5744aFc1f8",
             "0x4a": "0x1b8EC6C2A45ccA481Da6F243Df0d7A5744aFc1f8",
             "0xa4": "0x9485cDB237f5B582f86B125CAd32b420Ad46519D"
@@ -687,7 +687,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0x034fa24A217223c26982c20375f7eE8Ac2f7cd64",
+            "0x27": "0x71A3DA7DdBa8AF1BA2128Fcfc80F748FCdA5c26e",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0x4a": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0xa4": "0x86F3EC2f5C82C86974f2407c0ac9c627015eCcA0"

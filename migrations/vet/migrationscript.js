@@ -4,7 +4,7 @@ const ContractImportBuilder = require(`@decent-bet/connex-entity-builder`)
 const constants = require(`${appRoot}/lib/constants`)
 const PostMigration = require('./post-migration')
 
-function MigrationScript(web3, contractManager, deployer, args) {
+function MigrationScript(web3, contractManager, deployer, builder, args) {
     let defaultAccount
 
     let admin,
