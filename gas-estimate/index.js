@@ -24,6 +24,15 @@ const addPrivateKeyToWallet = () => web3.eth.accounts.wallet.add(privateKey)
 // Returns the default account added to the web3 object wallet
 const getDefaultAccount = () => web3.eth.accounts.wallet[0].address
 
+// Returns accounts from default VET seed phrase
+const getAccounts = () => [
+    '0x7567d83b7b8d80addcb281a71d54fc7b3364ffed',
+    '0xd3ae78222beadb038203be21ed5ce7c9b1bff602',
+    '0x733b7269443c70de16bbf9b0615307884bcc5636',
+    '0x115eabb4f62973d0dba138ab7df5c0375ec87256',
+    '0x199b836d8a57365baccd4f371c1fabb7be77d389'
+]
+
 // Returns a web3 contract instance
 const getContractInstance = contract => new web3.eth.Contract(
     contract.abi,
@@ -46,7 +55,27 @@ const getContracts = () => {
 }
 
 const estimateAdminTxns = async () => {
-
+    let gasUsage = {}
+    const {
+        admin
+    } = getContracts()
+    const user1 = getAccounts()[1]
+    gasUsage.addAdmin = await admin.methods.addAdmin(user1).estimateGas({
+        from: getDefaultAccount()
+    })
+    gasUsage.removeAdmin = await admin.methods.removeAdmin(getDefaultAccount()).estimateGas({
+        from: getDefaultAccount()
+    })
+    gasUsage.setPlatformWallet = await admin.methods.setPlatformWallet(user1).estimateGas({
+        from: getDefaultAccount()
+    })
+    gasUsage.setOwner = await admin.methods.setOwner(user1).estimateGas({
+        from: getDefaultAccount()
+    })
+    console.log(
+        'Gas estimates for Admin txns:',
+        gasUsage
+    )
 }
 
 const estimateQuestTxns = async () => {
@@ -59,6 +88,7 @@ const estimateTournamentTxns = async () => {
 
 ;(async () => {
     chainTag = await web3.eth.getChainTag()
+    console.log('Chain tag:', chainTag)
     addPrivateKeyToWallet()
     await estimateAdminTxns()
     await estimateQuestTxns()
