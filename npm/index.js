@@ -113,7 +113,7 @@ module.exports = {
                 "outputs": [{"name": "entryTime", "type": "uint256"}, {
                     "name": "status",
                     "type": "uint8"
-                }, {"name": "exists", "type": "bool"}],
+                }, {"name": "refunded", "type": "bool"}],
                 "payable": false,
                 "stateMutability": "view",
                 "type": "function",
@@ -125,7 +125,7 @@ module.exports = {
                 "outputs": [{"name": "entryFee", "type": "uint256"}, {
                     "name": "timeToComplete",
                     "type": "uint256"
-                }, {"name": "prize", "type": "uint256"}, {"name": "exists", "type": "bool"}],
+                }, {"name": "prize", "type": "uint256"}, {"name": "status", "type": "uint8"}],
                 "payable": false,
                 "stateMutability": "view",
                 "type": "function",
@@ -171,6 +171,12 @@ module.exports = {
                 "signature": "0x06809877c9cf1ec1fd8430c60fda9db629d86f4ed619153f7f08dd798dc416cd"
             }, {
                 "anonymous": false,
+                "inputs": [{"indexed": true, "name": "id", "type": "bytes32"}],
+                "name": "LogCancelQuest",
+                "type": "event",
+                "signature": "0xccba120f6d8fe88284d3a6ff6cf5540ed5a443face7c093c265d23b12e98556f"
+            }, {
+                "anonymous": false,
                 "inputs": [{"indexed": true, "name": "id", "type": "bytes32"}, {
                     "indexed": true,
                     "name": "user",
@@ -189,6 +195,16 @@ module.exports = {
                 "name": "LogSetQuestOutcome",
                 "type": "event",
                 "signature": "0x09d256a4751f55a6e85624a990d7b943e8db25776fd0d097c9669b6c47f62844"
+            }, {
+                "anonymous": false,
+                "inputs": [{"indexed": true, "name": "id", "type": "bytes32"}, {
+                    "indexed": true,
+                    "name": "user",
+                    "type": "address"
+                }],
+                "name": "LogRefundQuestEntry",
+                "type": "event",
+                "signature": "0x8b50670d1de87b268ae12c29d41bae6a40947142cdba35f26b8d51b527b157df"
             }, {
                 "constant": false,
                 "inputs": [{"name": "id", "type": "bytes32"}, {
@@ -222,6 +238,24 @@ module.exports = {
                 "stateMutability": "nonpayable",
                 "type": "function",
                 "signature": "0x6fc82f0b"
+            }, {
+                "constant": false,
+                "inputs": [{"name": "id", "type": "bytes32"}],
+                "name": "cancelQuest",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function",
+                "signature": "0xc0174542"
+            }, {
+                "constant": false,
+                "inputs": [{"name": "id", "type": "bytes32"}],
+                "name": "claimRefund",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function",
+                "signature": "0x71de2ffc"
             }]
         },
         "address": {
@@ -467,6 +501,15 @@ module.exports = {
                 "signature": "0x8da5cb5b"
             }, {
                 "constant": true,
+                "inputs": [{"name": "", "type": "bytes32"}, {"name": "", "type": "uint256"}],
+                "name": "prizeTables",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0xc3d18064"
+            }, {
+                "constant": true,
                 "inputs": [],
                 "name": "admin",
                 "outputs": [{"name": "", "type": "address"}],
@@ -570,13 +613,16 @@ module.exports = {
                 }, {"name": "minEntries", "type": "uint256"}, {
                     "name": "maxEntries",
                     "type": "uint256"
-                }, {"name": "rakePercent", "type": "uint256"}, {"name": "prizeTable", "type": "bytes32"}],
+                }, {"name": "rakePercent", "type": "uint256"}, {
+                    "name": "prizeType",
+                    "type": "uint8"
+                }, {"name": "prizeTable", "type": "bytes32"}],
                 "name": "createTournament",
                 "outputs": [{"name": "", "type": "bytes32"}],
                 "payable": false,
                 "stateMutability": "nonpayable",
                 "type": "function",
-                "signature": "0x696d2c40"
+                "signature": "0x8e285bb7"
             }, {
                 "constant": false,
                 "inputs": [{"name": "id", "type": "bytes32"}],
@@ -611,14 +657,41 @@ module.exports = {
                 "type": "function",
                 "signature": "0x4f231b59"
             }, {
-                "constant": false,
+                "constant": true,
                 "inputs": [{"name": "id", "type": "bytes32"}, {"name": "finalStanding", "type": "uint256"}],
                 "name": "_calculatePrizeMoney",
                 "outputs": [{"name": "", "type": "uint256"}],
                 "payable": false,
-                "stateMutability": "nonpayable",
+                "stateMutability": "view",
                 "type": "function",
                 "signature": "0xdf18f873"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "id", "type": "bytes32"}, {"name": "finalStanding", "type": "uint256"}],
+                "name": "_calculatePrizeMoneyForStandardPrizeType",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0xae6bee7d"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "id", "type": "bytes32"}, {"name": "finalStanding", "type": "uint256"}],
+                "name": "_calculatePrizeMoneyForWinnerTakeAllPrizeType",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0x2cebde6a"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "id", "type": "bytes32"}, {"name": "finalStanding", "type": "uint256"}],
+                "name": "_calculatePrizeMoneyForFiftyFiftyPrizeType",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0xe4020dc7"
             }, {
                 "constant": false,
                 "inputs": [{"name": "id", "type": "bytes32"}, {"name": "entryIndex", "type": "uint256"}],
@@ -628,6 +701,15 @@ module.exports = {
                 "stateMutability": "nonpayable",
                 "type": "function",
                 "signature": "0x8d44539f"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "id", "type": "bytes32"}],
+                "name": "getPrizePool",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0x45c6f9de"
             }, {
                 "constant": true,
                 "inputs": [{"name": "id", "type": "bytes32"}],
