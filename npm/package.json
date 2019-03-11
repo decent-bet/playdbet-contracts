@@ -1,6 +1,6 @@
 {
     "name": "@decent-bet/contract-playdbet",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "description": "Contracts for PlayDBET Platform",
     "main": "index.js",
     "repository": {
@@ -13,7 +13,7 @@
     ],
     "author": "Roberto E. Zubieta <roberto@decent.bet>",
     "license": "MIT",
-    "devDependencies": {
+    "dependencies": {
         "ethereum-protocol": "^1.0.1"
     }
 }
