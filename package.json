@@ -16,6 +16,7 @@
     "test-tournament": "truffle test ./test/Tournament.js"
   },
   "dependencies": {
+    "@decent-bet/connex-entity-builder": "1.0.1",
     "app-root-path": "^2.1.0",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-plugin-transform-runtime": "^6.23.0",
@@ -53,7 +54,6 @@
     "truffle-resolver": "^4.0.3",
     "truffle-workflow-compile": "^1.0.4",
     "web3": "1.0.0-beta.36",
-    "web3-0.20.6": "npm:web3@0.20.6",
     "yargs": "^11.0.0"
   },
   "devDependencies": {

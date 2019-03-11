@@ -1,7 +1,7 @@
+const fs = require('fs')
 const appRoot = require('app-root-path')
-
+const ContractImportBuilder = require(`@decent-bet/connex-entity-builder`)
 const constants = require(`${appRoot}/lib/constants`)
-
 const PostMigration = require('./post-migration')
 
 function MigrationScript(web3, contractManager, deployer, args) {
@@ -85,6 +85,16 @@ function MigrationScript(web3, contractManager, deployer, args) {
                     '\nTournament: ' + tournament.options.address
                 )
 
+                builder.onWrite = (output) => {
+                    fs.writeFileSync(`${appRoot}/npm/index.js`, output)
+                }
+
+                builder.addContract("AdminContract", Admin, admin.options.address, chain);
+                builder.addContract("QuestContract", Quest, quest.options.address, chain);
+                builder.addContract("DBETVETTokenContract", DecentBetToken, token.options.address, chain);
+                builder.addContract("TournamentContract", Tournament, tournament.options.address, chain);
+
+
                 const postMigration = new PostMigration(
                     web3,
                     defaultAccount,
@@ -106,5 +116,7 @@ function MigrationScript(web3, contractManager, deployer, args) {
 }
 
 module.exports = (web3, dbet, deployer, args) => {
-    return new MigrationScript(web3, dbet, deployer, args)
+    const builder = new ContractImportBuilder();
+    builder.setOutput(`${appRoot}/npm/index.js`);
+    return new MigrationScript(web3, dbet, deployer, builder, args)
 }
