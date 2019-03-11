@@ -28,8 +28,8 @@ const getDefaultAccount = () => web3.eth.accounts.wallet[0].address
 
 // Returns a web3 contract instance
 const getContractInstance = contract => new web3.eth.Contract(
-    contract.chain_tags[chainTag].address,
-    contract.abi
+    contract.abi,
+    contract.chain_tags[chainTag].address
 )
 
 // Returns all PlayDBET contract instances
@@ -49,8 +49,11 @@ const getContracts = () => {
 
 const init = async () => {
     chainTag = await web3.eth.getChainTag()
+    console.log('Chain tag', chainTag)
     addPrivateKeyToWallet()
+    console.log('Added private key to wallet')
 
+    console.log('Calling post migration with', getDefaultAccount())
     const postMigration = new PostMigration(
         web3,
         getDefaultAccount(),
