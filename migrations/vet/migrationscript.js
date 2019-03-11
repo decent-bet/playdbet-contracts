@@ -2,6 +2,7 @@ const fs = require('fs')
 const appRoot = require('app-root-path')
 const ContractImportBuilder = require(`@decent-bet/connex-entity-builder`)
 const constants = require(`${appRoot}/lib/constants`)
+const PostMigration = require('./post-migration')
 
 function MigrationScript(web3, contractManager, deployer, builder, args) {
     let defaultAccount
@@ -23,7 +24,7 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
     const getDefaultOptions = () => {
         return {
             from: defaultAccount,
-            gas: 8000000
+            gas: 3000000
         }
     }
 
@@ -93,10 +94,21 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
                 builder.addContract("DBETVETTokenContract", DecentBetToken, token.options.address, chain);
                 builder.addContract("TournamentContract", Tournament, tournament.options.address, chain);
 
+
+                const postMigration = new PostMigration(
+                    web3,
+                    defaultAccount,
+                    {
+                        admin,
+                        quest,
+                        token,
+                        tournament
+                    }
+                )
+                await postMigration.run()
+
             } else if (chain === constants.CHAIN_MAIN) {
             }
-
-
         } catch (e) {
             console.log('Error deploying contracts:', e.message, e.stack)
         }

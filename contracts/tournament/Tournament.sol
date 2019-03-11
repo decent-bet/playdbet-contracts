@@ -24,7 +24,7 @@ LibTournament {
     ERC20 public token;
 
     // Prize table mapping
-    mapping (bytes32 => uint256[]) prizeTables;
+    mapping (bytes32 => uint256[]) public prizeTables;
     // Tournaments mapping
     mapping (bytes32 => Tournament) tournaments;
     // Prize table count

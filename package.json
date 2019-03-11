@@ -8,6 +8,7 @@
   "scripts": {
     "compile": "node ./lib/compile",
     "migrate": "node ./lib/migrations/run",
+    "post-migrate": "node ./migrations/vet/call-post-migration",
     "init-contracts": "node init",
     "test": "truffle test",
     "test-admin": "truffle test ./test/Admin.js",
