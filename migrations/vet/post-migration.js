@@ -201,9 +201,7 @@ function PostMigration (
 
     this.run = async () => {
         const {
-            admin,
             quest,
-            token,
             tournament
         } = contracts
 
