@@ -18,6 +18,33 @@ const {
     TournamentMethods
 } = require('./methods')
 
+// Admin methods
+const {
+    METHOD_ADD_ADMIN,
+    METHOD_REMOVE_ADMIN,
+    METHOD_SET_PLATFORM_WALLET,
+    METHOD_SET_OWNER
+} = AdminMethods
+
+// Quest methods
+const {
+    METHOD_ADD_QUEST,
+    METHOD_PAY_FOR_QUEST,
+    METHOD_SET_QUEST_OUTCOME,
+    METHOD_CANCEL_QUEST,
+    METHOD_CLAIM_REFUND
+} = QuestMethods
+
+// Tournament methods
+const {
+    METHOD_CREATE_PRIZE_TABLE,
+    METHOD_CREATE_TOURNAMENT,
+    METHOD_ENTER_TOURNAMENT,
+    METHOD_COMPLETE_TOURNAMENT,
+    METHOD_CLAIM_TOURNAMENT_PRIZE,
+    METHOD_CLAIM_TOURNAMENT_REFUND
+} = TournamentMethods
+
 console.log('Node URL', config.getNodeUrl())
 thorify(web3, config.getNodeUrl())
 
@@ -75,13 +102,6 @@ const estimateGas = async (
     gasUsage
 ) => gasUsage[method] = await contract.methods[method].apply(this, args).estimateGas(getDefaultOptions())
 
-const {
-    METHOD_ADD_ADMIN,
-    METHOD_REMOVE_ADMIN,
-    METHOD_SET_PLATFORM_WALLET,
-    METHOD_SET_OWNER
-} = AdminMethods
-
 const getMethods = () => {
     const user1 = getAccounts()[1]
     return {
@@ -90,32 +110,36 @@ const getMethods = () => {
             [METHOD_REMOVE_ADMIN]: [getDefaultAccount()],
             [METHOD_SET_PLATFORM_WALLET]: [user1],
             [METHOD_SET_OWNER]: [user1],
+        },
+        quest: {
+
+        },
+        tournament: {
+
         }
     }
 }
 
-const estimateAdminTxns = async () => {
+const estimateTxns = async (
+    name
+) => {
     let gasUsage = {}
-    const {
-        admin
-    } = getContracts()
-    const methods = getMethods().admin
+    const contract = getContracts()[name]
+    const methods = getMethods()[name]
     await Promise.all(Object.keys(methods).map(method =>
-        estimateGas(admin, method, methods[method], gasUsage)
+        estimateGas(contract, method, methods[method], gasUsage)
     ))
     console.log(
-        'Gas estimates for Admin txns:',
+        'Gas estimates for ', name, 'txns:',
         gasUsage
     )
 }
 
-const estimateQuestTxns = async () => {
+const estimateAdminTxns = async () => estimateTxns('admin')
 
-}
+const estimateQuestTxns = async () => estimateTxns('quest')
 
-const estimateTournamentTxns = async () => {
-
-}
+const estimateTournamentTxns = async () => estimateTxns('tournament')
 
 ;(async () => {
     chainTag = await web3.eth.getChainTag()
