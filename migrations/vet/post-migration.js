@@ -19,25 +19,47 @@ function PostMigration (
         }
     ]
 
+    const EMPTY_BYTES_32 = '0x'
+
     const tournaments = [
         {
             entryFee: web3.utils.toWei('50', 'ether'),
-            entryLimit: 1,
-            minEntries: 5,
-            maxEntries: 30,
+            entryLimit: 1, // How many times a single address can enter
+            minEntries: 3,
+            maxEntries: 12,
             rakePercent: 10,
             prizeType: PRIZE_TYPE_STANDARD,
-            prizeTable: prizeTables[0].id,
+            prizeTable: null,
             id: null
         },
         {
             entryFee: web3.utils.toWei('100', 'ether'),
             entryLimit: 2,
-            minEntries: 10,
-            maxEntries: 20,
+            minEntries: 4,
+            maxEntries: 24,
             rakePercent: 20,
             prizeType: PRIZE_TYPE_STANDARD,
-            prizeTable: prizeTables[1].id,
+            prizeTable: null,
+            id: null
+        },
+        {
+            entryFee: web3.utils.toWei('100', 'ether'),
+            entryLimit: 1,
+            minEntries: 2,
+            maxEntries: 10,
+            rakePercent: 20,
+            prizeType: PRIZE_TYPE_WINNER_TAKE_ALL,
+            prizeTable: EMPTY_BYTES_32,
+            id: null
+        },
+        {
+            entryFee: web3.utils.toWei('100', 'ether'),
+            entryLimit: 1,
+            minEntries: 2,
+            maxEntries: 10,
+            rakePercent: 20,
+            prizeType: PRIZE_TYPE_FIFTY_FIFTY,
+            prizeTable: EMPTY_BYTES_32,
             id: null
         },
     ]
@@ -78,7 +100,10 @@ function PostMigration (
         return logs.id
     }
 
-    const createTournament = async (contract, tournament) =>  {
+    const createTournament = async (
+        contract,
+        tournament
+    ) =>  {
         const {
             entryFee,
             entryLimit,
@@ -88,7 +113,7 @@ function PostMigration (
             prizeType,
             prizeTable
         } = tournament
-        const tx = contract.methods.createTournament(
+        const tx = await contract.methods.createTournament(
             entryFee,
             entryLimit,
             minEntries,
@@ -97,7 +122,26 @@ function PostMigration (
             prizeType,
             prizeTable
         ).send(getDefaultOptions())
-        return tx.logs[0].args.id
+        let logNewTournament
+        for(let i = 0; i < contract._jsonInterface.length; i++) {
+            if(contract._jsonInterface[i].name === 'LogNewTournament')
+                logNewTournament = contract._jsonInterface[i]
+        }
+        const logs = web3.eth.abi.decodeLog(
+            [{
+                type: 'bytes32',
+                name: 'id',
+                indexed: true
+            }, {
+                type: 'uint256',
+                name: 'count',
+                indexed: true
+            }],
+            logNewTournament.signature,
+            tx.outputs[0].events[0].topics.slice(1) // First topic is the event signature
+        )
+        console.log('Created tournament', logs.id)
+        return logs.id
     }
 
     this.run = async () => {
@@ -109,12 +153,12 @@ function PostMigration (
         } = contracts
 
         // Add prize tables
-        await addPrizeTable(
+        tournaments[0].prizeTable = prizeTables[0].id = await addPrizeTable(
             tournament,
             prizeTables[0].table
         )
 
-        await addPrizeTable(
+        tournaments[1].prizeTable = prizeTables[1].id = await addPrizeTable(
             tournament,
             prizeTables[1].table
         )
@@ -124,15 +168,24 @@ function PostMigration (
             tournament,
             tournaments[0]
         )
-        console.log('Added tournament', tournaments[0])
 
         tournaments[1].id = await createTournament(
             tournament,
             tournaments[1]
         )
-        console.log('Added tournament', tournaments[1])
+
+        tournaments[2].id = await createTournament(
+            tournament,
+            tournaments[2]
+        )
+
+        tournaments[3].id = await createTournament(
+            tournament,
+            tournaments[3]
+        )
 
         // Create quests
+
     }
 
 }
