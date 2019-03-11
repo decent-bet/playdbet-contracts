@@ -3,8 +3,6 @@ const { thorify } = require('thorify')
 const Web3 = require('web3')
 const web3 = new Web3()
 
-const PostMigration = require('./post-migration')
-
 const appRoot = require('app-root-path')
 const Config = require(`${appRoot}/lib/config`)
 const config = new Config()
@@ -47,17 +45,22 @@ const getContracts = () => {
     }
 }
 
+const estimateAdminTxns = async () => {
+
+}
+
+const estimateQuestTxns = async () => {
+
+}
+
+const estimateTournamentTxns = async () => {
+
+}
+
 ;(async () => {
     chainTag = await web3.eth.getChainTag()
-    console.log('Chain tag', chainTag)
     addPrivateKeyToWallet()
-    console.log('Added private key to wallet')
-
-    console.log('Calling post migration with', getDefaultAccount())
-    const postMigration = new PostMigration(
-        web3,
-        getDefaultAccount(),
-        getContracts()
-    )
-    await postMigration.run()
+    await estimateAdminTxns()
+    await estimateQuestTxns()
+    await estimateTournamentTxns()
 })()
