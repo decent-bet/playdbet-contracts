@@ -12,6 +12,12 @@ const Quest = require(`${appRoot}/build/contracts/Quest`)
 const Token = require(`${appRoot}/build/contracts/DBETVETToken`)
 const Tournament = require(`${appRoot}/build/contracts/Tournament`)
 
+const {
+    AdminMethods,
+    QuestMethods,
+    TournamentMethods
+} = require('./methods')
+
 console.log('Node URL', config.getNodeUrl())
 thorify(web3, config.getNodeUrl())
 
@@ -54,24 +60,49 @@ const getContracts = () => {
     }
 }
 
+// Default tx options
+const getDefaultOptions = () => {
+    return {
+        from: getDefaultAccount()
+    }
+}
+
+// Estimate gas for a txn call
+const estimateGas = async (
+    contract,
+    method,
+    args,
+    gasUsage
+) => gasUsage[method] = await contract.methods[method].apply(this, args).estimateGas(getDefaultOptions())
+
+const {
+    METHOD_ADD_ADMIN,
+    METHOD_REMOVE_ADMIN,
+    METHOD_SET_PLATFORM_WALLET,
+    METHOD_SET_OWNER
+} = AdminMethods
+
+const getMethods = () => {
+    const user1 = getAccounts()[1]
+    return {
+        admin: {
+            [METHOD_ADD_ADMIN]: [user1],
+            [METHOD_REMOVE_ADMIN]: [getDefaultAccount()],
+            [METHOD_SET_PLATFORM_WALLET]: [user1],
+            [METHOD_SET_OWNER]: [user1],
+        }
+    }
+}
+
 const estimateAdminTxns = async () => {
     let gasUsage = {}
     const {
         admin
     } = getContracts()
-    const user1 = getAccounts()[1]
-    gasUsage.addAdmin = await admin.methods.addAdmin(user1).estimateGas({
-        from: getDefaultAccount()
-    })
-    gasUsage.removeAdmin = await admin.methods.removeAdmin(getDefaultAccount()).estimateGas({
-        from: getDefaultAccount()
-    })
-    gasUsage.setPlatformWallet = await admin.methods.setPlatformWallet(user1).estimateGas({
-        from: getDefaultAccount()
-    })
-    gasUsage.setOwner = await admin.methods.setOwner(user1).estimateGas({
-        from: getDefaultAccount()
-    })
+    const methods = getMethods().admin
+    await Promise.all(Object.keys(methods).map(method =>
+        estimateGas(admin, method, methods[method], gasUsage)
+    ))
     console.log(
         'Gas estimates for Admin txns:',
         gasUsage
