@@ -4,6 +4,8 @@ function PostMigration (
     contracts
 ) {
 
+    const EMPTY_BYTES_32 = '0x'
+
     const PRIZE_TYPE_STANDARD = 0
     const PRIZE_TYPE_WINNER_TAKE_ALL = 1
     const PRIZE_TYPE_FIFTY_FIFTY = 2
@@ -18,8 +20,6 @@ function PostMigration (
             id: null
         }
     ]
-
-    const EMPTY_BYTES_32 = '0x'
 
     const tournaments = [
         {
@@ -62,6 +62,27 @@ function PostMigration (
             prizeTable: EMPTY_BYTES_32,
             id: null
         },
+    ]
+
+    const quests = [
+        {
+            id: web3.utils.toHex('quest_1'),
+            entryFee: web3.utils.toWei('50', 'ether'), // 50 DBETs
+            timeToComplete: 15 * 60, // 15 minutes
+            prize: web3.utils.toWei('100', 'ether') // 100 DBETs
+        },
+        {
+            id: web3.utils.toHex('quest_2'),
+            entryFee: web3.utils.toWei('25', 'ether'), // 25 DBETs
+            timeToComplete: 30 * 60, // 15 minutes
+            prize: web3.utils.toWei('50', 'ether') // 50 DBETs
+        },
+        {
+            id: web3.utils.toHex('quest_3'),
+            entryFee: web3.utils.toWei('100', 'ether'), // 100 DBETs
+            timeToComplete: 60 * 60, // 60 minutes
+            prize: web3.utils.toWei('200', 'ether') // 200 DBETs
+        }
     ]
 
     const getDefaultOptions = () => {
@@ -144,6 +165,40 @@ function PostMigration (
         return logs.id
     }
 
+    const addQuest = async (
+        contract,
+        quest
+    ) => {
+        const {
+            id,
+            entryFee,
+            timeToComplete,
+            prize
+        } = quest
+        const tx = await contract.methods.addQuest(
+            id,
+            entryFee,
+            timeToComplete,
+            prize
+        ).send(getDefaultOptions())
+        let logNewQuest
+        for(let i = 0; i < contract._jsonInterface.length; i++) {
+            if(contract._jsonInterface[i].name === 'LogNewQuest')
+                logNewQuest = contract._jsonInterface[i]
+        }
+        const logs = web3.eth.abi.decodeLog(
+            [{
+                type: 'bytes32',
+                name: 'id',
+                indexed: true
+            }],
+            logNewQuest.signature,
+            tx.outputs[0].events[0].topics.slice(1) // First topic is the event signature
+        )
+        console.log('Added quest', logs.id)
+        return logs.id
+    }
+
     this.run = async () => {
         const {
             admin,
@@ -184,8 +239,21 @@ function PostMigration (
             tournaments[3]
         )
 
-        // Create quests
+        // Add quests
+        await addQuest(
+            quest,
+            quests[0]
+        )
 
+        await addQuest(
+            quest,
+            quests[1]
+        )
+
+        await addQuest(
+            quest,
+            quests[2]
+        )
     }
 
 }
