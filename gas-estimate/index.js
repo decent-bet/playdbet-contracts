@@ -196,7 +196,9 @@ const estimateGas = (
     method,
     params,
     options
-) => getContracts()[name].methods[method].apply(this, params).estimateGas(options)
+) => {
+    return getContracts()[name].methods[method].apply(this, params).estimateGas(options)
+}
 
 const estimateAdminTxns = async () => {
     const user1 = getAccounts()[1]
@@ -227,6 +229,14 @@ const estimateQuestTxns = async () => {
         .methods
         .setPlatformWallet(
             platformWallet
+        )
+        .send(getTxOptions())
+    // Transfer 1m tokens to user1
+    await getContracts()[CONTRACT_TOKEN]
+        .methods
+        .transfer(
+            getAccounts()[1],
+            web3.utils.toWei('1000000', 'ether')
         )
         .send(getTxOptions())
     // Transfer 1m tokens to platform wallet
@@ -313,6 +323,7 @@ const estimateQuestTxns = async () => {
 
 const estimateTournamentTxns = async () => {
     const user1 = getAccounts()[1]
+    const user2 = getAccounts()[2]
     const gasUsage = {}
     gasUsage.createPrizeTable = await estimateGas(
         CONTRACT_TOURNAMENT,
@@ -357,7 +368,7 @@ const estimateTournamentTxns = async () => {
         )
         .send(getTxOptions())
     tournaments[0].id = createTournamentTx.outputs[0].events[0].topics[1]
-    // Approve tournament contract to transfer 100k tokens as owner
+    // Approve tournament contract to transfer 100k tokens as owner, user1 and user2
     await getContracts()[CONTRACT_TOKEN]
         .methods
         .approve(
@@ -365,6 +376,20 @@ const estimateTournamentTxns = async () => {
             web3.utils.toWei('100000', 'ether')
         )
         .send(getTxOptions())
+    await getContracts()[CONTRACT_TOKEN]
+        .methods
+        .approve(
+            getContracts()[CONTRACT_TOURNAMENT].options.address,
+            web3.utils.toWei('100000', 'ether')
+        )
+        .send(getTxOptions(user1))
+    await getContracts()[CONTRACT_TOKEN]
+        .methods
+        .approve(
+            getContracts()[CONTRACT_TOURNAMENT].options.address,
+            web3.utils.toWei('100000', 'ether')
+        )
+        .send(getTxOptions(user2))
     gasUsage.enterTournament = await estimateGas(
         CONTRACT_TOURNAMENT,
         METHOD_ENTER_TOURNAMENT,
@@ -373,27 +398,41 @@ const estimateTournamentTxns = async () => {
         ],
         getTxOptions()
     )
+    // Add 3 entries to tournaments[0] since minEntry is 3
     await getContracts()[CONTRACT_TOURNAMENT]
         .methods
         .enterTournament(
             tournaments[0].id
         )
         .send(getTxOptions())
+    await getContracts()[CONTRACT_TOURNAMENT]
+        .methods
+        .enterTournament(
+            tournaments[0].id
+        )
+        .send(getTxOptions(user1))
+    await getContracts()[CONTRACT_TOURNAMENT]
+        .methods
+        .enterTournament(
+            tournaments[0].id
+        )
+        .send(getTxOptions(user2))
     gasUsage.completeTournament = await estimateGas(
         CONTRACT_TOURNAMENT,
         METHOD_COMPLETE_TOURNAMENT,
         [
             tournaments[0].id,
-            [[0]],
-            1
-        ]
+            [[0], [1], [2]],
+            3
+        ],
+        getTxOptions()
     )
     await getContracts()[CONTRACT_TOURNAMENT]
         .methods
         .completeTournament(
             tournaments[0].id,
-            [[0]],
-            1
+            [[0], [1], [2]],
+            3
         )
         .send(getTxOptions())
     gasUsage.claimTournamentPrize = await estimateGas(
@@ -403,7 +442,8 @@ const estimateTournamentTxns = async () => {
             tournaments[0].id,
             0,
             0
-        ]
+        ],
+        getTxOptions()
     )
     await getContracts()[CONTRACT_TOURNAMENT]
         .methods
@@ -417,10 +457,14 @@ const estimateTournamentTxns = async () => {
 }
 
 ;(async () => {
-    chainTag = await web3.eth.getChainTag()
-    addPrivateKeysToWallet()
-    console.log('Chain tag:', chainTag)
-    await estimateAdminTxns()
-    await estimateQuestTxns()
-    await estimateTournamentTxns()
+    try {
+        chainTag = await web3.eth.getChainTag()
+        addPrivateKeysToWallet()
+        console.log('Chain tag:', chainTag)
+        await estimateAdminTxns()
+        await estimateQuestTxns()
+        await estimateTournamentTxns()
+    } catch (e) {
+        console.error(e.stack)
+    }
 })()
