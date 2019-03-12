@@ -453,6 +453,19 @@ const estimateTournamentTxns = async () => {
             0
         )
         .send(getTxOptions())
+    const createTournamentTx2 = await getContracts()[CONTRACT_TOURNAMENT]
+        .methods
+        .createTournament(
+            tournaments[2].entryFee,
+            tournaments[2].entryLimit,
+            tournaments[2].minEntries,
+            tournaments[2].maxEntries,
+            tournaments[2].rakePercent,
+            tournaments[2].prizeType,
+            tournaments[2].prizeTable
+        )
+        .send(getTxOptions())
+    tournaments[2].id = createTournamentTx2.outputs[0].events[0].topics[1]
     // Add 2 entries to tournaments[2] since minEntry is 2
     await getContracts()[CONTRACT_TOURNAMENT]
         .methods
@@ -470,7 +483,7 @@ const estimateTournamentTxns = async () => {
     await getContracts()[CONTRACT_TOURNAMENT]
         .methods
         .completeTournament(
-            tournaments[0].id,
+            tournaments[2].id,
             [],
             0
         )
@@ -479,7 +492,7 @@ const estimateTournamentTxns = async () => {
         CONTRACT_TOURNAMENT,
         METHOD_CLAIM_TOURNAMENT_REFUND,
         [
-            tournaments[0].id,
+            tournaments[2].id,
             0
         ],
         getTxOptions()
@@ -487,7 +500,7 @@ const estimateTournamentTxns = async () => {
     await getContracts()[CONTRACT_TOURNAMENT]
         .methods
         .claimTournamentRefund(
-            tournaments[0].id,
+            tournaments[2].id,
             0
         )
         .send(getTxOptions())
