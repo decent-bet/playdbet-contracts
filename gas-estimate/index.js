@@ -373,6 +373,46 @@ const estimateTournamentTxns = async () => {
         ],
         getTxOptions()
     )
+    await getContracts()[CONTRACT_TOURNAMENT]
+        .methods
+        .enterTournament(
+            tournaments[0].id
+        )
+        .send(getTxOptions())
+    gasUsage.completeTournament = await estimateGas(
+        CONTRACT_TOURNAMENT,
+        METHOD_COMPLETE_TOURNAMENT,
+        [
+            tournaments[0].id,
+            [[0]],
+            1
+        ]
+    )
+    await getContracts()[CONTRACT_TOURNAMENT]
+        .methods
+        .completeTournament(
+            tournaments[0].id,
+            [[0]],
+            1
+        )
+        .send(getTxOptions())
+    gasUsage.claimTournamentPrize = await estimateGas(
+        CONTRACT_TOURNAMENT,
+        METHOD_CLAIM_TOURNAMENT_PRIZE,
+        [
+            tournaments[0].id,
+            0,
+            0
+        ]
+    )
+    await getContracts()[CONTRACT_TOURNAMENT]
+        .methods
+        .claimTournamentPrize(
+            tournaments[0].id,
+            0,
+            0
+        )
+        .send(getTxOptions())
     console.log('Estimate tournament txns:', gasUsage)
 }
 
