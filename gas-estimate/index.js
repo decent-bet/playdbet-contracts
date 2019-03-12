@@ -64,6 +64,9 @@ const prizeTables = [
     {
         table: [60, 20, 15, 5],
         id: null
+    },
+    {
+        table: [40,25,20,15]
     }
 ]
 
@@ -206,7 +209,6 @@ const estimateAdminTxns = async () => {
 }
 
 const estimateQuestTxns = async () => {
-    const user1 = getAccounts()[1]
     const gasUsage = {}
     gasUsage.addForQuest = await estimateGas(
         CONTRACT_QUEST,
@@ -310,7 +312,68 @@ const estimateQuestTxns = async () => {
 }
 
 const estimateTournamentTxns = async () => {
-
+    const user1 = getAccounts()[1]
+    const gasUsage = {}
+    gasUsage.createPrizeTable = await estimateGas(
+        CONTRACT_TOURNAMENT,
+        METHOD_CREATE_PRIZE_TABLE,
+        [
+            prizeTables[2].table
+        ],
+        getTxOptions()
+    )
+    const prizeTableTx = await getContracts()[CONTRACT_TOURNAMENT]
+        .methods
+        .createPrizeTable(
+            prizeTables[2].table
+        )
+        .send(getTxOptions())
+    prizeTables[2].id = prizeTableTx.outputs[0].events[0].topics[1]
+    tournaments[0].prizeTable = prizeTables[2].id
+    gasUsage.createTournament = await estimateGas(
+        CONTRACT_TOURNAMENT,
+        METHOD_CREATE_TOURNAMENT,
+        [
+            tournaments[0].entryFee,
+            tournaments[0].entryLimit,
+            tournaments[0].minEntries,
+            tournaments[0].maxEntries,
+            tournaments[0].rakePercent,
+            tournaments[0].prizeType,
+            tournaments[0].prizeTable
+        ],
+        getTxOptions()
+    )
+    const createTournamentTx = await getContracts()[CONTRACT_TOURNAMENT]
+        .methods
+        .createTournament(
+            tournaments[0].entryFee,
+            tournaments[0].entryLimit,
+            tournaments[0].minEntries,
+            tournaments[0].maxEntries,
+            tournaments[0].rakePercent,
+            tournaments[0].prizeType,
+            tournaments[0].prizeTable
+        )
+        .send(getTxOptions())
+    tournaments[0].id = createTournamentTx.outputs[0].events[0].topics[1]
+    // Approve tournament contract to transfer 100k tokens as owner
+    await getContracts()[CONTRACT_TOKEN]
+        .methods
+        .approve(
+            getContracts()[CONTRACT_TOURNAMENT].options.address,
+            web3.utils.toWei('100000', 'ether')
+        )
+        .send(getTxOptions())
+    gasUsage.enterTournament = await estimateGas(
+        CONTRACT_TOURNAMENT,
+        METHOD_ENTER_TOURNAMENT,
+        [
+            tournaments[0].id
+        ],
+        getTxOptions()
+    )
+    console.log('Estimate tournament txns:', gasUsage)
 }
 
 ;(async () => {
@@ -319,5 +382,5 @@ const estimateTournamentTxns = async () => {
     console.log('Chain tag:', chainTag)
     await estimateAdminTxns()
     await estimateQuestTxns()
-    // await estimateTournamentTxns()
+    await estimateTournamentTxns()
 })()
