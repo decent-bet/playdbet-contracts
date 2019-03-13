@@ -9,6 +9,7 @@
     "compile": "node ./lib/compile",
     "migrate": "node ./lib/migrations/run",
     "post-migrate": "node ./migrations/vet/call-post-migration",
+    "gas-estimate": "chmod +x ./gas-estimate/estimate.sh;./gas-estimate/estimate.sh",
     "init-contracts": "node init",
     "test": "truffle test",
     "test-admin": "truffle test ./test/Admin.js",

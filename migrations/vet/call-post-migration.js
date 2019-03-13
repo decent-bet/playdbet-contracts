@@ -47,7 +47,7 @@ const getContracts = () => {
     }
 }
 
-const init = async () => {
+;(async () => {
     chainTag = await web3.eth.getChainTag()
     console.log('Chain tag', chainTag)
     addPrivateKeyToWallet()
@@ -60,6 +60,4 @@ const init = async () => {
         getContracts()
     )
     await postMigration.run()
-}
-
-init()
+})()
