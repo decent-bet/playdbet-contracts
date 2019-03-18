@@ -35,7 +35,7 @@
     "ethers": "^3.0.25",
     "ganache-cli": "^6.1.6",
     "keythereum": "^1.0.4",
-    "lodash": "^4.17.10",
+    "lodash": "^4.17.11",
     "mkdirp": "^0.5.1",
     "mocha": "^5.2.0",
     "node-dir": "github:fshost/node-dir",
