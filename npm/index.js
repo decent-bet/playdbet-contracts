@@ -1,5 +1,5 @@
 module.exports = {
-    "VERSION": "1.0.1",
+    "VERSION": "1.0.2",
     "AdminContract": {
         "raw": {
             "abi": [{
@@ -98,7 +98,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0xD123Bc2A9Fce3890f7Bab774E9297Ed4c0D4C1a1",
+            "0x27": "0xC0C9ef5F3A71D03d84c7fFc37C6B0daf5eDdDF07",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0x4a": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0xa4": "0xd74313287364cA0fd80425d52c6c6B13538c0247"
@@ -181,6 +181,16 @@ module.exports = {
                     "indexed": true,
                     "name": "user",
                     "type": "address"
+                }],
+                "name": "LogCancelQuestEntry",
+                "type": "event",
+                "signature": "0x1b2965240d28519adbcbda00f7662ff7d4c77e83ba5c966961c54991631c9a14"
+            }, {
+                "anonymous": false,
+                "inputs": [{"indexed": true, "name": "id", "type": "bytes32"}, {
+                    "indexed": true,
+                    "name": "user",
+                    "type": "address"
                 }, {"indexed": true, "name": "payer", "type": "address"}],
                 "name": "LogPayForQuest",
                 "type": "event",
@@ -201,10 +211,10 @@ module.exports = {
                     "indexed": true,
                     "name": "user",
                     "type": "address"
-                }],
+                }, {"indexed": false, "name": "isQuestCancelled", "type": "bool"}],
                 "name": "LogRefundQuestEntry",
                 "type": "event",
-                "signature": "0x8b50670d1de87b268ae12c29d41bae6a40947142cdba35f26b8d51b527b157df"
+                "signature": "0x8fe840560cb6e17cf4642003022d241ddce6126b7015e35aa1173df8a34a4ccc"
             }, {
                 "constant": false,
                 "inputs": [{"name": "id", "type": "bytes32"}, {
@@ -249,6 +259,15 @@ module.exports = {
                 "signature": "0xc0174542"
             }, {
                 "constant": false,
+                "inputs": [{"name": "id", "type": "bytes32"}, {"name": "user", "type": "address"}],
+                "name": "cancelQuestEntry",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function",
+                "signature": "0x2ba720e8"
+            }, {
+                "constant": false,
                 "inputs": [{"name": "id", "type": "bytes32"}],
                 "name": "claimRefund",
                 "outputs": [{"name": "", "type": "bool"}],
@@ -256,10 +275,19 @@ module.exports = {
                 "stateMutability": "nonpayable",
                 "type": "function",
                 "signature": "0x71de2ffc"
+            }, {
+                "constant": false,
+                "inputs": [{"name": "id", "type": "bytes32"}],
+                "name": "claimRefundForEntry",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function",
+                "signature": "0x1ff93c7d"
             }]
         },
         "address": {
-            "0x27": "0xb68A63CE1F3362b7bC0CB9d928f4F7285490c891",
+            "0x27": "0xD364C220B1e992Edede057D191B43038E2e7f2B8",
             "0xc7": "0x55db2feE8A2A039BCA83b014cf0b455a31E77Cda",
             "0x4a": "0x55db2feE8A2A039BCA83b014cf0b455a31E77Cda",
             "0xa4": "0x5379897279457f4f8F182f29273E087e505aF8c0"
@@ -464,7 +492,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0x069529cae2DE5E42D64dCfE794DA3E1Dee2ef378",
+            "0x27": "0x9C800dCF6703C5bC3CEd50FaB94BCBC03a19557f",
             "0xc7": "0x1b8EC6C2A45ccA481Da6F243Df0d7A5744aFc1f8",
             "0x4a": "0x1b8EC6C2A45ccA481Da6F243Df0d7A5744aFc1f8",
             "0xa4": "0x9485cDB237f5B582f86B125CAd32b420Ad46519D"
@@ -473,6 +501,26 @@ module.exports = {
     "TournamentContract": {
         "raw": {
             "abi": [{
+                "constant": true,
+                "inputs": [{"name": "", "type": "bytes32"}],
+                "name": "tournaments",
+                "outputs": [{
+                    "components": [{"name": "entryFee", "type": "uint256"}, {
+                        "name": "entryLimit",
+                        "type": "uint256"
+                    }, {"name": "minEntries", "type": "uint256"}, {
+                        "name": "maxEntries",
+                        "type": "uint256"
+                    }, {"name": "rakePercent", "type": "uint256"}, {
+                        "name": "prizeType",
+                        "type": "uint8"
+                    }, {"name": "prizeTable", "type": "bytes32"}], "name": "details", "type": "tuple"
+                }, {"name": "uniqueFinalStandings", "type": "uint256"}, {"name": "status", "type": "uint8"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0x139cfab1"
+            }, {
                 "constant": true,
                 "inputs": [],
                 "name": "tournamentCount",
@@ -558,10 +606,10 @@ module.exports = {
                     "indexed": true,
                     "name": "participant",
                     "type": "address"
-                }],
+                }, {"indexed": true, "name": "entryIndex", "type": "uint256"}],
                 "name": "LogEnteredTournament",
                 "type": "event",
-                "signature": "0x603014aa28a647ee5d7cfec1f7cb428a796a652f5d0d9d86f12e9eb5fc4fb467"
+                "signature": "0x63b13bba6d64871dc901b12d2e356327260de470c659a13964b930dec73cb1c0"
             }, {
                 "anonymous": false,
                 "inputs": [{"indexed": true, "name": "id", "type": "bytes32"}, {
@@ -735,6 +783,15 @@ module.exports = {
                 "signature": "0xf89e1878"
             }, {
                 "constant": true,
+                "inputs": [{"name": "id", "type": "bytes32"}, {"name": "entryIndex", "type": "uint256"}],
+                "name": "getTournamentEntryFinalStandingLength",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0x7c32bcd3"
+            }, {
+                "constant": true,
                 "inputs": [{"name": "id", "type": "bytes32"}, {
                     "name": "entryIndex",
                     "type": "uint256"
@@ -769,7 +826,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0x71A3DA7DdBa8AF1BA2128Fcfc80F748FCdA5c26e",
+            "0x27": "0x8Bbeef6BA457AfDcD518cf83eaddc3c936cCd04D",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0x4a": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0xa4": "0x86F3EC2f5C82C86974f2407c0ac9c627015eCcA0"
