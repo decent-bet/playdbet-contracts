@@ -53,7 +53,8 @@ LibQuest {
     // On refund user
     event LogRefundQuestEntry(
         bytes32 indexed id,
-        address indexed user
+        address indexed user,
+        bool isQuestCancelled
     );
 
     constructor (
@@ -288,9 +289,46 @@ LibQuest {
                 quests[id].entryFee
             )
         );
+        // Emit log refund quest entry event
         emit LogRefundQuestEntry(
             id,
-            msg.sender
+            msg.sender,
+            true
+        );
+    }
+
+    /**
+    * Allows user to claim refunds for cancelled quest entries
+    * @param id Unique quest id
+    * @return whether refunds were claimed
+    */
+    function claimRefundForEntry(
+        bytes32 id
+    )
+    public
+    returns (bool) {
+        // Quest entry must be cancelled
+        require(
+            userQuestEntries[msg.sender][id].status == uint8(QuestEntryStatus.CANCELLED)
+        );
+        // User quest entry cannot already be refunded
+        require(
+            !userQuestEntries[msg.sender][id].refunded
+        );
+        userQuestEntries[msg.sender][id].refunded = true;
+        // Transfer entryFee to user
+        require(
+            token.transferFrom(
+                admin.platformWallet(),
+                msg.sender,
+                quests[id].entryFee
+            )
+        );
+        // Emit log refund quest entry event
+        emit LogRefundQuestEntry(
+            id,
+            msg.sender,
+            false
         );
     }
 
