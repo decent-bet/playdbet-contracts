@@ -102,7 +102,8 @@ LibQuest {
             entryFee: entryFee,
             timeToComplete: timeToComplete,
             prize: prize,
-            status: uint8(QuestStatus.ACTIVE)
+            status: uint8(QuestStatus.ACTIVE),
+            count: 0
         });
         // Emit new quest event
         emit LogNewQuest(

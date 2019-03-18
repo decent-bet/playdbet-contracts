@@ -416,7 +416,7 @@ contract('Quest', accounts => {
         )
     })
 
-    it('throws if non-admins cancel quest entries', async () => {
+    it('quest count increments on pay for quest', async () => {
         const {id} = getValidQuestParams()
 
         /** Pay for user3/user4 quest entries for next test cases **/
@@ -450,6 +450,7 @@ contract('Quest', accounts => {
             }
         )
 
+        const prePayQuestCount = (await quest.quests(id)).count
         // Pay for quest with sufficient allowance and balance as user3
         await quest.payForQuest(
             id,
@@ -466,6 +467,17 @@ contract('Quest', accounts => {
                 from: user4
             }
         )
+        const postPayQuestCount = (await quest.quests(id)).count
+
+        assert.equal(
+            new BigNumber(prePayQuestCount).plus(2).toFixed(),
+            new BigNumber(postPayQuestCount).toFixed()
+        )
+
+    })
+
+    it('throws if non-admins cancel quest entries', async () => {
+        const {id} = getValidQuestParams()
 
         await utils.assertFail(
             quest.cancelQuestEntry(
