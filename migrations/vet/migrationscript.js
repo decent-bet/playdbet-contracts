@@ -24,7 +24,7 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
     const getDefaultOptions = () => {
         return {
             from: defaultAccount,
-            gas: 3000000
+            gas: 4000000
         }
     }
 

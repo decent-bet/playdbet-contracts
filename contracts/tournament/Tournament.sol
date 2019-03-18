@@ -45,7 +45,8 @@ LibTournament {
     // Log entered tournament
     event LogEnteredTournament(
         bytes32 indexed id,
-        address indexed participant
+        address indexed participant,
+        uint256 indexed entryIndex
     );
     // Log completed tournament
     event LogCompletedTournament(
@@ -261,7 +262,8 @@ LibTournament {
         // Emit log entered tournament event
         emit LogEnteredTournament(
             id,
-            msg.sender
+            msg.sender,
+            tournaments[id].entries.length - 1
         );
     }
 
@@ -663,7 +665,23 @@ LibTournament {
     }
 
     /**
-    * Returns a final standing for a tournament
+    * Returns the number of final standings at a given tournament entries index
+    * @param id Unique tournament ID
+    * @param entryIndex Tournament entry index
+    * @return Number of final standings for tournament entry at index
+    */
+    function getTournamentEntryFinalStandingLength(
+        bytes32 id,
+        uint256 entryIndex
+    )
+    public
+    view
+    returns (uint256) {
+        return tournaments[id].entries[entryIndex].finalStandings.length;
+    }
+
+    /**
+    * Returns a final standing for a tournament entry
     * @param id Unique tournament ID
     * @param entryIndex Tournament entry index
     * @param finalStandingIndex Tournament entry final standing index
