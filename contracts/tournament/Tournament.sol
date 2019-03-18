@@ -26,7 +26,7 @@ LibTournament {
     // Prize table mapping
     mapping (bytes32 => uint256[]) public prizeTables;
     // Tournaments mapping
-    mapping (bytes32 => Tournament) tournaments;
+    mapping (bytes32 => Tournament) public tournaments;
     // Prize table count
     uint256 public prizeTableCount;
     // Tournament count
