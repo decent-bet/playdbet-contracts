@@ -415,6 +415,26 @@ contract('Quest', accounts => {
         )
     })
 
+    it('throws if non-admins cancel quest entries', async () => {
+
+    })
+
+    it('allows admins to cancel quest entries with an active status', async () => {
+
+    })
+
+    it('throws if admins cancel quest entries with a non-active status', async () => {
+
+    })
+
+    it('allows users to claim refunds for cancelled quest entries', async () => {
+
+    })
+
+    it('throws if users claim refunds for already claimed cancelled quest entries', async () => {
+
+    })
+
     it('allows admins to cancel quests with an active status', async () => {
         const {id} = getValidQuestParams()
 
@@ -504,22 +524,6 @@ contract('Quest', accounts => {
         assert.equal(
             userQuestEntry[2],
             true
-        )
-    })
-
-    it('throws if users claim refunds for cancelled quests after timeToComplete has elapsed', async () => {
-        const {id} = getValidQuestParams()
-
-        await timeTravel(2 * 60 * 60)
-
-        // Time for quest has completed
-        await utils.assertFail(
-            quest.claimRefund(
-                id,
-                {
-                    from: user4
-                }
-            )
         )
     })
 
