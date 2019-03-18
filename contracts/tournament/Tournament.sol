@@ -676,7 +676,7 @@ LibTournament {
     )
     public
     view
-    returns (TournamentEntry memory) {
+    returns (uint256) {
         return tournaments[id].entries[entryIndex].finalStandings.length;
     }
 
