@@ -34,6 +34,11 @@ LibQuest {
     event LogCancelQuest(
         bytes32 indexed id
     );
+    // On cancel quest entry
+    event LogCancelQuestEntry(
+        bytes32 indexed id,
+        address indexed user
+    );
     // On pay for quest
     event LogPayForQuest(
         bytes32 indexed id,
@@ -224,6 +229,35 @@ LibQuest {
     }
 
     /**
+    * Cancels an individual quest entry
+    * @param id Unique quest ID
+    * @param user Address of user
+    * @return whether quest entry was cancelled
+    */
+    function cancelQuestEntry(
+        bytes32 id,
+        address user
+    )
+    public
+    returns (bool) {
+        // Allow only admins to cancel quests
+        require(admin.admins(msg.sender));
+        // Quest must be active
+        require(quests[id].status == uint8(QuestStatus.ACTIVE));
+        // Quest entry must be started
+        require(
+            userQuestEntries[user][id].status == uint8(QuestEntryStatus.STARTED)
+        );
+        // Switch quest entry status to cancelled
+        userQuestEntries[user][id].status = uint8(QuestEntryStatus.CANCELLED);
+        // Emit log cancel quest entry event
+        emit LogCancelQuestEntry(
+            id,
+            user
+        );
+    }
+
+    /**
     * Allow users with quest entries to claim refunds for cancelled quests
     * @param id Cancelled quest ID
     * @return whether refunds were claimed
@@ -240,12 +274,6 @@ LibQuest {
         // Quest should be cancelled
         require(
             quests[id].status == uint8(QuestStatus.CANCELLED)
-        );
-        // TODO: Check if this's necessary
-        // User cannot have crossed timeToComplete from time of starting quest
-        require(
-            userQuestEntries[msg.sender][id].entryTime.add(quests[id].timeToComplete) >=
-            block.timestamp
         );
         // User quest entry cannot already be refunded
         require(
