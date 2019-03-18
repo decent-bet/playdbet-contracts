@@ -14,7 +14,8 @@ contract LibQuest {
         NOT_STARTED,
         STARTED,
         SUCCESS,
-        FAILED
+        FAILED,
+        CANCELLED
     }
 
     struct Quest {
