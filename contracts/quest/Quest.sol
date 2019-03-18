@@ -147,6 +147,9 @@ LibQuest {
             status: uint8(QuestEntryStatus.STARTED),
             refunded: false
         });
+        // Increment quest count
+        quests[id].count++;
+        // Transfer entry fee to platform wallet
         require(
             token.transferFrom(
                 msg.sender,
