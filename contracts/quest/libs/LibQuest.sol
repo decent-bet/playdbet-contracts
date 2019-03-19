@@ -27,6 +27,8 @@ contract LibQuest {
         uint256 prize;
         // Quest status
         uint8 status;
+        // Number of quest entries
+        uint256 count;
     }
 
     struct UserQuestEntry {

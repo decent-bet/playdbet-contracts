@@ -102,7 +102,8 @@ LibQuest {
             entryFee: entryFee,
             timeToComplete: timeToComplete,
             prize: prize,
-            status: uint8(QuestStatus.ACTIVE)
+            status: uint8(QuestStatus.ACTIVE),
+            count: 0
         });
         // Emit new quest event
         emit LogNewQuest(
@@ -147,6 +148,9 @@ LibQuest {
             status: uint8(QuestEntryStatus.STARTED),
             refunded: false
         });
+        // Increment quest count
+        quests[id].count++;
+        // Transfer entry fee to platform wallet
         require(
             token.transferFrom(
                 msg.sender,
