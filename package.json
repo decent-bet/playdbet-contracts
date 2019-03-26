@@ -40,7 +40,7 @@
     "node-dir": "github:fshost/node-dir",
     "node-ipc": "^9.1.1",
     "temp": "^0.8.3",
-    "thorify": "^1.0.2",
+    "thorify": "1.1.0",
     "truffle-artifactor": "^3.0.8",
     "truffle-compile": "^3.0.11",
     "truffle-config": "^1.0.4",
