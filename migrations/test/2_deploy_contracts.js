@@ -1,3 +1,4 @@
+const appRoot = require('app-root-path')
 const Admin = artifacts.require('Admin')
 const DecentBetToken = artifacts.require('DBETVETToken')
 const MultiSigWallet = artifacts.require('MultiSigWallet')
@@ -38,6 +39,7 @@ let deploy = async (deployer, network) => {
 
     if (network === 'rinkeby' || network === 'development') {
         try {
+            const platformWallet = require(`${appRoot}/vet-config`).chains.testnet.from
             // Deploy the DecentBetToken contract
             await deployer.deploy(
                 DecentBetToken,
@@ -55,6 +57,17 @@ let deploy = async (deployer, network) => {
             )
             admin = await getContractInstanceAndInfo(Admin)
             console.log('Deployed admin')
+
+            // Set the platform wallet in admin
+            console.log('Setting platform wallet:', platformWallet)
+            await admin.setPlatformWallet(platformWallet)
+
+            console.log('Admin address', process.env)
+            if(process.env.ADMIN_ADDRESS) {
+                const adminAddress = process.env.ADMIN_ADDRESS
+                console.log(`Adding ${adminAddress} as admin`)
+                await admin.addAdmin(adminAddress)
+            }
 
             // Deploy the quest contract
             await deployer.deploy(
