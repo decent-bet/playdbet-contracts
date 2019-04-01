@@ -1,3 +1,4 @@
+require('dotenv')
 const fs = require('fs')
 const appRoot = require('app-root-path')
 const ContractImportBuilder = require(`@decent-bet/connex-entity-builder`)
@@ -41,6 +42,7 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
 
         try {
             if(chain === constants.CHAIN_SOLO || chain === constants.CHAIN_TESTNET) {
+                const platformWallet = require(`${appRoot}/vet-config`).chains.testnet.from
                 // Deploy the DecentBetToken contract
                 token = await deployer.deploy(
                     DecentBetToken,
@@ -58,6 +60,16 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
                     getDefaultOptions()
                 )
                 console.log('Deployed admin')
+                // Set the platform wallet in admin
+                console.log('Setting platform wallet:', platformWallet)
+                await admin.setPlatformWallet(platformWallet)
+
+                console.log('Admin address', process.env)
+                if(process.env.ADMIN_ADDRESS) {
+                    const adminAddress = process.env.ADMIN_ADDRESS
+                    console.log(`Adding ${adminAddress} as admin`)
+                    await admin.addAdmin(adminAddress)
+                }
 
                 // Deploy the Quest contract
                 quest = await deployer.deploy(
