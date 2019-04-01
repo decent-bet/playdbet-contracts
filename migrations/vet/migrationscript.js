@@ -64,11 +64,17 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
                 console.log('Setting platform wallet:', platformWallet)
                 await admin.setPlatformWallet(platformWallet)
 
-                console.log('Admin address', process.env)
                 if(process.env.ADMIN_ADDRESS) {
                     const adminAddress = process.env.ADMIN_ADDRESS
                     console.log(`Adding ${adminAddress} as admin`)
                     await admin.addAdmin(adminAddress)
+                    await token.transfer(
+                        adminAddress,
+                        web3.utils.toWei(
+                            '10000000',
+                            'ether'
+                        )
+                    )
                 }
 
                 // Deploy the Quest contract
