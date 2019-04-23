@@ -270,7 +270,8 @@ contract('Quest', accounts => {
         // Check if user entry exists
         const userQuestEntry = await quest.userQuestEntries(
             user1,
-            id
+            id,
+            0
         )
         const questEntryStatus_started = 1
         assert.equal(
@@ -373,7 +374,8 @@ contract('Quest', accounts => {
 
         const userQuestEntry = await quest.userQuestEntries(
             user1,
-            id
+            id,
+            0
         )
         assert.equal(
             userQuestEntry[1],
@@ -500,7 +502,8 @@ contract('Quest', accounts => {
 
         const questEntry = await quest.userQuestEntries(
             user3,
-            id
+            id,
+            0
         )
 
         const QUEST_ENTRY_STATUS_CANCELLED = 4
@@ -541,7 +544,8 @@ contract('Quest', accounts => {
 
         const userQuestEntry = await quest.userQuestEntries(
             user3,
-            id
+            id,
+            0
         )
         assert.equal(
             userQuestEntry[2],
@@ -605,7 +609,8 @@ contract('Quest', accounts => {
 
         const userQuestEntry = await quest.userQuestEntries(
             user4,
-            id
+            id,
+            0
         )
         assert.equal(
             userQuestEntry[2],

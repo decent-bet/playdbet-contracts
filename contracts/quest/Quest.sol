@@ -157,8 +157,6 @@ LibQuest {
         });
         // Increment quest count
         quests[id].count++;
-        // Increment userQuestEntryCount
-        userQuestEntryCount[user][id] += 1;
         // Transfer entry fee to platform wallet
         require(
             token.transferFrom(
