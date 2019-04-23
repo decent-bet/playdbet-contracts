@@ -418,6 +418,30 @@ contract('Quest', accounts => {
         )
     })
 
+    it('allows users to re-pay for quest after completing a quest', async () => {
+        const {
+            id
+        } = getValidQuestParams()
+
+        const prePayQuestCount = (await quest.quests(id)).count
+
+        // Pay for quest
+        await quest.payForQuest(
+            id,
+            user1,
+            {
+                from: user1
+            }
+        )
+
+        const postPayQuestCount = (await quest.quests(id)).count
+
+        assert.equal(
+            new BigNumber(prePayQuestCount).plus(1).toFixed(),
+            new BigNumber(postPayQuestCount).toFixed()
+        )
+    })
+
     it('quest count increments on pay for quest', async () => {
         const {id} = getValidQuestParams()
 
@@ -562,6 +586,30 @@ contract('Quest', accounts => {
                     from: user3
                 }
             )
+        )
+    })
+
+    it('allows users to re-pay for quest after claiming refunds for a cancelled user quest entry', async () => {
+        const {
+            id
+        } = getValidQuestParams()
+
+        const prePayQuestCount = (await quest.quests(id)).count
+
+        // Pay for quest
+        await quest.payForQuest(
+            id,
+            user3,
+            {
+                from: user3
+            }
+        )
+
+        const postPayQuestCount = (await quest.quests(id)).count
+
+        assert.equal(
+            new BigNumber(prePayQuestCount).plus(1).toFixed(),
+            new BigNumber(postPayQuestCount).toFixed()
         )
     })
 
