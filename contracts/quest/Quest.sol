@@ -144,19 +144,11 @@ LibQuest {
             "INVALID_TOKEN_BALANCE_ALLOWANCE"
         );
         uint256 _userQuestEntryCount = userQuestEntryCount[user][id];
-        // Previous user quest entry must be NOT_STARTED if userQuestEntryCount == 0
-        if (_userQuestEntryCount == 0)
-            require(
-                userQuestEntries[user][id][_userQuestEntryCount].status == uint8(QuestEntryStatus.NOT_STARTED),
-                "INVALID_PREVIOUS_QUEST_ENTRY_STATUS"
-            );
-        else
-        // Previous user quest entry should be COMPLETED, FAILED or CANCELLED if userQuestEntryCount > 0
-            require(
-                userQuestEntries[user][id][_userQuestEntryCount].status >= uint8(QuestEntryStatus.SUCCESS) &&
-                userQuestEntries[user][id][_userQuestEntryCount].status <= uint8(QuestEntryStatus.CANCELLED),
-                "INVALID_PREVIOUS_QUEST_ENTRY_STATUS"
-            );
+        // Previous user quest entry must be NOT_STARTED
+        require(
+            userQuestEntries[user][id][_userQuestEntryCount].status == uint8(QuestEntryStatus.NOT_STARTED),
+            "INVALID_PREVIOUS_QUEST_ENTRY_STATUS"
+        );
         // Add user quest entry
         userQuestEntries[user][id][_userQuestEntryCount] = UserQuestEntry({
             entryTime: block.timestamp,
@@ -165,6 +157,8 @@ LibQuest {
         });
         // Increment quest count
         quests[id].count++;
+        // Increment userQuestEntryCount
+        userQuestEntryCount[user][id] += 1;
         // Transfer entry fee to platform wallet
         require(
             token.transferFrom(
@@ -216,6 +210,8 @@ LibQuest {
             );
         // Update quest entry status
         userQuestEntries[user][id][_userQuestEntryCount].status = outcome;
+        // Increment user quest entry count
+        userQuestEntryCount[user][id] += 1;
         // Pay out user if quest was successfully finished
         if(outcome == uint8(QuestEntryStatus.SUCCESS))
             require(
@@ -245,7 +241,7 @@ LibQuest {
         // Allow only admins to cancel quests
         require(admin.admins(msg.sender), "INVALID_SENDER_ADMIN_STATUS");
         // Quest must be active
-        require(quests[id].status == uint8(QuestStatus.ACTIVE), "INVALID_QUEST_STATUS";
+        require(quests[id].status == uint8(QuestStatus.ACTIVE), "INVALID_QUEST_STATUS");
         // Cancel quest
         quests[id].status = uint8(QuestStatus.CANCELLED);
         // Emit cancel quest event
@@ -312,6 +308,8 @@ LibQuest {
             "INVALID_USER_QUEST_REFUNDED_STATUS"
         );
         userQuestEntries[msg.sender][id][_userQuestEntryCount].refunded = true;
+        // Increment user quest entry count
+        userQuestEntryCount[msg.sender][id] += 1;
         // Transfer entryFee to user
         require(
             token.transferFrom(
@@ -351,6 +349,8 @@ LibQuest {
             "INVALID_USER_QUEST_REFUNDED_STATUS"
         );
         userQuestEntries[msg.sender][id][_userQuestEntryCount].refunded = true;
+        // Increment user quest entry count
+        userQuestEntryCount[msg.sender][id] += 1;
         // Transfer entryFee to user
         require(
             token.transferFrom(
