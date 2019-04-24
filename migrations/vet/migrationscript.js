@@ -18,6 +18,11 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
     const TOKEN_DECIMALS = 18
     const TOTAL_DBET_SUPPLY = '205903294831970956466297922'
 
+    const bootstrapTokenAmount = web3.utils.toWei(
+        '10000000',
+        'ether'
+    )
+
     const getAccounts = () => {
         return web3.eth.accounts.wallet
     }
@@ -42,7 +47,7 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
 
         try {
             if(chain === constants.CHAIN_SOLO || chain === constants.CHAIN_TESTNET) {
-                const platformWallet = require(`${appRoot}/vet-config`).chains.testnet.from
+                const platformWallet = defaultAccount
                 // Deploy the DecentBetToken contract
                 token = await deployer.deploy(
                     DecentBetToken,
@@ -63,6 +68,10 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
                 // Set the platform wallet in admin
                 console.log('Setting platform wallet:', platformWallet)
                 await admin.setPlatformWallet(platformWallet)
+                await token.transfer(
+                    platformWallet,
+                    bootstrapTokenAmount
+                )
 
                 if(process.env.ADMIN_ADDRESS) {
                     const adminAddress = process.env.ADMIN_ADDRESS
@@ -70,10 +79,7 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
                     await admin.addAdmin(adminAddress)
                     await token.transfer(
                         adminAddress,
-                        web3.utils.toWei(
-                            '10000000',
-                            'ether'
-                        )
+                        bootstrapTokenAmount
                     )
                 }
 
@@ -85,6 +91,11 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
                     getDefaultOptions()
                 )
                 console.log('Deployed quest')
+                await token.approve(
+                    quest.address,
+                    bootstrapTokenAmount
+                )
+                console.log('Approved transfer of', bootstrapTokenAmount, 'DBETs to Quest contract:', quest.address)
 
                 // Deploy the Tournament contract
                 tournament = await deployer.deploy(
