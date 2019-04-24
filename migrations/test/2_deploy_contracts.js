@@ -19,6 +19,10 @@ let deploy = async (deployer, network) => {
     const TOKEN_SYMBOL = 'DBET'
     const TOKEN_DECIMALS = 18
     const TOTAL_DBET_SUPPLY = '205903294831970956466297922'
+    const BOOTSTRAP_TOKEN_AMOUNT = utils.getWeb3().utils.toWei(
+        '10000000',
+        'ether'
+    )
 
     const MAINNET_TOKEN_ADDRESS = '' // V3 DBET token address
     const MULTISIG_OWNERS = []       // Must have 3 addresses
@@ -39,7 +43,7 @@ let deploy = async (deployer, network) => {
 
     if (network === 'rinkeby' || network === 'development') {
         try {
-            const platformWallet = require(`${appRoot}/vet-config`).chains.testnet.from
+            const platformWallet = web3.eth.defaultAccount
             // Deploy the DecentBetToken contract
             await deployer.deploy(
                 DecentBetToken,
@@ -61,6 +65,10 @@ let deploy = async (deployer, network) => {
             // Set the platform wallet in admin
             console.log('Setting platform wallet:', platformWallet)
             await admin.setPlatformWallet(platformWallet)
+            await token.transfer(
+                platformWallet,
+                BOOTSTRAP_TOKEN_AMOUNT
+            )
 
             if(process.env.ADMIN_ADDRESS) {
                 const adminAddress = process.env.ADMIN_ADDRESS
@@ -68,10 +76,7 @@ let deploy = async (deployer, network) => {
                 await admin.addAdmin(adminAddress)
                 await token.transfer(
                     adminAddress,
-                    utils.getWeb3().utils.toWei(
-                        '10000000',
-                        'ether'
-                    )
+                    BOOTSTRAP_TOKEN_AMOUNT
                 )
             }
 
@@ -83,6 +88,10 @@ let deploy = async (deployer, network) => {
             )
             quest = await getContractInstanceAndInfo(Quest)
             console.log('Deployed quest')
+            await token.approve(
+                quest.address,
+                BOOTSTRAP_TOKEN_AMOUNT
+            )
 
             // Deploy the tournament contract
             await deployer.deploy(

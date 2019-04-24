@@ -18,6 +18,11 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
     const TOKEN_DECIMALS = 18
     const TOTAL_DBET_SUPPLY = '205903294831970956466297922'
 
+    const bootstrapTokenAmount = web3.utils.toWei(
+        '10000000',
+        'ether'
+    )
+
     const getAccounts = () => {
         return web3.eth.accounts.wallet
     }
@@ -42,7 +47,11 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
 
         try {
             if(chain === constants.CHAIN_SOLO || chain === constants.CHAIN_TESTNET) {
-                const platformWallet = require(`${appRoot}/vet-config`).chains.testnet.from
+                console.log(
+                    'Migrating contracts. Available energy:',
+                    web3.utils.fromWei(await web3.eth.getEnergy(defaultAccount), 'ether')
+                )
+                const platformWallet = defaultAccount
                 // Deploy the DecentBetToken contract
                 token = await deployer.deploy(
                     DecentBetToken,
@@ -61,20 +70,24 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
                 )
                 console.log('Deployed admin')
                 // Set the platform wallet in admin
-                console.log('Setting platform wallet:', platformWallet)
-                await admin.setPlatformWallet(platformWallet)
+                await admin.methods.setPlatformWallet(platformWallet)
+                console.log('Set platform wallet', platformWallet)
+                await token.methods.transfer(
+                    platformWallet,
+                    bootstrapTokenAmount
+                )
+                console.log('Transferred', bootstrapTokenAmount, 'DBETs to platform wallet:', platformWallet)
 
                 if(process.env.ADMIN_ADDRESS) {
                     const adminAddress = process.env.ADMIN_ADDRESS
                     console.log(`Adding ${adminAddress} as admin`)
-                    await admin.addAdmin(adminAddress)
-                    await token.transfer(
+                    await admin.methods.addAdmin(adminAddress)
+                    console.log('Added admin', adminAddress)
+                    await token.methods.transfer(
                         adminAddress,
-                        web3.utils.toWei(
-                            '10000000',
-                            'ether'
-                        )
+                        bootstrapTokenAmount
                     )
+                    console.log('Transferred', bootstrapTokenAmount, 'DBETs to admin:', adminAddress)
                 }
 
                 // Deploy the Quest contract
@@ -85,6 +98,11 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
                     getDefaultOptions()
                 )
                 console.log('Deployed quest')
+                await token.methods.approve(
+                    quest.options.address,
+                    bootstrapTokenAmount
+                )
+                console.log('Approved transfer of', bootstrapTokenAmount, 'DBETs to Quest contract:', quest.options.address)
 
                 // Deploy the Tournament contract
                 tournament = await deployer.deploy(
@@ -111,7 +129,6 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
                 builder.addContract("QuestContract", Quest, quest.options.address, chain);
                 builder.addContract("DBETVETTokenContract", DecentBetToken, token.options.address, chain);
                 builder.addContract("TournamentContract", Tournament, tournament.options.address, chain);
-
 
                 const postMigration = new PostMigration(
                     web3,
