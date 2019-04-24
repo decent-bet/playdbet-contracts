@@ -270,7 +270,8 @@ contract('Quest', accounts => {
         // Check if user entry exists
         const userQuestEntry = await quest.userQuestEntries(
             user1,
-            id
+            id,
+            0
         )
         const questEntryStatus_started = 1
         assert.equal(
@@ -373,7 +374,8 @@ contract('Quest', accounts => {
 
         const userQuestEntry = await quest.userQuestEntries(
             user1,
-            id
+            id,
+            0
         )
         assert.equal(
             userQuestEntry[1],
@@ -413,6 +415,30 @@ contract('Quest', accounts => {
                 user2,
                 OUTCOME_SUCCESS
             )
+        )
+    })
+
+    it('allows users to re-pay for quest after completing a quest', async () => {
+        const {
+            id
+        } = getValidQuestParams()
+
+        const prePayQuestCount = (await quest.quests(id)).count
+
+        // Pay for quest
+        await quest.payForQuest(
+            id,
+            user1,
+            {
+                from: user1
+            }
+        )
+
+        const postPayQuestCount = (await quest.quests(id)).count
+
+        assert.equal(
+            new BigNumber(prePayQuestCount).plus(1).toFixed(),
+            new BigNumber(postPayQuestCount).toFixed()
         )
     })
 
@@ -500,7 +526,8 @@ contract('Quest', accounts => {
 
         const questEntry = await quest.userQuestEntries(
             user3,
-            id
+            id,
+            0
         )
 
         const QUEST_ENTRY_STATUS_CANCELLED = 4
@@ -541,7 +568,8 @@ contract('Quest', accounts => {
 
         const userQuestEntry = await quest.userQuestEntries(
             user3,
-            id
+            id,
+            0
         )
         assert.equal(
             userQuestEntry[2],
@@ -558,6 +586,30 @@ contract('Quest', accounts => {
                     from: user3
                 }
             )
+        )
+    })
+
+    it('allows users to re-pay for quest after claiming refunds for a cancelled user quest entry', async () => {
+        const {
+            id
+        } = getValidQuestParams()
+
+        const prePayQuestCount = (await quest.quests(id)).count
+
+        // Pay for quest
+        await quest.payForQuest(
+            id,
+            user3,
+            {
+                from: user3
+            }
+        )
+
+        const postPayQuestCount = (await quest.quests(id)).count
+
+        assert.equal(
+            new BigNumber(prePayQuestCount).plus(1).toFixed(),
+            new BigNumber(postPayQuestCount).toFixed()
         )
     })
 
@@ -605,7 +657,8 @@ contract('Quest', accounts => {
 
         const userQuestEntry = await quest.userQuestEntries(
             user4,
-            id
+            id,
+            0
         )
         assert.equal(
             userQuestEntry[2],
