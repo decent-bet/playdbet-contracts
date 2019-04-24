@@ -47,6 +47,10 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
 
         try {
             if(chain === constants.CHAIN_SOLO || chain === constants.CHAIN_TESTNET) {
+                console.log(
+                    'Migrating contracts. Available energy:',
+                    web3.utils.fromWei(await web3.eth.getEnergy(defaultAccount), 'ether')
+                )
                 const platformWallet = defaultAccount
                 // Deploy the DecentBetToken contract
                 token = await deployer.deploy(
@@ -66,21 +70,24 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
                 )
                 console.log('Deployed admin')
                 // Set the platform wallet in admin
-                console.log('Setting platform wallet:', platformWallet)
-                await admin.setPlatformWallet(platformWallet)
-                await token.transfer(
+                await admin.methods.setPlatformWallet(platformWallet)
+                console.log('Set platform wallet', platformWallet)
+                await token.methods.transfer(
                     platformWallet,
                     bootstrapTokenAmount
                 )
+                console.log('Transferred', bootstrapTokenAmount, 'DBETs to platform wallet:', platformWallet)
 
                 if(process.env.ADMIN_ADDRESS) {
                     const adminAddress = process.env.ADMIN_ADDRESS
                     console.log(`Adding ${adminAddress} as admin`)
-                    await admin.addAdmin(adminAddress)
-                    await token.transfer(
+                    await admin.methods.addAdmin(adminAddress)
+                    console.log('Added admin', adminAddress)
+                    await token.methods.transfer(
                         adminAddress,
                         bootstrapTokenAmount
                     )
+                    console.log('Transferred', bootstrapTokenAmount, 'DBETs to admin:', adminAddress)
                 }
 
                 // Deploy the Quest contract
@@ -91,11 +98,11 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
                     getDefaultOptions()
                 )
                 console.log('Deployed quest')
-                await token.approve(
-                    quest.address,
+                await token.methods.approve(
+                    quest.options.address,
                     bootstrapTokenAmount
                 )
-                console.log('Approved transfer of', bootstrapTokenAmount, 'DBETs to Quest contract:', quest.address)
+                console.log('Approved transfer of', bootstrapTokenAmount, 'DBETs to Quest contract:', quest.options.address)
 
                 // Deploy the Tournament contract
                 tournament = await deployer.deploy(
@@ -122,7 +129,6 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
                 builder.addContract("QuestContract", Quest, quest.options.address, chain);
                 builder.addContract("DBETVETTokenContract", DecentBetToken, token.options.address, chain);
                 builder.addContract("TournamentContract", Tournament, tournament.options.address, chain);
-
 
                 const postMigration = new PostMigration(
                     web3,
