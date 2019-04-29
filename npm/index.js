@@ -1,5 +1,5 @@
 module.exports = {
-    "VERSION": "1.0.3",
+    "VERSION": "1.0.4",
     "AdminContract": {
         "raw": {
             "abi": [{
@@ -98,7 +98,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0xEE9aABB74903E2871689E4aCdaBf24E67d40dce8",
+            "0x27": "0xD4275B0C2452cee50285640171219B36366A7610",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0x4a": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0xa4": "0xd74313287364cA0fd80425d52c6c6B13538c0247"
@@ -302,7 +302,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0xe14c421284486A86b880b511aBfEaDd0FF38C805",
+            "0x27": "0xb756b21F024b30f8694027162e249f2cFfD0dE46",
             "0xc7": "0x55db2feE8A2A039BCA83b014cf0b455a31E77Cda",
             "0x4a": "0x55db2feE8A2A039BCA83b014cf0b455a31E77Cda",
             "0xa4": "0x5379897279457f4f8F182f29273E087e505aF8c0"
@@ -507,7 +507,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0x95E8Da565432C495EBdc9d580348B1C03a08b714",
+            "0x27": "0x7f670e8F98EfC0D2c48839a264f744ca2F79fFe0",
             "0xc7": "0x1b8EC6C2A45ccA481Da6F243Df0d7A5744aFc1f8",
             "0x4a": "0x1b8EC6C2A45ccA481Da6F243Df0d7A5744aFc1f8",
             "0xa4": "0x9485cDB237f5B582f86B125CAd32b420Ad46519D"
@@ -841,7 +841,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0x63547B8eA80F7005436e29900ddF4Bff0550ac8c",
+            "0x27": "0xa0cC680f0565beFeB548A31f1BC0b60C0B5012C4",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0x4a": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0xa4": "0x86F3EC2f5C82C86974f2407c0ac9c627015eCcA0"
