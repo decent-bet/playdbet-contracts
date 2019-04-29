@@ -70,23 +70,23 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
                 )
                 console.log('Deployed admin')
                 // Set the platform wallet in admin
-                await admin.methods.setPlatformWallet(platformWallet)
+                await admin.methods.setPlatformWallet(platformWallet).send(getDefaultOptions())
                 console.log('Set platform wallet', platformWallet)
                 await token.methods.transfer(
                     platformWallet,
                     bootstrapTokenAmount
-                )
+                ).send(getDefaultOptions())
                 console.log('Transferred', bootstrapTokenAmount, 'DBETs to platform wallet:', platformWallet)
 
                 if(process.env.ADMIN_ADDRESS) {
                     const adminAddress = process.env.ADMIN_ADDRESS
                     console.log(`Adding ${adminAddress} as admin`)
-                    await admin.methods.addAdmin(adminAddress)
+                    await admin.methods.addAdmin(adminAddress).send(getDefaultOptions())
                     console.log('Added admin', adminAddress)
                     await token.methods.transfer(
                         adminAddress,
                         bootstrapTokenAmount
-                    )
+                    ).send(getDefaultOptions())
                     console.log('Transferred', bootstrapTokenAmount, 'DBETs to admin:', adminAddress)
                 }
 
@@ -101,7 +101,7 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
                 await token.methods.approve(
                     quest.options.address,
                     bootstrapTokenAmount
-                )
+                ).send(getDefaultOptions())
                 console.log('Approved transfer of', bootstrapTokenAmount, 'DBETs to Quest contract:', quest.options.address)
 
                 // Deploy the Tournament contract
