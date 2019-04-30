@@ -25,13 +25,11 @@ const timeTravel = async timeDiff => await utils.timeTravel(timeDiff)
 const getValidQuestParams = () => {
     const id = web3.utils.fromUtf8('123')
     const entryFee = web3.utils.toWei('100', 'ether')
-    const timeToComplete = 60 * 60
     const prize = web3.utils.toWei('500', 'ether')
 
     return {
         id,
         entryFee,
-        timeToComplete,
         prize
     }
 }
@@ -81,7 +79,6 @@ contract('Quest', accounts => {
         const {
             id,
             entryFee,
-            timeToComplete,
             prize
         } = getValidQuestParams()
 
@@ -89,7 +86,6 @@ contract('Quest', accounts => {
             quest.addQuest(
                 id,
                 entryFee,
-                timeToComplete,
                 prize,
                 {
                     from: user2
@@ -102,7 +98,6 @@ contract('Quest', accounts => {
         const {
             id,
             entryFee,
-            timeToComplete,
             prize
         } = getValidQuestParams()
 
@@ -114,7 +109,6 @@ contract('Quest', accounts => {
             quest.addQuest(
                 invalidBytes32,
                 entryFee,
-                timeToComplete,
                 prize
             )
         )
@@ -123,17 +117,6 @@ contract('Quest', accounts => {
         await utils.assertFail(
             quest.addQuest(
                 id,
-                invalidUint,
-                timeToComplete,
-                prize
-            )
-        )
-
-        // Invalid timeToComplete
-        await utils.assertFail(
-            quest.addQuest(
-                id,
-                entryFee,
                 invalidUint,
                 prize
             )
@@ -144,7 +127,6 @@ contract('Quest', accounts => {
             quest.addQuest(
                 id,
                 entryFee,
-                timeToComplete,
                 invalidUint
             )
         )
@@ -154,21 +136,19 @@ contract('Quest', accounts => {
         const {
             id,
             entryFee,
-            timeToComplete,
             prize
         } = getValidQuestParams()
 
         await quest.addQuest(
             id,
             entryFee,
-            timeToComplete,
             prize
         )
 
         const questData = await quest.quests(id)
 
         assert.equal(
-            questData[3],
+            questData[2],
             true
         )
     })
@@ -177,7 +157,6 @@ contract('Quest', accounts => {
         const {
             id,
             entryFee,
-            timeToComplete,
             prize
         } = getValidQuestParams()
 
@@ -185,7 +164,6 @@ contract('Quest', accounts => {
             quest.addQuest(
                 id,
                 entryFee,
-                timeToComplete,
                 prize
             )
         )
@@ -248,13 +226,11 @@ contract('Quest', accounts => {
 
         const {
             entryFee,
-            timeToComplete,
             prize
         } = (await quest.quests(id))
 
         console.log({
             entryFee: web3.utils.fromWei(entryFee.toString(), 'ether'),
-            timeToComplete: timeToComplete.toString(),
             prize: web3.utils.fromWei(prize.toString(), 'ether')
         })
 
@@ -366,16 +342,33 @@ contract('Quest', accounts => {
 
     it('allows admin to set quest outcome with valid values', async () => {
         const {id} = getValidQuestParams()
+
+        const preSetOutcomeQuestEntryCount = await quest.userQuestEntryCount(user1, id)
         await quest.setQuestOutcome(
             id,
             user1,
             OUTCOME_SUCCESS
         )
+        const postSetOutcomeQuestEntryCount = await quest.userQuestEntryCount(user1, id)
 
         const userQuestEntry = await quest.userQuestEntries(
             user1,
             id,
             0
+        )
+        const _userQuestEntry = await quest.userQuestEntries(
+            user1,
+            id,
+            1
+        )
+        console.log({
+            preSetOutcomeQuestEntryCount,
+            postSetOutcomeQuestEntryCount,
+            _userQuestEntry
+        })
+        assert.equal(
+            new BigNumber(preSetOutcomeQuestEntryCount).plus(1).toFixed(),
+            new BigNumber(postSetOutcomeQuestEntryCount).toFixed()
         )
         assert.equal(
             userQuestEntry[1],
@@ -389,30 +382,6 @@ contract('Quest', accounts => {
             quest.setQuestOutcome(
                 id,
                 user1,
-                OUTCOME_SUCCESS
-            )
-        )
-    })
-
-    it('throws if admin sets quest outcome for quest after timeToComplete has elapsed', async () => {
-        const {id} = getValidQuestParams()
-
-        // Pay for quest with sufficient allowance and balance
-        await quest.payForQuest(
-            id,
-            user2,
-            {
-                from: user2
-            }
-        )
-
-        await timeTravel(2 * 60 * 60)
-
-        // Time for quest has completed
-        await utils.assertFail(
-            quest.setQuestOutcome(
-                id,
-                user2,
                 OUTCOME_SUCCESS
             )
         )
@@ -621,7 +590,7 @@ contract('Quest', accounts => {
         const _quest = await quest.quests(id)
         const QUEST_STATUS_CANCELLED = 2
         assert.equal(
-            _quest[3],
+            _quest[2],
             QUEST_STATUS_CANCELLED
         )
     })
@@ -635,7 +604,7 @@ contract('Quest', accounts => {
         )
     })
 
-    it('allows users to claim refunds for cancelled quests before timeToComplete has elapsed', async () => {
+    it('allows users to claim refunds for cancelled quests', async () => {
         const {
             entryFee,
             id
