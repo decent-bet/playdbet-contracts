@@ -6,14 +6,12 @@ contract IQuest {
     * Allows an admin to add a quest
     * @param id Unique quest ID
     * @param entryFee Amount to pay in DBETs for quest entry
-    * @param timeToComplete Maximum time for user to complete quest
     * @param prize Prize in DBETs to payout to winners
     * @return Whether the quest was added
     */
     function addQuest(
         bytes32 id,
         uint256 entryFee,
-        uint256 timeToComplete,
         uint256 prize
     ) public returns (bool);
 

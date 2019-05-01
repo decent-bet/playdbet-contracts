@@ -117,25 +117,21 @@ const quests = [
     {
         id: web3.utils.toHex('quest_1'),
         entryFee: web3.utils.toWei('50', 'ether'), // 50 DBETs
-        timeToComplete: 15 * 60, // 15 minutes
         prize: web3.utils.toWei('100', 'ether') // 100 DBETs
     },
     {
         id: web3.utils.toHex('quest_2'),
         entryFee: web3.utils.toWei('25', 'ether'), // 25 DBETs
-        timeToComplete: 30 * 60, // 15 minutes
         prize: web3.utils.toWei('50', 'ether') // 50 DBETs
     },
     {
         id: web3.utils.toHex('quest_3'),
         entryFee: web3.utils.toWei('100', 'ether'), // 100 DBETs
-        timeToComplete: 60 * 60, // 60 minutes
         prize: web3.utils.toWei('200', 'ether') // 200 DBETs
     },
     {
         id: web3.utils.toHex('quest_999'),
         entryFee: web3.utils.toWei('50', 'ether'), // 50 DBETs
-        timeToComplete: 15 * 60, // 15 minutes
         prize: web3.utils.toWei('100', 'ether') // 100 DBETs
     }
 ]
@@ -218,7 +214,6 @@ const estimateQuestTxns = async () => {
         [
             quests[3].id,
             quests[3].entryFee,
-            quests[3].timeToComplete,
             quests[3].prize
         ],
         getTxOptions()
