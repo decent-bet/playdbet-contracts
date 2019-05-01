@@ -1,5 +1,5 @@
 module.exports = {
-    "VERSION": "1.0.3",
+    "VERSION": "1.0.5",
     "AdminContract": {
         "raw": {
             "abi": [{
@@ -98,7 +98,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0xEE9aABB74903E2871689E4aCdaBf24E67d40dce8",
+            "0x27": "0x07Ab1Ea209015dE5dCDfd81BF94108325aaf5E7A",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0x4a": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0xa4": "0xd74313287364cA0fd80425d52c6c6B13538c0247"
@@ -126,12 +126,9 @@ module.exports = {
                 "inputs": [{"name": "", "type": "bytes32"}],
                 "name": "quests",
                 "outputs": [{"name": "entryFee", "type": "uint256"}, {
-                    "name": "timeToComplete",
+                    "name": "prize",
                     "type": "uint256"
-                }, {"name": "prize", "type": "uint256"}, {"name": "status", "type": "uint8"}, {
-                    "name": "count",
-                    "type": "uint256"
-                }],
+                }, {"name": "status", "type": "uint8"}, {"name": "count", "type": "uint256"}],
                 "payable": false,
                 "stateMutability": "view",
                 "type": "function",
@@ -232,16 +229,16 @@ module.exports = {
                 "signature": "0x8fe840560cb6e17cf4642003022d241ddce6126b7015e35aa1173df8a34a4ccc"
             }, {
                 "constant": false,
-                "inputs": [{"name": "id", "type": "bytes32"}, {
-                    "name": "entryFee",
+                "inputs": [{"name": "id", "type": "bytes32"}, {"name": "entryFee", "type": "uint256"}, {
+                    "name": "prize",
                     "type": "uint256"
-                }, {"name": "timeToComplete", "type": "uint256"}, {"name": "prize", "type": "uint256"}],
+                }],
                 "name": "addQuest",
                 "outputs": [{"name": "", "type": "bool"}],
                 "payable": false,
                 "stateMutability": "nonpayable",
                 "type": "function",
-                "signature": "0xb18a5c58"
+                "signature": "0xe0be6741"
             }, {
                 "constant": false,
                 "inputs": [{"name": "id", "type": "bytes32"}, {"name": "user", "type": "address"}],
@@ -302,7 +299,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0xe14c421284486A86b880b511aBfEaDd0FF38C805",
+            "0x27": "0x21D795C5a9792BA488C2Dac2102Cc4852da85Eef",
             "0xc7": "0x55db2feE8A2A039BCA83b014cf0b455a31E77Cda",
             "0x4a": "0x55db2feE8A2A039BCA83b014cf0b455a31E77Cda",
             "0xa4": "0x5379897279457f4f8F182f29273E087e505aF8c0"
@@ -507,7 +504,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0x95E8Da565432C495EBdc9d580348B1C03a08b714",
+            "0x27": "0xcD74737a8C05Da040A261c13894188708705dd8b",
             "0xc7": "0x1b8EC6C2A45ccA481Da6F243Df0d7A5744aFc1f8",
             "0x4a": "0x1b8EC6C2A45ccA481Da6F243Df0d7A5744aFc1f8",
             "0xa4": "0x9485cDB237f5B582f86B125CAd32b420Ad46519D"
@@ -841,7 +838,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0x63547B8eA80F7005436e29900ddF4Bff0550ac8c",
+            "0x27": "0x6884A76b049966E499f04aeb5fa3FF6Ab5833e0D",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0x4a": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0xa4": "0x86F3EC2f5C82C86974f2407c0ac9c627015eCcA0"
