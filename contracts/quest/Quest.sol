@@ -78,14 +78,12 @@ LibQuest {
     * Allows an admin to add a quest
     * @param id Unique quest ID
     * @param entryFee Amount to pay in DBETs for quest entry
-    * @param timeToComplete Maximum time for user to complete quest
     * @param prize Prize in DBETs to payout to winners
     * @return Whether the quest was added
     */
     function addQuest(
         bytes32 id,
         uint256 entryFee,
-        uint256 timeToComplete,
         uint256 prize
     )
     public
@@ -101,14 +99,12 @@ LibQuest {
         // Check if uints are greater than 0
         require(
             entryFee > 0 &&
-            timeToComplete > 0 &&
             prize > 0,
             "INVALID_QUEST_DETAILS"
         );
         // Add quest to contract
         quests[id] = Quest({
             entryFee: entryFee,
-            timeToComplete: timeToComplete,
             prize: prize,
             status: uint8(QuestStatus.ACTIVE),
             count: 0
@@ -204,13 +200,6 @@ LibQuest {
             outcome == uint8(QuestEntryStatus.FAILED),
             "INVALID_OUTCOME"
         );
-        // Outcome cannot be success if entry took longer than timeToComplete to complete
-        if(outcome == uint8(QuestEntryStatus.SUCCESS))
-            require(
-                (userQuestEntries[user][id][_userQuestEntryCount].entryTime).add(quests[id].timeToComplete) >=
-                block.timestamp,
-                "INVALID_ENTRY_TIME"
-            );
         // Update quest entry status
         userQuestEntries[user][id][_userQuestEntryCount].status = outcome;
         // Increment user quest entry count
