@@ -333,6 +333,7 @@ contract('Quest', accounts => {
         await utils.assertFail(
             quest.claimRefund(
                 id,
+                user1,
                 {
                     from: user1
                 }
@@ -501,9 +502,16 @@ contract('Quest', accounts => {
 
         const QUEST_ENTRY_STATUS_CANCELLED = 4
 
+        // Quest status is cancelled
         assert.equal(
             questEntry[1],
             QUEST_ENTRY_STATUS_CANCELLED
+        )
+
+        // Quest must be refunded
+        assert.equal(
+            questEntry[2],
+            true
         )
     })
 
@@ -517,40 +525,12 @@ contract('Quest', accounts => {
         )
     })
 
-    it('allows users to claim refunds for cancelled quest entries', async () => {
-        const {
-            entryFee,
-            id
-        } = getValidQuestParams()
-        const preRefundBalance = await token.balanceOf(user3)
-        await quest.claimRefundForEntry(
-            id,
-            {
-                from: user3
-            }
-        )
-        const postRefundBalance = await token.balanceOf(user3)
-        assert.equal(
-            new BigNumber(preRefundBalance).plus(entryFee).toFixed(),
-            new BigNumber(postRefundBalance).toFixed()
-        )
-
-        const userQuestEntry = await quest.userQuestEntries(
-            user3,
-            id,
-            0
-        )
-        assert.equal(
-            userQuestEntry[2],
-            true
-        )
-    })
-
     it('throws if users claim refunds for already claimed cancelled quest entries', async () => {
         const {id} = getValidQuestParams()
         await utils.assertFail(
             quest.claimRefundForEntry(
                 id,
+                user3,
                 {
                     from: user3
                 }
@@ -604,6 +584,22 @@ contract('Quest', accounts => {
         )
     })
 
+    it('throws if non-users claim refunds for cancelled quests', async () => {
+        const {
+            id
+        } = getValidQuestParams()
+
+        await utils.assertFail(
+            quest.claimRefund(
+                id,
+                user4,
+                {
+                    from: user3
+                }
+            )
+        )
+    })
+
     it('allows users to claim refunds for cancelled quests', async () => {
         const {
             entryFee,
@@ -614,6 +610,7 @@ contract('Quest', accounts => {
         // Claim refund
         await quest.claimRefund(
             id,
+            user4,
             {
                 from: user4
             }
@@ -628,6 +625,35 @@ contract('Quest', accounts => {
             user4,
             id,
             0
+        )
+        assert.equal(
+            userQuestEntry[2],
+            true
+        )
+    })
+
+    it('allows admins to claim refunds on behalf of users for cancelled quests', async () => {
+        const {
+            entryFee,
+            id
+        } = getValidQuestParams()
+
+        const preRefundBalance = await token.balanceOf(user3)
+        // Claim refund
+        await quest.claimRefund(
+            id,
+            user3
+        )
+        const postRefundBalance = await token.balanceOf(user3)
+        assert.equal(
+            new BigNumber(preRefundBalance).plus(entryFee).toFixed(),
+            new BigNumber(postRefundBalance).toFixed()
+        )
+
+        const userQuestEntry = await quest.userQuestEntries(
+            user3,
+            id,
+            1
         )
         assert.equal(
             userQuestEntry[2],
