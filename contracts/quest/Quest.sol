@@ -39,24 +39,28 @@ LibQuest {
     // On cancel quest entry
     event LogCancelQuestEntry(
         bytes32 indexed id,
-        address indexed user
+        address indexed user,
+        uint256 questEntryCount
     );
     // On pay for quest
     event LogPayForQuest(
         bytes32 indexed id,
         address indexed user,
-        address indexed payer
+        address indexed payer,
+        uint256 questEntryCount
     );
     // On set quest outcome
     event LogSetQuestOutcome(
         bytes32 indexed id,
-        address indexed user
+        address indexed user,
+        uint256 questEntryCount
     );
     // On refund user
     event LogRefundQuestEntry(
         bytes32 indexed id,
         address indexed user,
-        bool isQuestCancelled
+        bool isQuestCancelled,
+        uint256 questEntryCount
     );
 
     constructor (
@@ -170,7 +174,8 @@ LibQuest {
         emit LogPayForQuest(
             id,
             user,
-            msg.sender
+            msg.sender,
+            _userQuestEntryCount
         );
     }
 
@@ -222,7 +227,8 @@ LibQuest {
             );
         emit LogSetQuestOutcome(
             id,
-            user
+            user,
+            _userQuestEntryCount
         );
     }
 
@@ -272,10 +278,16 @@ LibQuest {
         );
         // Switch quest entry status to cancelled
         userQuestEntries[user][id][_userQuestEntryCount].status = uint8(QuestEntryStatus.CANCELLED);
+        // Claim refund for the quest entry
+        claimRefundForEntry(
+            id,
+            user
+        );
         // Emit log cancel quest entry event
         emit LogCancelQuestEntry(
             id,
-            user
+            user,
+            _userQuestEntryCount
         );
     }
 
@@ -285,14 +297,20 @@ LibQuest {
     * @return whether refunds were claimed
     */
     function claimRefund(
-        bytes32 id
+        bytes32 id,
+        address user
     )
     public
     returns (bool) {
-        uint256 _userQuestEntryCount = userQuestEntryCount[msg.sender][id];
+        require(
+            admin.admins(msg.sender) ||
+            msg.sender == user,
+            "INVALID_MSG_SENDER"
+        );
+        uint256 _userQuestEntryCount = userQuestEntryCount[user][id];
         // Quest entry must be started
         require(
-            userQuestEntries[msg.sender][id][_userQuestEntryCount].status == uint8(QuestEntryStatus.STARTED),
+            userQuestEntries[user][id][_userQuestEntryCount].status == uint8(QuestEntryStatus.STARTED),
             "INVALID_USER_QUEST_ENTRY_STATUS"
         );
         // Quest should be cancelled
@@ -302,17 +320,17 @@ LibQuest {
         );
         // User quest entry cannot already be refunded
         require(
-            !userQuestEntries[msg.sender][id][_userQuestEntryCount].refunded,
+            !userQuestEntries[user][id][_userQuestEntryCount].refunded,
             "INVALID_USER_QUEST_REFUNDED_STATUS"
         );
-        userQuestEntries[msg.sender][id][_userQuestEntryCount].refunded = true;
+        userQuestEntries[user][id][_userQuestEntryCount].refunded = true;
         // Increment user quest entry count
-        userQuestEntryCount[msg.sender][id] += 1;
+        userQuestEntryCount[user][id] += 1;
         // Transfer entryFee to user
         require(
             token.transferFrom(
                 admin.platformWallet(),
-                msg.sender,
+                user,
                 quests[id].entryFee
             ),
             "ERROR_TOKEN_TRANSFER"
@@ -320,8 +338,9 @@ LibQuest {
         // Emit log refund quest entry event
         emit LogRefundQuestEntry(
             id,
-            msg.sender,
-            true
+            user,
+            true,
+            _userQuestEntryCount
         );
     }
 
@@ -331,29 +350,35 @@ LibQuest {
     * @return whether refunds were claimed
     */
     function claimRefundForEntry(
-        bytes32 id
+        bytes32 id,
+        address user
     )
     public
     returns (bool) {
-        uint256 _userQuestEntryCount = userQuestEntryCount[msg.sender][id];
+        require(
+            admin.admins(msg.sender) ||
+            msg.sender == user,
+            "INVALID_MSG_SENDER"
+        );
+        uint256 _userQuestEntryCount = userQuestEntryCount[user][id];
         // Quest entry must be cancelled
         require(
-            userQuestEntries[msg.sender][id][_userQuestEntryCount].status == uint8(QuestEntryStatus.CANCELLED),
+            userQuestEntries[user][id][_userQuestEntryCount].status == uint8(QuestEntryStatus.CANCELLED),
             "INVALID_USER_QUEST_ENTRY_STATUS"
         );
         // User quest entry cannot already be refunded
         require(
-            !userQuestEntries[msg.sender][id][_userQuestEntryCount].refunded,
+            !userQuestEntries[user][id][_userQuestEntryCount].refunded,
             "INVALID_USER_QUEST_REFUNDED_STATUS"
         );
-        userQuestEntries[msg.sender][id][_userQuestEntryCount].refunded = true;
+        userQuestEntries[user][id][_userQuestEntryCount].refunded = true;
         // Increment user quest entry count
-        userQuestEntryCount[msg.sender][id] += 1;
+        userQuestEntryCount[user][id] += 1;
         // Transfer entryFee to user
         require(
             token.transferFrom(
                 admin.platformWallet(),
-                msg.sender,
+                user,
                 quests[id].entryFee
             ),
             "ERROR_TOKEN_TRANSFER"
@@ -361,8 +386,9 @@ LibQuest {
         // Emit log refund quest entry event
         emit LogRefundQuestEntry(
             id,
-            msg.sender,
-            false
+            user,
+            false,
+            _userQuestEntryCount
         );
     }
 
