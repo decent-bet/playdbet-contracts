@@ -1,5 +1,5 @@
 module.exports = {
-    "VERSION": "1.0.5",
+    "VERSION": "1.0.6",
     "AdminContract": {
         "raw": {
             "abi": [{
@@ -98,7 +98,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0x22638668A11f2a6a0ff649F86aa833C5cd8e772F",
+            "0x27": "0xa1C02daa1bCECe99E87a1b36540693753AE58BF3",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0x4a": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0xa4": "0xd74313287364cA0fd80425d52c6c6B13538c0247"
@@ -193,40 +193,48 @@ module.exports = {
                     "indexed": true,
                     "name": "user",
                     "type": "address"
-                }],
+                }, {"indexed": false, "name": "questEntryCount", "type": "uint256"}],
                 "name": "LogCancelQuestEntry",
                 "type": "event",
-                "signature": "0x1b2965240d28519adbcbda00f7662ff7d4c77e83ba5c966961c54991631c9a14"
+                "signature": "0xd43f34ddf827c966d2587ee907a77cd2f443d8b3b6e4b3ac9ebb188d6acb84c9"
             }, {
                 "anonymous": false,
                 "inputs": [{"indexed": true, "name": "id", "type": "bytes32"}, {
                     "indexed": true,
                     "name": "user",
                     "type": "address"
-                }, {"indexed": true, "name": "payer", "type": "address"}],
+                }, {"indexed": true, "name": "payer", "type": "address"}, {
+                    "indexed": false,
+                    "name": "questEntryCount",
+                    "type": "uint256"
+                }],
                 "name": "LogPayForQuest",
                 "type": "event",
-                "signature": "0xa9842130ad9b2499cdf52013ef90cd5a1fb6fbe94d684822170d75bf04bf927e"
+                "signature": "0xfad6ff84d2baafa62a2688137e151a5f3db368a0a5c695c4f853c1c0ec6b1930"
             }, {
                 "anonymous": false,
                 "inputs": [{"indexed": true, "name": "id", "type": "bytes32"}, {
                     "indexed": true,
                     "name": "user",
                     "type": "address"
-                }],
+                }, {"indexed": false, "name": "questEntryCount", "type": "uint256"}],
                 "name": "LogSetQuestOutcome",
                 "type": "event",
-                "signature": "0x09d256a4751f55a6e85624a990d7b943e8db25776fd0d097c9669b6c47f62844"
+                "signature": "0x29a22c08933ca898e48dc66d9de22861ce8d7dc3c84c3c7c69c78e9e2b870a0f"
             }, {
                 "anonymous": false,
                 "inputs": [{"indexed": true, "name": "id", "type": "bytes32"}, {
                     "indexed": true,
                     "name": "user",
                     "type": "address"
-                }, {"indexed": false, "name": "isQuestCancelled", "type": "bool"}],
+                }, {"indexed": false, "name": "isQuestCancelled", "type": "bool"}, {
+                    "indexed": false,
+                    "name": "questEntryCount",
+                    "type": "uint256"
+                }],
                 "name": "LogRefundQuestEntry",
                 "type": "event",
-                "signature": "0x8fe840560cb6e17cf4642003022d241ddce6126b7015e35aa1173df8a34a4ccc"
+                "signature": "0x5b7710ea6d7424ae872b2e974e604e97f45290e8b51581ed7ea78a120575550a"
             }, {
                 "constant": false,
                 "inputs": [{"name": "id", "type": "bytes32"}, {"name": "entryFee", "type": "uint256"}, {
@@ -280,26 +288,26 @@ module.exports = {
                 "signature": "0x2ba720e8"
             }, {
                 "constant": false,
-                "inputs": [{"name": "id", "type": "bytes32"}],
+                "inputs": [{"name": "id", "type": "bytes32"}, {"name": "user", "type": "address"}],
                 "name": "claimRefund",
                 "outputs": [{"name": "", "type": "bool"}],
                 "payable": false,
                 "stateMutability": "nonpayable",
                 "type": "function",
-                "signature": "0x71de2ffc"
+                "signature": "0xc6b49688"
             }, {
                 "constant": false,
-                "inputs": [{"name": "id", "type": "bytes32"}],
+                "inputs": [{"name": "id", "type": "bytes32"}, {"name": "user", "type": "address"}],
                 "name": "claimRefundForEntry",
                 "outputs": [{"name": "", "type": "bool"}],
                 "payable": false,
                 "stateMutability": "nonpayable",
                 "type": "function",
-                "signature": "0x1ff93c7d"
+                "signature": "0xf97ec050"
             }]
         },
         "address": {
-            "0x27": "0x3d3Cae4b67b9AcDf00c2FA73E3d012a4978EEb43",
+            "0x27": "0xe24dBBEd860aD4b71cf69ED9c0AcEeeDcA99f934",
             "0xc7": "0x55db2feE8A2A039BCA83b014cf0b455a31E77Cda",
             "0x4a": "0x55db2feE8A2A039BCA83b014cf0b455a31E77Cda",
             "0xa4": "0x5379897279457f4f8F182f29273E087e505aF8c0"
@@ -504,7 +512,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0x89101558B63F63E42727f05A37f227fEE238e11D",
+            "0x27": "0x151B77a9AbD9D4b950B2aD87c5E7a35D917FeBa4",
             "0xc7": "0x1b8EC6C2A45ccA481Da6F243Df0d7A5744aFc1f8",
             "0x4a": "0x1b8EC6C2A45ccA481Da6F243Df0d7A5744aFc1f8",
             "0xa4": "0x9485cDB237f5B582f86B125CAd32b420Ad46519D"
@@ -838,7 +846,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0x138BB9CB0F4afC9a22A7025816b400D8Ec84111F",
+            "0x27": "0xc427A559F2e178154Cc5bfe09eC60405bE1Fe2be",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0x4a": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0xa4": "0x86F3EC2f5C82C86974f2407c0ac9c627015eCcA0"
