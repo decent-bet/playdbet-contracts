@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@decent-bet/connex-entity-builder": "1.0.1",
+    "@decent-bet/contract-migration": "^1.0.1",
     "app-root-path": "^2.1.0",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-plugin-transform-runtime": "^6.23.0",
