@@ -212,18 +212,6 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
                 builder.addContract("QuestContract", Quest, quest.options.address, chain)
                 builder.addContract("DBETVETTokenContract", DecentBetToken, token.options.address, chain)
                 builder.addContract("TournamentContract", Tournament, tournament.options.address, chain)
-
-                const postMigration = new PostMigration(
-                    web3,
-                    defaultAccount,
-                    {
-                        admin,
-                        quest,
-                        token,
-                        tournament
-                    }
-                )
-                await postMigration.run()
             }
         } catch (e) {
             console.log('Error deploying contracts:', e.message, e.stack)
