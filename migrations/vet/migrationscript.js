@@ -150,19 +150,38 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
                 )
                 platformWallet = accounts[1].address
 
-                const getContract = name => {
-                    const contract = require('../../npm')[`${name}Contract`]
-                    const json = require('../../build/contracts')[`${name}`]
+                const getContract = (
+                    name,
+                    address
+                ) => {
+                    const contract = require(`${appRoot}/npm`)[`${name}Contract`]
+                    const json = require(`${appRoot}/build/contracts/${name}`)
                     return {
-                        contract: new web3.eth.Contract(contract.raw.abi),
+                        contract: address ?
+                            new web3.eth.Contract(
+                                contract.raw.abi,
+                                address
+                            ) :
+                            new web3.eth.Contract(
+                                contract.raw.abi
+                            ),
                         json
                     }
                 }
 
                 const Admin = getContract('Admin')
-                const DecentBetToken = getContract('DBETVETToken')
+                const DecentBetToken = getContract('DBETVETToken', tokenAddress)
                 const Quest = getContract('Quest')
                 const Tournament = getContract('Tournament')
+
+                let token = DecentBetToken.contract
+                console.log(
+                    'Platform wallet token balance',
+                    web3.utils.fromWei(
+                        await token.methods.balanceOf(platformWallet).call(),
+                        'ether'
+                    )
+                )
 
                 // Deploy the Admin contract
                 admin = await deployer.deploy(
