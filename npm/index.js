@@ -1,5 +1,5 @@
 module.exports = {
-    "VERSION": "1.0.6",
+    "VERSION": "1.0.7",
     "AdminContract": {
         "raw": {
             "abi": [{
@@ -100,7 +100,7 @@ module.exports = {
         "address": {
             "0x27": "0xa1C02daa1bCECe99E87a1b36540693753AE58BF3",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
-            "0x4a": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
+            "0x4a": "0xE1A9dA3a8E10B74AB05Bc068272254C242DaFb4D",
             "0xa4": "0xd74313287364cA0fd80425d52c6c6B13538c0247"
         }
     },
@@ -309,7 +309,7 @@ module.exports = {
         "address": {
             "0x27": "0xe24dBBEd860aD4b71cf69ED9c0AcEeeDcA99f934",
             "0xc7": "0x55db2feE8A2A039BCA83b014cf0b455a31E77Cda",
-            "0x4a": "0x55db2feE8A2A039BCA83b014cf0b455a31E77Cda",
+            "0x4a": "0x0E599Dc9e307251729Dbf05Be79E61E0165f3FbF",
             "0xa4": "0x5379897279457f4f8F182f29273E087e505aF8c0"
         }
     },
@@ -848,7 +848,7 @@ module.exports = {
         "address": {
             "0x27": "0xc427A559F2e178154Cc5bfe09eC60405bE1Fe2be",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
-            "0x4a": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
+            "0x4a": "0x5dc557E3b082ecA7c6EA890f806F5bddE4D39d50",
             "0xa4": "0x86F3EC2f5C82C86974f2407c0ac9c627015eCcA0"
         }
     }

@@ -34,7 +34,7 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
     this.migrate = async chain => {
         let accounts = await getAccounts()
         defaultAccount = accounts[0].address
-        console.log('Available accounts', accounts.length, defaultAccount)
+        console.log('Available accounts', accounts.length, accounts)
         console.log(
             'Migrating contracts. Available energy:',
             web3.utils.fromWei(await web3.eth.getEnergy(defaultAccount), 'ether')
@@ -169,10 +169,10 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
                     }
                 }
 
-                const Admin = getContract('Admin')
+                const Admin = contractManager.getContract('Admin')
                 const DecentBetToken = getContract('DBETVETToken', tokenAddress)
-                const Quest = getContract('Quest')
-                const Tournament = getContract('Tournament')
+                const Quest = contractManager.getContract('Quest')
+                const Tournament = contractManager.getContract('Tournament')
 
                 let token = DecentBetToken.contract
                 console.log(
