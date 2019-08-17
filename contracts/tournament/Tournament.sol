@@ -1,4 +1,4 @@
-pragma solidity 0.5.0;
+pragma solidity 0.5.8;
 pragma experimental ABIEncoderV2;
 
 import "./interfaces/ITournament.sol";
@@ -488,10 +488,10 @@ LibTournament {
         uint256 sharedFinalStandings =
             tournaments[id].prizes[finalStanding].length;
         uint256 prizePercent =
-            (prizeTables[tournaments[id].details.prizeTable][finalStanding]);
+            prizeTables[tournaments[id].details.prizeTable][finalStanding];
         uint256 excessPrizePercent;
         uint256 multiplier = 1000;
-        // If the amount of prize winners is greater than the number of unique final standings,
+        // If the amount of prize winners in the prize table is greater than the number of unique final standings,
         // split excess token % split among all addresses in final standings
         if(
             prizeTables[tournaments[id].details.prizeTable].length >
@@ -504,6 +504,9 @@ LibTournament {
             ) {
                 excessPrizePercent = excessPrizePercent.add(prizeTables[tournaments[id].details.prizeTable][i]);
             }
+            // Users get a % of the excess prize percent in proportion to their prize percent of the overall winnings.
+            // For example, in case of a user winning 50%, with another user winning 30% and the excess prize percent being 20%.
+            // The excess prize percent for the user would be 50/(100 - 20) * 20
             excessPrizePercent =
                 excessPrizePercent
                 .mul(prizePercent)

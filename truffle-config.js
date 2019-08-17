@@ -31,11 +31,13 @@ module.exports = {
             gasPrice: '100000000000'
         }
     },
-    solc: {
-        optimizer: {
-            enabled: true,
-            runs: 200
-        },
-        version: "0.5.0"
+    compilers: {
+        solc: {
+            optimizer: {
+                enabled: true,
+                runs: 200
+            },
+            version: "0.5.8"
+        }
     }
 }
