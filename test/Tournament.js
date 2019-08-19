@@ -57,13 +57,13 @@ const getValidTournamentCompletionParams = () => {
     // Standard
     const finalStandings1 = [[0]] // Indices of entries
     const uniqueFinalStandings1 = 1
-    const finalStandings2 = [[0, 1], [0, 1], []] // Final standings for entries in the tournament
+    const finalStandings2 = [[0, 1], [0, 1], []] // Final standings for entries in the tournament. Index 1 and 2 share 0th and 1st final standings
     const uniqueFinalStandings2 = 2
     const finalStandings3 = [[0], [1], []]
     const uniqueFinalStandings3 = 2
 
     // Winner take all
-    const finalStandings4 = [[0, 1], [0, 1], [2], [3]]
+    const finalStandings4 = [[0, 1], [0, 1], [2], [3]] // Index 1 and 2 share 0th and 1st final standings
     const uniqueFinalStandings4 = 3
 
     // 50-50
@@ -93,6 +93,7 @@ const assertStandardClaimCalculations = (
     sharedFinalStandings
 ) => {
     if(excessPrizePercent) {
+        // Calculate excess prize percent per winner from total excess prize percent
         excessPrizePercent =
             new BigNumber(excessPrizePercent)
                 .multipliedBy(finalStandingPercent)
@@ -116,10 +117,16 @@ const assertStandardClaimCalculations = (
         ).plus(
             calculatedPrize
         )
-    console.log({
+    console.log('standard claim', {
+        totalEntryFee: totalEntryFee.toString(),
+        preBalance: preBalance.toString(),
         postBalance: postBalance.toString(),
         calculatedPostBalance: calculatedPostBalance.toString(),
-        calculatedPrize: calculatedPrize.toString()
+        calculatedPrize: calculatedPrize.toString(),
+        finalStandingPercent,
+        uniqueFinalStandings,
+        excessPrizePercent: excessPrizePercent.toString(),
+        sharedFinalStandings
     })
     assert.equal(
         new BigNumber(
@@ -149,7 +156,7 @@ const assertWinnerTakeAllClaimCalculations = (
             calculatedPrize
         )
 
-    console.log({
+    console.log('winner take all claim', {
         preBalance: preBalance.toString(),
         postBalance: postBalance.toString(),
         calculatedPostBalance: calculatedPostBalance.toString(),
@@ -177,7 +184,7 @@ const assertFiftyFiftyClaimCalculations = (
             .multipliedBy(0.8)
             .dividedBy(
                 new BigNumber(uniqueFinalStandings)     // Divide by number of unique final standings divided by 2
-                    .dividedBy(2)
+                .dividedBy(2)
             )
             .dividedBy(sharedFinalStandings)            // Divide by number of shared final standings
 
@@ -188,7 +195,7 @@ const assertFiftyFiftyClaimCalculations = (
             calculatedPrize
         )
 
-    console.log({
+    console.log('50-50 claim', {
         preBalance: preBalance.toString(),
         postBalance: postBalance.toString(),
         calculatedPostBalance: calculatedPostBalance.toString(),
@@ -231,7 +238,7 @@ contract('Tournament', accounts => {
         // Approve platform wallet to transfer DBETs for prizes
         await token.approve(
             tournament.address,
-            web3.utils.toWei('1000000000', 'ether'),
+            web3.utils.toWei('1000000000', 'ether'), // 1b DBETs
             {
                 from: platformWallet
             }
@@ -240,7 +247,7 @@ contract('Tournament', accounts => {
         // Transfer DBETs to platform wallet
         await token.transfer(
             platformWallet,
-            web3.utils.toWei('1000000', 'ether')
+            web3.utils.toWei('1000000', 'ether') // 1m DBETs
         )
     })
 
@@ -804,13 +811,13 @@ contract('Tournament', accounts => {
         await claimAndAssertTournamentPrize(
             standardTournamentId1,
             user1,
-            0,
-            0,
-            50,
-            50,
-            1,
-            50,
-            1
+            0,  // entry index
+            0,  // final standing index
+            50, // total entry fee
+            50, // final standing percent
+            1,  // unique final standings
+            50, // excess prize percent
+            1   // shared final standings
         )
 
         // Claim tournament 2 prize as user1
@@ -862,38 +869,6 @@ contract('Tournament', accounts => {
             20,
             2
         )
-
-        // const preClaimTournament2User2Entry2Balance = await token.balanceOf(user2)
-        //
-        // const tx4 = await tournament.claimTournamentPrize(
-        //     standardTournamentId2,
-        //     2,
-        //     0,
-        //     {
-        //         from: user2
-        //     }
-        // )
-        //
-        // const postClaimTournament2User2Entry2Balance = await token.balanceOf(user2)
-        //
-        // console.log(
-        //     'T2U2-E2',
-        //     web3.utils.fromWei(preClaimTournament2User2Entry2Balance, 'ether'),
-        //     web3.utils.fromWei(postClaimTournament2User2Entry2Balance, 'ether'),
-        //     tx4.logs[0].args.finalStanding.toString(),
-        //     tx4.logs[0].args.prizeFromTable.toString(),
-        //     tx4.logs[0].args.prizeMoney.toString()
-        // )
-        //
-        // assert.equal(
-        //     new BigNumber(postClaimTournament2User2Entry2Balance).isGreaterThan(preClaimTournament2User2Entry2Balance),
-        //     true
-        // )
-        //
-        // assert.equal(
-        //     tx4.logs[0].args.id,
-        //     standardTournamentId2
-        // )
 
         // Claim tournament 3 prizes as user 1
         await claimAndAssertTournamentPrize(
@@ -1210,10 +1185,56 @@ contract('Tournament', accounts => {
             )
         }
 
+        const assertFailedClaimTournamentPrize = async (
+            user,
+            entryIndex,
+            finalStandingIndex
+        ) => {
+            await utils.assertFail(
+                tournament.claimTournamentPrize(
+                    fiftyFiftyTournamentId,
+                    entryIndex,
+                    finalStandingIndex,
+                    {
+                        from: user
+                    }
+                )
+            )
+        }
+
+        // [[2], [5], [6], [7], [9], [0], [1], [3], [4], [8]]
         // Entry index 0, Final standing index 0
         await claimAndAssertTournamentPrize(
             user1,
             0,
+            0
+        )
+
+        // Entry index 1, Final standing index 0
+        await assertFailedClaimTournamentPrize(
+            user2,
+            1,
+            0
+        )
+
+        // Entry index 2, Final standing index 0
+        await assertFailedClaimTournamentPrize(
+            user1,
+            2,
+            0
+        )
+
+        // Entry index 3, Final standing index 0
+        await assertFailedClaimTournamentPrize(
+            user2,
+            3,
+            0
+        )
+
+        // Entry index 4, Final standing index 0
+        await assertFailedClaimTournamentPrize(
+            user1,
+            4,
             0
         )
 
@@ -1244,6 +1265,15 @@ contract('Tournament', accounts => {
             8,
             0
         )
+
+        // Entry index 9, Final standing index 0
+        await assertFailedClaimTournamentPrize(
+            user2,
+            9,
+            0
+        )
+
+
     })
 
 })

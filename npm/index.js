@@ -846,7 +846,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0xc427A559F2e178154Cc5bfe09eC60405bE1Fe2be",
+            "0x27": "0x6B0e5B4FbE5C98421Af0D5e04dCF18C50b16E187",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0x4a": "0x5dc557E3b082ecA7c6EA890f806F5bddE4D39d50",
             "0xa4": "0x86F3EC2f5C82C86974f2407c0ac9c627015eCcA0"

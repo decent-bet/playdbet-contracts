@@ -31,6 +31,7 @@ const {
     METHOD_ADD_QUEST,
     METHOD_PAY_FOR_QUEST,
     METHOD_SET_QUEST_OUTCOME,
+    METHOD_CANCEL_QUEST_ENTRY,
     METHOD_CANCEL_QUEST,
     METHOD_CLAIM_REFUND
 } = QuestMethods
@@ -291,6 +292,15 @@ const estimateQuestTxns = async () => {
             getDefaultAccount()
         )
         .send(getTxOptions())
+    gasUsage.cancelQuestEntry = await estimateGas(
+        CONTRACT_QUEST,
+        METHOD_CANCEL_QUEST_ENTRY,
+        [
+            quests[1].id,
+            getDefaultAccount()
+        ],
+        getTxOptions()
+    )
     gasUsage.cancelQuest = await estimateGas(
         CONTRACT_QUEST,
         METHOD_CANCEL_QUEST,
@@ -309,7 +319,8 @@ const estimateQuestTxns = async () => {
         CONTRACT_QUEST,
         METHOD_CLAIM_REFUND,
         [
-            quests[1].id
+            quests[1].id,
+            getDefaultAccount()
         ],
         getTxOptions()
     )
