@@ -146,7 +146,7 @@ LibDBETNode {
     * @return whether type was added
     */
     function addType(
-        string name,
+        string memory name,
         uint256 tokenThreshold,
         uint256 timeThreshold
     )
@@ -159,7 +159,7 @@ LibDBETNode {
         );
         // Name cannot be empty
         require(
-            name != "",
+            bytes(name).length > 0,
             "INVALID_NAME"
         );
         // Must be a non-zero token threshold
@@ -189,6 +189,7 @@ LibDBETNode {
     function isNodeActivated(
         uint256 id
     )
+    public
     view
     returns (bool) {
         return (
@@ -201,7 +202,7 @@ LibDBETNode {
                 now >=
                 (
                     nodes[id].creationTime.add(
-                        nodesTypes[nodes[id].nodeType].timeThreshold
+                        nodeTypes[nodes[id].nodeType].timeThreshold
                     )
                 )
             )

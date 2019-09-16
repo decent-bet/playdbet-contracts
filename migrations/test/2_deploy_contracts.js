@@ -1,5 +1,6 @@
 const appRoot = require('app-root-path')
 const Admin = artifacts.require('Admin')
+const DBETNode = artifacts.require('DBETNode')
 const DecentBetToken = artifacts.require('DBETVETToken')
 const MultiSigWallet = artifacts.require('MultiSigWallet')
 const Quest = artifacts.require('Quest')
@@ -11,6 +12,7 @@ let deploy = async (deployer, network) => {
 
     let admin,
         multiSigWallet,
+        node,
         quest,
         token,
         tournament
@@ -79,7 +81,12 @@ let deploy = async (deployer, network) => {
                     BOOTSTRAP_TOKEN_AMOUNT
                 )
             }
-
+            // Deploy the DBETNode contract
+            await deployer.deploy(
+                DBETNode,
+                admin.address,
+                token.address
+            )
             // Deploy the quest contract
             await deployer.deploy(
                 Quest,

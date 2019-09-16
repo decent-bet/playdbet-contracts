@@ -32,7 +32,7 @@ contract IDBETNode {
     * @return whether type was added
     */
     function addType(
-        string name,
+        string memory name,
         uint256 tokenThreshold,
         uint256 timeThreshold
     )
