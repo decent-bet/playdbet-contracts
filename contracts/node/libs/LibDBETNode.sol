@@ -14,10 +14,8 @@ contract LibDBETNode {
 
     // User node
     struct Node {
-        // Unique node ID
-        uint256 id;
-        // Type of node
-        NodeType type;
+        // Unique id of node type
+        uint256 nodeType;
         // DBETs locked as deposit
         uint256 deposit;
         // Unix timestamp during creation

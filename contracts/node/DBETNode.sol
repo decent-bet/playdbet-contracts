@@ -25,8 +25,13 @@ LibDBETNode {
     // Auto-increment on addition of node types
     uint256 public nodeTypeCount;
 
-    event LogNewNode(
+    // Maps incremented indices of created nodes to Node structs
+    mapping (uint256 => Node) public nodes;
+    // Auto-increment on creation of nodes
+    uint256 public userNodeCount;
 
+    event LogNewNode(
+        uint256 id
     );
     event LogNewNodeType(
         uint256 id
@@ -42,10 +47,49 @@ LibDBETNode {
         token = ERC20(_token);
     }
 
+    /**
+    * Create a new DBET node by depositing the required token threshold
+    * @param nodeType unique ID of nodeType
+    * @return whether node was created
+    */
     function create(
+        uint256 nodeType
     )
-    public {
-
+    public
+    returns (bool) {
+        // Validate node type
+        require(
+            nodeTypes[nodeType].timeThreshold != 0,
+            "INVALID_NODE_TYPE"
+        );
+        // User must meet the token requirement threshold
+        require(
+            token.balanceOf(msg.sender) > nodeTypes[nodeType].tokenThreshold,
+            "INVALID_TOKEN_BALANCE"
+        );
+        // User must have approved DBETNode contract to transfer tokens on users' behalf
+        require(
+            token.allowance(
+                msg.sender,
+                address(this)
+            ) > nodeTypes[nodeType].tokenThreshold,
+            "INVALID_TOKEN_BALANCE"
+        );
+        nodes[userNodeCount] = Node({
+            nodeType: nodeType,
+            deposit: nodeTypes[nodeType].tokenThreshold,
+            creationTime: now
+        });
+        require(
+            token.transferFrom(
+                msg.sender,
+                address(this),
+                nodeTypes[nodeType].tokenThreshold
+            ),
+            "TOKEN_TRANSFER_ERROR"
+        );
+        emit LogNewNode(userNodeCount++);
+        return true;
     }
 
     function destroy()
@@ -88,6 +132,13 @@ LibDBETNode {
             timeThreshold: timeThreshold
         });
         emit LogNewNodeType(nodeTypeCount++);
+    }
+
+    // Returns whether a node has been activated
+    function isNodeActivated()
+    view
+    returns (bool) {
+
     }
 
 }
