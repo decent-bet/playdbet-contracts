@@ -13,6 +13,9 @@ contract DBETNode is
 IDBETNode,
 LibDBETNode {
 
+    using SafeMath for uint256;
+
+    // Address of contract deployer
     address public owner;
 
     // Admin contract
@@ -31,6 +34,9 @@ LibDBETNode {
     uint256 public userNodeCount;
 
     event LogNewNode(
+        uint256 id
+    );
+    event LogDestroyNode(
         uint256 id
     );
     event LogNewNodeType(
@@ -128,6 +134,7 @@ LibDBETNode {
             ),
             "TOKEN_TRANSFER_ERROR"
         );
+        emit LogDestroyNode(id);
         return true;
     }
 
@@ -193,8 +200,9 @@ LibDBETNode {
             (
                 now >=
                 (
-                    nodes[id].creationTime +
-                    nodesTypes[nodes[id].nodeType].timeThreshold
+                    nodes[id].creationTime.add(
+                        nodesTypes[nodes[id].nodeType].timeThreshold
+                    )
                 )
             )
         );
