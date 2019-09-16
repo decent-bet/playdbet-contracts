@@ -20,6 +20,8 @@ contract LibDBETNode {
         uint256 deposit;
         // Unix timestamp during creation
         uint256 creationTime;
+        // Unix timestamp on destroy
+        uint256 destroyTime;
     }
 
 }

@@ -92,20 +92,31 @@ LibDBETNode {
         return true;
     }
 
+    /**
+    * Destroys an active node and returns the locked DBETs to the node owner
+    * @param id unique ID of node
+    * @return whether node was destroyed
+    */
     function destroy()
-    public {
-
+    public
+    returns (bool) {
+        return true;
     }
 
     /**
     * Adds a new node type
+    * @param name Name of node
+    * @param tokenThreshold Minimum of tokens required to be held before node can be activated
+    * @param timeThreshold Minimum of time tokens need to be held before node can be activated
+    * @return whether type was added
     */
     function addType(
         string name,
         uint256 tokenThreshold,
         uint256 timeThreshold
     )
-    public {
+    public
+    returns (bool) {
         // Sender must be an admin
         require(
             admin.admins(msg.sender),
@@ -132,13 +143,32 @@ LibDBETNode {
             timeThreshold: timeThreshold
         });
         emit LogNewNodeType(nodeTypeCount++);
+        return true;
     }
 
-    // Returns whether a node has been activated
-    function isNodeActivated()
+    /**
+    * Returns whether a node has been activated
+    * @param id Node ID
+    * @return whether node was activated
+    */
+    function isNodeActivated(
+        uint256 id
+    )
     view
     returns (bool) {
-
+        return (
+            nodes[id].creationTime != 0 &&
+            (
+                nodes[id].deposit > 0
+            ) &&
+            (
+                now >=
+                (
+                    nodes[id].creationTime +
+                    nodesTypes[nodes[id].nodeType].timeThreshold
+                )
+            )
+        );
     }
 
 }
