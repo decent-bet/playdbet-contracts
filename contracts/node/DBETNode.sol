@@ -77,8 +77,10 @@ LibDBETNode {
         );
         nodes[userNodeCount] = Node({
             nodeType: nodeType,
+            owner: msg.sender,
             deposit: nodeTypes[nodeType].tokenThreshold,
-            creationTime: now
+            creationTime: now,
+            destroyTime: 0
         });
         require(
             token.transferFrom(
@@ -97,9 +99,35 @@ LibDBETNode {
     * @param id unique ID of node
     * @return whether node was destroyed
     */
-    function destroy()
+    function destroy(
+        uint256 id
+    )
     public
     returns (bool) {
+        // Check whether the node ID is valid
+        require(
+            nodes[id].creationTime != 0,
+            "INVALID_NODE"
+        );
+        // Check whether the node ID has not already been destroyed
+        require(
+            nodes[id].destroyTime == 0,
+            "INVALID_NODE"
+        );
+        // Check whether sender is the node owner
+        require(
+            nodes[id].owner == msg.sender,
+            "INVALID_NODE_OWNER"
+        );
+        nodes[id].destroyTime = now;
+        // Transfer tokens to user
+        require(
+            token.transfer(
+                msg.sender,
+                nodes[id].deposit
+            ),
+            "TOKEN_TRANSFER_ERROR"
+        );
         return true;
     }
 
@@ -158,6 +186,7 @@ LibDBETNode {
     returns (bool) {
         return (
             nodes[id].creationTime != 0 &&
+            nodes[id].destroyTime == 0 &&
             (
                 nodes[id].deposit > 0
             ) &&
