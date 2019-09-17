@@ -70,7 +70,7 @@ LibDBETNode {
         );
         // User must meet the token requirement threshold
         require(
-            token.balanceOf(msg.sender) > nodeTypes[nodeType].tokenThreshold,
+            token.balanceOf(msg.sender) >= nodeTypes[nodeType].tokenThreshold,
             "INVALID_TOKEN_BALANCE"
         );
         // User must have approved DBETNode contract to transfer tokens on users' behalf
@@ -78,8 +78,8 @@ LibDBETNode {
             token.allowance(
                 msg.sender,
                 address(this)
-            ) > nodeTypes[nodeType].tokenThreshold,
-            "INVALID_TOKEN_BALANCE"
+            ) >= nodeTypes[nodeType].tokenThreshold,
+            "INVALID_TOKEN_ALLOWANCE"
         );
         nodes[userNodeCount] = Node({
             nodeType: nodeType,
