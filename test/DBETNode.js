@@ -1,3 +1,6 @@
+const BigNumber = require('bignumber.js')
+const timeTraveler = require('ganache-time-traveler')
+
 const contracts = require('./utils/contracts')
 const utils = require('./utils/utils')
 
@@ -10,6 +13,10 @@ let user1
 let user2
 
 const web3 = utils.getWeb3()
+
+const timeTravel = async timeDiff => {
+    await timeTraveler.advanceTime(timeDiff)
+}
 
 const _getNodeType = () => {
     return {
@@ -115,30 +122,73 @@ contract('DBETNode', accounts => {
     })
 
     it('does not allow users to destroy invalid nodes', async () => {
+        // Invalid ID
+        await utils.assertFail(
+            dbetNode.destroy(
+                1
+            )
+        )
 
+        // Not owned by user
+        await utils.assertFail(
+            dbetNode.destroy(
+                0,
+                {
+                    from: user2
+                }
+            )
+        )
     })
 
     it('allows users to destroy valid nodes owned by them', async () => {
+        const {
+            tokenThreshold
+        } = _getNodeType()
+        const preDestroyBalance = await token.balanceOf(user1)
+        await dbetNode.destroy(
+            0,
+            {
+                from: user1
+            }
+        )
 
+        const node = await dbetNode.nodes(0)
+        assert.notEqual(node.destroyTime, '0')
+
+        const postDestroyBalance = await token.balanceOf(user1)
+
+        assert.equal(
+            new BigNumber(postDestroyBalance).minus(preDestroyBalance).toFixed(),
+            new BigNumber(tokenThreshold).toFixed()
+        )
     })
 
-    it('does not allow ', async () => {
+    it('nodes are not active if they don\'t meet time threshold', async () => {
+        // Create node of type ID 0
+        await dbetNode.create(
+            0,
+            {
+                from: user1
+            }
+        )
 
+        const isNodeActivated = await dbetNode.isNodeActivated(1)
+
+        assert.equal(
+            isNodeActivated,
+            false
+        )
     })
 
-    it('', async () => {
+    it('nodes are active if they meet time threshold', async () => {
+        await timeTravel(86400 * 7)
 
+        const isNodeActivated = await dbetNode.isNodeActivated(1)
+
+        assert.equal(
+            isNodeActivated,
+            true
+        )
     })
 
-    it('', async () => {
-
-    })
-
-    it('', async () => {
-
-    })
-
-    it('', async () => {
-
-    })
 })
