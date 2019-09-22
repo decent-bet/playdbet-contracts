@@ -18,7 +18,7 @@ const timeTravel = async timeDiff => {
     await timeTraveler.advanceTime(timeDiff)
 }
 
-const _getNodeType = () => {
+const _getNode = () => {
     return {
         name: 'Thunder',
         tokenThreshold: web3.utils.toWei('100000', 'ether'), // 100k DBETs
@@ -42,10 +42,10 @@ contract('DBETNode', accounts => {
             name,
             tokenThreshold,
             timeThreshold
-        } = _getNodeType()
+        } = _getNode()
 
         await utils.assertFail(
-            dbetNode.addType(
+            dbetNode.addNode(
                 name,
                 tokenThreshold,
                 timeThreshold,
@@ -61,15 +61,15 @@ contract('DBETNode', accounts => {
             name,
             tokenThreshold,
             timeThreshold
-        } = _getNodeType()
+        } = _getNode()
 
-        await dbetNode.addType(
+        await dbetNode.addNode(
             name,
             tokenThreshold,
             timeThreshold
         )
 
-        const nodeType = await dbetNode.nodeTypes(0)
+        const nodeType = await dbetNode.nodes(0)
 
         assert.equal(
             name,
@@ -80,7 +80,7 @@ contract('DBETNode', accounts => {
     it('does not allow users without an approved DBET balance to create a node', async () => {
         const {
             tokenThreshold
-        } = _getNodeType()
+        } = _getNode()
 
         const _assertFailCreateNode = () => {
             utils.assertFail(
@@ -143,7 +143,7 @@ contract('DBETNode', accounts => {
     it('allows users to destroy valid nodes owned by them', async () => {
         const {
             tokenThreshold
-        } = _getNodeType()
+        } = _getNode()
         const preDestroyBalance = await token.balanceOf(user1)
         await dbetNode.destroy(
             0,
@@ -172,10 +172,10 @@ contract('DBETNode', accounts => {
             }
         )
 
-        const isNodeActivated = await dbetNode.isNodeActivated(1)
+        const isUserNodeActivated = await dbetNode.isUserNodeActivated(1)
 
         assert.equal(
-            isNodeActivated,
+            isUserNodeActivated,
             false
         )
     })
@@ -183,10 +183,10 @@ contract('DBETNode', accounts => {
     it('nodes are active if they meet time threshold', async () => {
         await timeTravel(86400 * 7)
 
-        const isNodeActivated = await dbetNode.isNodeActivated(1)
+        const isUserNodeActivated = await dbetNode.isUserNodeActivated(1)
 
         assert.equal(
-            isNodeActivated,
+            isUserNodeActivated,
             true
         )
     })
