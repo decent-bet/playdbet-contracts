@@ -23,23 +23,26 @@ LibDBETNode {
     // Token contract
     ERC20 public token;
 
-    // Maps incremented indices of added node types to NodeType structs
-    mapping (uint256 => NodeType) public nodeTypes;
-    // Auto-increment on addition of node types
-    uint256 public nodeTypeCount;
-
-    // Maps incremented indices of created nodes to Node structs
+    // Maps incremented indices of added node offerings to Node structs
     mapping (uint256 => Node) public nodes;
+    // Auto-increment on addition of nodes
+    uint256 public nodeCount;
+
+    // Maps incremented indices of created nodes to UserNode structs
+    mapping (uint256 => UserNode) public userNodes;
     // Auto-increment on creation of nodes
     uint256 public userNodeCount;
 
+    // Maps addresses to node types and a bool representing whether the user owns the node type
+    mapping (address => mapping (uint256 => bool)) nodeOwnership;
+
+    event LogCreateUserNode(
+        uint256 id
+    );
+    event LogDestroyUserNode(
+        uint256 id
+    );
     event LogNewNode(
-        uint256 id
-    );
-    event LogDestroyNode(
-        uint256 id
-    );
-    event LogNewNodeType(
         uint256 id
     );
 
@@ -54,23 +57,28 @@ LibDBETNode {
     }
 
     /**
-    * Create a new DBET node by depositing the required token threshold
-    * @param nodeType unique ID of nodeType
+    * Create a new DBET user node by depositing the required token threshold
+    * @param node unique ID of node
     * @return whether node was created
     */
     function create(
-        uint256 nodeType
+        uint256 node
     )
     public
     returns (bool) {
         // Validate node type
         require(
-            nodeTypes[nodeType].timeThreshold != 0,
+            nodes[node].timeThreshold != 0,
             "INVALID_NODE_TYPE"
+        );
+        // User cannot already own the same node
+        require(
+            !nodeOwnership[msg.sender][node],
+            "NODE_TYPE_ALREADY_OWNED"
         );
         // User must meet the token requirement threshold
         require(
-            token.balanceOf(msg.sender) >= nodeTypes[nodeType].tokenThreshold,
+            token.balanceOf(msg.sender) >= nodes[node].tokenThreshold,
             "INVALID_TOKEN_BALANCE"
         );
         // User must have approved DBETNode contract to transfer tokens on users' behalf
@@ -78,25 +86,26 @@ LibDBETNode {
             token.allowance(
                 msg.sender,
                 address(this)
-            ) >= nodeTypes[nodeType].tokenThreshold,
+            ) >= nodes[node].tokenThreshold,
             "INVALID_TOKEN_ALLOWANCE"
         );
-        nodes[userNodeCount] = Node({
-            nodeType: nodeType,
+        userNodes[userNodeCount] = UserNode({
+            node: node,
             owner: msg.sender,
-            deposit: nodeTypes[nodeType].tokenThreshold,
+            deposit: nodes[node].tokenThreshold,
             creationTime: now,
             destroyTime: 0
         });
+        nodeOwnership[msg.sender][node] = true;
         require(
             token.transferFrom(
                 msg.sender,
                 address(this),
-                nodeTypes[nodeType].tokenThreshold
+                nodes[node].tokenThreshold
             ),
             "TOKEN_TRANSFER_ERROR"
         );
-        emit LogNewNode(userNodeCount++);
+        emit LogCreateUserNode(userNodeCount++);
         return true;
     }
 
@@ -112,40 +121,41 @@ LibDBETNode {
     returns (bool) {
         // Check whether the node ID is valid
         require(
-            nodes[id].creationTime != 0,
+            userNodes[id].creationTime != 0,
             "INVALID_NODE"
         );
         // Check whether the node ID has not already been destroyed
         require(
-            nodes[id].destroyTime == 0,
+            userNodes[id].destroyTime == 0,
             "INVALID_NODE"
         );
         // Check whether sender is the node owner
         require(
-            nodes[id].owner == msg.sender,
+            userNodes[id].owner == msg.sender,
             "INVALID_NODE_OWNER"
         );
-        nodes[id].destroyTime = now;
+        userNodes[id].destroyTime = now;
+        nodeOwnership[msg.sender][userNodes[id].node] = false;
         // Transfer tokens to user
         require(
             token.transfer(
                 msg.sender,
-                nodes[id].deposit
+                userNodes[id].deposit
             ),
             "TOKEN_TRANSFER_ERROR"
         );
-        emit LogDestroyNode(id);
+        emit LogDestroyUserNode(id);
         return true;
     }
 
     /**
-    * Adds a new node type
+    * Adds a new node
     * @param name Name of node
     * @param tokenThreshold Minimum of tokens required to be held before node can be activated
     * @param timeThreshold Minimum of time tokens need to be held before node can be activated
     * @return whether type was added
     */
-    function addType(
+    function addNode(
         string memory name,
         uint256 tokenThreshold,
         uint256 timeThreshold
@@ -172,41 +182,57 @@ LibDBETNode {
             timeThreshold > 0,
             "INVALID_TIME_THRESHOLD"
         );
-        nodeTypes[nodeTypeCount] = NodeType({
+        nodes[nodeCount] = Node({
             name: name,
             tokenThreshold: tokenThreshold,
             timeThreshold: timeThreshold
         });
-        emit LogNewNodeType(nodeTypeCount++);
+        emit LogNewNode(nodeCount++);
         return true;
     }
 
     /**
-    * Returns whether a node has been activated
+    * Returns whether a user node is activated
     * @param id Node ID
-    * @return whether node was activated
+    * @return whether node is activated
     */
-    function isNodeActivated(
+    function isUserNodeActivated(
         uint256 id
     )
     public
     view
     returns (bool) {
         return (
-            nodes[id].creationTime != 0 &&
-            nodes[id].destroyTime == 0 &&
+            userNodes[id].creationTime != 0 &&
+            userNodes[id].destroyTime == 0 &&
             (
-                nodes[id].deposit > 0
+            userNodes[id].deposit > 0
             ) &&
             (
                 now >=
                 (
-                    nodes[id].creationTime.add(
-                        nodeTypes[nodes[id].nodeType].timeThreshold
+                    userNodes[id].creationTime.add(
+                        nodes[userNodes[id].node].timeThreshold
                     )
                 )
             )
         );
+    }
+
+    /**
+    * Returns whether a user owns a node type
+    * @param user Address of user
+    * @param node Unique node ID
+    * @return Whether user owns the node type
+    */
+    function isUserNodeOwner(
+        address user,
+        uint256 node
+    )
+    public
+    view
+    returns (bool) {
+        return nodeOwnership[user][node];
     }
 
 }

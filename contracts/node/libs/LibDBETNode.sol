@@ -2,8 +2,13 @@ pragma solidity 0.5.8;
 
 contract LibDBETNode {
 
+    enum NodeType {
+        HOUSE_NODE,
+        REWARD_NODE
+    }
+
     // Defines different types of DBET nodes that can be run
-    struct NodeType {
+    struct Node {
         // Name of node
         string name;
         // Amount of tokens to lock
@@ -13,9 +18,9 @@ contract LibDBETNode {
     }
 
     // User node
-    struct Node {
+    struct UserNode {
         // Unique id of node type
-        uint256 nodeType;
+        uint256 node;
         // Node owner address
         address owner;
         // DBETs locked as deposit

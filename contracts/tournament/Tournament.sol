@@ -4,15 +4,18 @@ pragma experimental ABIEncoderV2;
 import "./interfaces/ITournament.sol";
 import "./libs/LibTournament.sol";
 
-import "../admin/Admin.sol";
+import "../node/libs/LibDBETNode.sol";
 
+import "../admin/Admin.sol";
+import "../node/DBETNode.sol";
 import "../token/ERC20.sol";
 
 import "../utils/SafeMath.sol";
 
 contract Tournament is
 ITournament,
-LibTournament {
+LibTournament,
+LibDBETNode {
 
     using SafeMath for uint256;
 
@@ -22,11 +25,16 @@ LibTournament {
     Admin public admin;
     // Token contract
     ERC20 public token;
+    // DBET node contract
+    DBETNode public dbetNode;
 
     // Prize table mapping
     mapping (bytes32 => uint256[]) public prizeTables;
     // Tournaments mapping
     mapping (bytes32 => Tournament) public tournaments;
+    // Tournament prizes mapping since Solidity doesn't allow complex structs (including mappings) nested within structs
+    mapping (bytes32 => TournamentPrize) public entryPrizes;
+    mapping (bytes32 => TournamentPrize) public houseNodePrizes;
     // Prize table count
     uint256 public prizeTableCount;
     // Tournament count
@@ -69,12 +77,14 @@ LibTournament {
 
     constructor (
         address _admin,
-        address _token
+        address _token,
+        address _dbetNode
     )
     public {
         owner = msg.sender;
         admin = Admin(_admin);
         token = ERC20(_token);
+        dbetNode = DBETNode(_dbetNode);
     }
 
     /**
@@ -370,11 +380,11 @@ LibTournament {
             for (uint256 j = 0; j < finalStandings[i].length; j++) {
                 // i => index 1, j => index 2
                 // Push entry index to prizes mapping in tournament
-                tournaments[id].entryPrizes.prizes[finalStandings[i][j]].push(i);
+                entryPrizes[id].prizes[finalStandings[i][j]].push(i);
             }
         }
         // Set unique final standings
-        tournaments[id].entryPrizes.uniqueFinalStandings = uniqueFinalStandings;
+        entryPrizes[id].uniqueFinalStandings = uniqueFinalStandings;
     }
 
     /**
@@ -396,11 +406,11 @@ LibTournament {
             for (uint256 j = 0; j < houseNodeFinalStandings[i].length; j++) {
                 // i => index 1, j => index 2
                 // Push entry index to prizes mapping in tournament
-                tournaments[id].houseNodePrizes.prizes[houseNodeFinalStandings[i][j]].push(i);
+                houseNodePrizes[id].prizes[houseNodeFinalStandings[i][j]].push(i);
             }
         }
         // Set unique final standings
-        tournaments[id].houseNodePrizes.uniqueFinalStandings = uniqueHouseNodeFinalStandings;
+        houseNodePrizes[id].uniqueFinalStandings = uniqueHouseNodeFinalStandings;
     }
 
     /**
@@ -434,7 +444,7 @@ LibTournament {
         );
         // User cannot have already claimed their prize
         require(
-            !tournaments[id].entryPrizes.claimed[entryIndex][finalStandingIndex],
+            !entryPrizes[id].claimed[entryIndex][finalStandingIndex],
             "INVALID_CLAIMED_STATUS"
         );
         require(
@@ -472,7 +482,7 @@ LibTournament {
         )
             // Top 50% wins with 50-50 prize type
             require(
-                finalStanding < tournaments[id].entryPrizes.uniqueFinalStandings.div(2),
+                finalStanding < entryPrizes[id].uniqueFinalStandings.div(2),
                 "INVALID_FINAL_STANDING"
             );
         uint256 prizeMoney = _calculatePrizeMoney(
@@ -488,7 +498,7 @@ LibTournament {
             "TOKEN_TRANSFER_ERROR"
         );
         // Mark prize as claimed
-        tournaments[id].entryPrizes.claimed[entryIndex][finalStandingIndex] = true;
+        entryPrizes[id].claimed[entryIndex][finalStandingIndex] = true;
         // Emit log claimed tournament prize event
         emit LogClaimedTournamentPrize(
             id,
@@ -498,6 +508,99 @@ LibTournament {
                 uint8(TournamentPrizeType.STANDARD) ?
                     prizeTables[tournaments[id].details.poolPrizeTable][finalStanding] :
                     0,
+            prizeMoney
+        );
+    }
+
+    /**
+    * Allows house node holders to claim their tournament prizes
+    * @param id Unique ID of the tournament
+    * @param entryIndex Index in the tournaments' entries
+    * @param finalStandingIndex Index in the tournaments' entries final standings
+    * @return Whether the tournament prize was claimed
+    */
+    function claimHouseNodeTournamentPrize(
+        bytes32 id,
+        uint256 entryIndex,
+        uint256 finalStandingIndex
+    )
+    public
+    returns (bool) {
+        // Must be a valid tournament
+        require(
+            tournaments[id].details.entryFee != 0,
+            "INVALID_TOURNAMENT_ID"
+        );
+        // Tournament should have been completed
+        require(
+            tournaments[id].status == uint8(TournamentStatus.COMPLETED),
+            "INVALID_TOURNAMENT_STATUS"
+        );
+        // Address at final standings index must be sender
+        require(
+            tournaments[id].entries[entryIndex]._address == msg.sender,
+            "INVALID_ENTRY_INDEX"
+        );
+        // TODO: Check if this is applicable for only standard prize types or all prize types
+        // Must be only for standard tournament types
+        require(
+            tournaments[id].details.prizeType ==
+            uint8(TournamentPrizeType.STANDARD),
+            "INVALID_TOURNAMENT_PRIZE_TYPE"
+        );
+        // Must be a house node holder
+        // TODO: Check if this is necessary - in cases where house node holders who participated and closed their house node, DBETs could get locked until a house node is activated again by the same user
+        require(
+            dbetNode.isUserNodeOwner(
+                msg.sender,
+                uint256(NodeType.HOUSE_NODE)
+            ),
+            "INVALID_HOUSE_NODE_OWNERSHIP_STATUS"
+        );
+        // House node ownerrs cannot have already claimed their prize
+        require(
+            !houseNodePrizes[id].claimed[entryIndex][finalStandingIndex],
+            "INVALID_CLAIMED_STATUS"
+        );
+        require(
+            tournaments[id].entries[entryIndex].houseNodeFinalStandings.length >
+            finalStandingIndex,
+            "INVALID_FINAL_STANDINGS_INDEX"
+        );
+        uint256 finalStanding =
+            tournaments[id]
+            .entries[entryIndex]
+            .houseNodeFinalStandings[finalStandingIndex];
+        // Prize table must have a valid prize at final standings index
+        require(
+            prizeTables
+            [tournaments[id].details.rakePrizeTable]
+            [finalStanding] != 0,
+            "INVALID_PRIZE_TABLE_INDEX"
+        );
+        uint256 prizeMoney = _calculatePrizeMoney(
+            id,
+            finalStanding
+        );
+        // Transfer prize tokens to sender
+        require(
+            token.transfer(
+                msg.sender,
+                prizeMoney
+            ),
+            "TOKEN_TRANSFER_ERROR"
+        );
+        // Mark prize as claimed
+        entryPrizes[id].claimed[entryIndex][finalStandingIndex] = true;
+        // Emit log claimed tournament prize event
+        emit LogClaimedTournamentPrize(
+            id,
+            entryIndex,
+            finalStanding,
+            tournaments[id].details.prizeType ==
+            uint8(TournamentPrizeType.STANDARD) ?
+            prizeTables[tournaments[id].details.poolPrizeTable][finalStanding] :
+            0,
             prizeMoney
         );
     }
@@ -550,7 +653,7 @@ LibTournament {
     returns (uint256) {
         // Check for other winners with same final standing
         uint256 sharedFinalStandings =
-            tournaments[id].entryPrizes.prizes[finalStanding].length;
+            entryPrizes[id].prizes[finalStanding].length;
         uint256 prizePercent =
             prizeTables[tournaments[id].details.poolPrizeTable][finalStanding];
         uint256 excessPrizePercent;
@@ -559,10 +662,10 @@ LibTournament {
         // split excess token % split among all addresses in final standings
         if(
             prizeTables[tournaments[id].details.poolPrizeTable].length >
-            tournaments[id].entryPrizes.uniqueFinalStandings
+            entryPrizes[id].uniqueFinalStandings
         ) {
             for(
-                uint256 i = tournaments[id].entryPrizes.uniqueFinalStandings;
+                uint256 i = entryPrizes[id].uniqueFinalStandings;
                 i < prizeTables[tournaments[id].details.poolPrizeTable].length;
                 i++
             ) {
@@ -590,6 +693,61 @@ LibTournament {
     }
 
     /**
+    * Calculates prize money for house nodes for a provided final standing position in a given unique tournament ID
+    * having a standard prize type
+    * @param id Prize table ID
+    * @param finalStanding Final standing position
+    * @return Prize money for a final standing position
+    */
+    function _calculateHouseNodePrizeMoneyForStandardPrizeType(
+        bytes32 id,
+        uint256 finalStanding
+    )
+    public
+    view
+    returns (uint256) {
+        // Check for other winners with same final standing
+        uint256 sharedFinalStandings =
+            houseNodePrizes[id].prizes[finalStanding].length;
+        uint256 prizePercent =
+            prizeTables[tournaments[id].details.rakePrizeTable][finalStanding];
+        uint256 excessPrizePercent;
+        uint256 multiplier = 1000;
+        // If the amount of prize winners in the prize table is greater than the number of unique final standings,
+        // split excess token % split among all addresses in final standings
+        if(
+            prizeTables[tournaments[id].details.rakePrizeTable].length >
+            houseNodePrizes[id].uniqueFinalStandings
+        ) {
+            for(
+                uint256 i = houseNodePrizes[id].uniqueFinalStandings;
+                i < prizeTables[tournaments[id].details.rakePrizeTable].length;
+                i++
+            ) {
+                excessPrizePercent = excessPrizePercent.add(prizeTables[tournaments[id].details.rakePrizeTable][i]);
+            }
+            // Users get a % of the excess prize percent in proportion to their prize percent of the overall winnings.
+            // For example, in case of a user winning 50%, with another user winning 30% and the excess prize percent being 20%.
+            // The excess prize percent for the user would be 50/(100 - 20) * 20
+            excessPrizePercent =
+                excessPrizePercent
+                .mul(prizePercent)
+                .mul(multiplier)
+                .div(
+                    uint256(100)
+                    .sub(excessPrizePercent)
+                );
+        }
+        prizePercent = prizePercent.mul(multiplier).add(excessPrizePercent);
+        // Transfer prize percent of rake fee divided by the number of winners for the same final standing index
+        return getRakeFee(id)
+            .mul(prizePercent)
+            .div(multiplier)
+            .div(100)
+            .div(sharedFinalStandings);
+    }
+
+    /**
     * Calculates prize money for a provided final standing position in a given unique tournament ID
     * having a winner take all prize type
     * @param id Prize table ID
@@ -605,7 +763,7 @@ LibTournament {
     returns (uint256) {
         // Check for other winners with same final standing
         uint256 sharedFinalStandings =
-            tournaments[id].entryPrizes.prizes[finalStanding].length;
+            entryPrizes[id].prizes[finalStanding].length;
         return getPrizePool(id)
             .div(sharedFinalStandings);
     }
@@ -626,9 +784,9 @@ LibTournament {
     returns (uint256) {
         // Check for other winners with same final standing
         uint256 sharedFinalStandings =
-            tournaments[id].entryPrizes.prizes[finalStanding].length;
+            entryPrizes[id].prizes[finalStanding].length;
         uint256 winnerCount =
-            tournaments[id].entryPrizes.uniqueFinalStandings.div(2);
+            entryPrizes[id].uniqueFinalStandings.div(2);
         return getPrizePool(id)
             .div(winnerCount)
             .div(sharedFinalStandings);
@@ -779,8 +937,7 @@ LibTournament {
     public
     view
     returns (uint256) {
-        return tournaments[id]
-                .entryPrizes
+        return entryPrizes[id]
                 .prizes[finalStanding]
                 .length;
     }
@@ -799,8 +956,7 @@ LibTournament {
     public
     view
     returns (uint256) {
-        return tournaments[id]
-                .entryPrizes
+        return entryPrizes[id]
                 .prizes[finalStanding]
                 [prizeWinnerIndex];
     }

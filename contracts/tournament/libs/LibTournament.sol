@@ -19,10 +19,6 @@ contract LibTournament {
         TournamentDetails details;
         // Participants in tournament
         TournamentEntry[] entries;
-        // Prizes for entries in tournaments
-        TournamentPrize entryPrizes;
-        // Prizes for house nodes in tournaments
-        TournamentPrize houseNodePrizes;
         // Refunded amounts from entries for tournaments with a failed status
         mapping (uint256 => bool) refunded;
         // Tournament status based on enum
