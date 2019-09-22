@@ -110,7 +110,7 @@ LibDBETNode {
     }
 
     /**
-    * Destroys an active node and returns the locked DBETs to the node owner
+    * Destroys an active user node and returns the locked DBETs to the node owner
     * @param id unique ID of node
     * @return whether node was destroyed
     */
@@ -153,7 +153,7 @@ LibDBETNode {
     * @param name Name of node
     * @param tokenThreshold Minimum of tokens required to be held before node can be activated
     * @param timeThreshold Minimum of time tokens need to be held before node can be activated
-    * @return whether type was added
+    * @return Whether node was added
     */
     function addNode(
         string memory name,

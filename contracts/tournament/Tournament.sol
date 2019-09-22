@@ -285,7 +285,7 @@ LibDBETNode {
     }
 
     /**
-    * Allows the admin to complete the tournament by publishing the final standings
+    * Allows admins to complete a tournaments by publishing it's final standings
     * @param id Unique ID of the tournament
     * @param finalStandings Final standings for entries in the tournament. 1d index => entry index, 2d => final standings for entry index
     * @param uniqueFinalStandings Number of unique positions in the final standing array

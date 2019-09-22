@@ -12,7 +12,7 @@ let deploy = async (deployer, network) => {
 
     let admin,
         multiSigWallet,
-        node,
+        dbetNode,
         quest,
         token,
         tournament
@@ -87,6 +87,8 @@ let deploy = async (deployer, network) => {
                 admin.address,
                 token.address
             )
+            dbetNode = await getContractInstanceAndInfo(DBETNode)
+
             // Deploy the quest contract
             await deployer.deploy(
                 Quest,
@@ -104,7 +106,8 @@ let deploy = async (deployer, network) => {
             await deployer.deploy(
                 Tournament,
                 admin.address,
-                token.address
+                token.address,
+                dbetNode.address
             )
             tournament = await getContractInstanceAndInfo(Tournament)
             console.log('Deployed tournament')
@@ -112,6 +115,7 @@ let deploy = async (deployer, network) => {
             console.log(
                 'Deployed:',
                 '\nAdmin: ' + admin.address,
+                '\nDBETNode: ' + dbetNode.address,
                 '\nQuest: ' + quest.address,
                 '\nToken: ' + token.address,
                 '\nTournament: ' + tournament.address,

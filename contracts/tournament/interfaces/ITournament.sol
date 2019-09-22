@@ -20,7 +20,8 @@ contract ITournament {
     * @param maxEntries The maximum number of entries for the tournament
     * @param rakePercent Percentage of the prize pool retained by Decent.bet
     * @param prizeType Type of prize for tournament
-    * @param prizeTable Unique ID of prize table to be used for the tournament
+    * @param poolPrizeTable Unique ID of prize table to be used for the tournament's prize pool
+    * @param rakePrizeTable Unique ID of prize table to be used for the tournament's rake pool
     * @return Unique ID of the created tournament
     */
     function createTournament(
@@ -30,7 +31,8 @@ contract ITournament {
         uint256 maxEntries,
         uint256 rakePercent,
         uint8 prizeType,
-        bytes32 prizeTable
+        bytes32 poolPrizeTable,
+        bytes32 rakePrizeTable
     ) public returns (bytes32);
 
     /**
@@ -42,16 +44,20 @@ contract ITournament {
     ) public returns (bool);
 
     /**
-    * Allows the admin to complete the tournament by publishing the final standings
+    * Allows admins to complete a tournaments by publishing it's final standings
     * @param id Unique ID of the tournament
     * @param finalStandings Final standings for entries in the tournament. 1d index => entry index, 2d => final standings for entry index
     * @param uniqueFinalStandings Number of unique positions in the final standing array
+    * @param houseNodeFinalStandings Final standings for house node holder entries in the tournament. 1d index => entry index, 2d => final standings for entry index
+    * @param uniqueHouseNodeFinalStandings Number of unique positions in the house node final standing array
     * @return Whether the tournament was completed
     */
     function completeTournament(
         bytes32 id,
         uint256[][] memory finalStandings,
-        uint256 uniqueFinalStandings
+        uint256 uniqueFinalStandings,
+        uint256[][] memory houseNodeFinalStandings,
+        uint256 uniqueHouseNodeFinalStandings
     ) public returns (bool);
 
     /**
@@ -66,6 +72,20 @@ contract ITournament {
         uint256 entryIndex,
         uint256 finalStandingIndex
     ) public returns (bool);
+
+    /**
+    * Allows house node holders to claim their tournament prizes
+    * @param id Unique ID of the tournament
+    * @param entryIndex Index in the tournaments' entries
+    * @param finalStandingIndex Index in the tournaments' entries final standings
+    * @return Whether the tournament prize was claimed
+    */
+    function claimHouseNodeTournamentPrize(
+        bytes32 id,
+        uint256 entryIndex,
+        uint256 finalStandingIndex
+    )
+    public returns (bool);
 
     /**
     * Allows users to claim refunds for tournaments that were not completed
