@@ -89,14 +89,25 @@ LibDBETNode {
             ) >= nodes[node].tokenThreshold,
             "INVALID_TOKEN_ALLOWANCE"
         );
+        // Node count for node type must be lesser than max count
+        require(
+            nodes[node].count.add(1) <= nodes[node].maxCount,
+            "MAX_NODE_COUNT_EXCEEDED"
+        );
+        // Add user node
         userNodes[userNodeCount] = UserNode({
             node: node,
             owner: msg.sender,
             deposit: nodes[node].tokenThreshold,
             creationTime: now,
-            destroyTime: 0
+            destroyTime: 0,
+            index: nodes[node].count
         });
+        // Increment node count
+        nodes[node].count++;
+        // Assign node ownership for node type to user
         nodeOwnership[msg.sender][node] = true;
+        // Transfer threshold tokens to contract
         require(
             token.transferFrom(
                 msg.sender,
@@ -105,6 +116,7 @@ LibDBETNode {
             ),
             "TOKEN_TRANSFER_ERROR"
         );
+        // Emit create user node event
         emit LogCreateUserNode(userNodeCount++);
         return true;
     }
@@ -152,13 +164,17 @@ LibDBETNode {
     * Adds a new node
     * @param name Name of node
     * @param tokenThreshold Minimum of tokens required to be held before node can be activated
-    * @param timeThreshold Minimum of time tokens need to be held before node can be activated
+    * @param timeThreshold Minimum time tokens need to be held before node can be activated
+    * @param maxCount Maximum number of nodes of this type that can be active at a time
+    * @param rewards Array of reward IDs linked to this node type
     * @return Whether node was added
     */
     function addNode(
         string memory name,
         uint256 tokenThreshold,
-        uint256 timeThreshold
+        uint256 timeThreshold,
+        uint256 maxCount,
+        uint8[] rewards
     )
     public
     returns (bool) {
@@ -182,10 +198,37 @@ LibDBETNode {
             timeThreshold > 0,
             "INVALID_TIME_THRESHOLD"
         );
+        // Must be a non-zero max count
+        require(
+            maxCount > 0,
+            "INVALID_MAX_COUNT"
+        );
+        // Must be valid rewards array
+        require(
+            rewards.length > 0 &&
+            rewards.length <= uint8(Rewards.CREATE_TOURNAMENT),
+            "INVALID_REWARDS_ARRAY"
+        );
+        // Validate rewards array
+        mapping (uint8 => bool) nodeRewards;
+        for (uint256 i = 0; i < rewards.length; i++) {
+            require(
+                // Check if duplicate
+                !nodeRewards[rewards[i]] &&
+                // Check if within valid rewards range
+                rewards[i] >= 0 &&
+                rewards[i] <= uint8(Rewards.CREATE_TOURNAMENT),
+                "INVALID_REWARDS_ARRAY"
+            );
+            nodeRewards[rewards[i]] = true;
+        }
         nodes[nodeCount] = Node({
             name: name,
             tokenThreshold: tokenThreshold,
-            timeThreshold: timeThreshold
+            timeThreshold: timeThreshold,
+            maxCount: maxCount,
+            rewards: rewards,
+            count: 0
         });
         emit LogNewNode(nodeCount++);
         return true;

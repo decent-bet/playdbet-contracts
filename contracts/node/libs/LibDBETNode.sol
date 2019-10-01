@@ -7,6 +7,15 @@ contract LibDBETNode {
         REWARD_NODE
     }
 
+    enum Rewards {
+        INCREASED_PRIZE_PAYOUTS,
+        INCREASED_REFER_A_FRIEND,
+        CREATE_QUEST,
+        CREATE_PRIVATE_QUEST,
+        CREATE_WHITELIST_QUEST,
+        CREATE_TOURNAMENT
+    }
+
     // Defines different types of DBET nodes that can be run
     struct Node {
         // Name of node
@@ -15,6 +24,12 @@ contract LibDBETNode {
         uint256 tokenThreshold;
         // Minimum amount of time in seconds to hold tokens to activate node
         uint256 timeThreshold;
+        // Maximum number of consecutive nodes that can be active at a time
+        uint256 maxCount;
+        // List of rewards linked to this node type
+        uint8[] rewards;
+        // Number of nodes created of this type
+        uint256 count;
     }
 
     // User node
@@ -29,6 +44,8 @@ contract LibDBETNode {
         uint256 creationTime;
         // Unix timestamp on destroy
         uint256 destroyTime;
+        // Node count for node type
+        uint256 index;
     }
 
 }
