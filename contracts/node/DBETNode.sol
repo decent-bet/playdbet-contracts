@@ -6,6 +6,7 @@ import "./libs/LibDBETNode.sol";
 import "../admin/Admin.sol";
 import "../quest/Quest.sol";
 import "../token/ERC20.sol";
+import "./NodeWallet.sol";
 
 import "../utils/SafeMath.sol";
 
@@ -24,6 +25,8 @@ LibDBETNode {
     Quest public quest;
     // Token contract
     ERC20 public token;
+    // NodeWallet contract
+    NodeWallet public nodeWallet;
 
     // Maps incremented indices of added node offerings to Node structs
     mapping (uint256 => Node) public nodes;
@@ -58,6 +61,7 @@ LibDBETNode {
         admin = Admin(_admin);
         token = ERC20(_token);
         quest = Quest(_quest);
+        nodeWallet = new NodeWallet();
     }
 
     /**

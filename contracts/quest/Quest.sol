@@ -6,6 +6,7 @@ import "./libs/LibQuest.sol";
 import "../admin/Admin.sol";
 import "../token/ERC20.sol";
 import "../node/DBETNode.sol";
+import "../node/NodeWallet.sol";
 
 import "../utils/SafeMath.sol";
 
@@ -181,14 +182,23 @@ LibQuest {
             maxEntries: maxEntries,
             count: 0
         });
-        // Transfer `maxEntries * prize` DBETs to this contract
+        // Transfer `maxEntries * prize` DBETs to NodeWallet
         require(
             token.transferFrom(
                 msg.sender,
-                address(this),
+                dbetNode.nodeWallet,
                 maxEntries.mul(prize)
             ),
             "ERROR_TOKEN_TRANSFER"
+        );
+        // Set prize fund for node quest in NodeWallet
+        require(
+            NodeWallet(dbetNode.nodeWallet).setPrizeFund(
+                nodeId,
+                id,
+                maxEntries.mul(prize)
+            ),
+            "ERROR_SET_PRIZE_FUND"
         );
         // Emit new quest event
         emit LogNewQuest(
@@ -244,7 +254,7 @@ LibQuest {
             require(
                 isActiveNode(
                     quests[id].nodeId,
-                    dbetNode.getNodeOwner(id)
+                    dbetNode.getNodeOwner(quests[id].nodeId)
                 ),
                 "INVALID_QUEST_NODE_STATUS"
             );
@@ -257,10 +267,21 @@ LibQuest {
             require(
                 token.transferFrom(
                     msg.sender,
-                    dbetNode.getNodeOwner(id),
+                    dbetNode.nodeWallet,
                     quests[id].entryFee
                 ),
                 "ERROR_TOKEN_TRANSFER"
+            );
+            // Add to quest entry fees in node wallet
+            require(
+                NodeWallet(dbetNode.nodeWallet)
+                    .addQuestEntryFee(
+                        quests[id].nodeId,
+                        id,
+                        quests[id].entryFee
+                    )
+                ,
+                "ERROR_NODE_WALLET_ADD_QUEST_ENTRY_FEE"
             );
         } else
             // Transfer entry fees to platform wallet
@@ -313,15 +334,24 @@ LibQuest {
         // Pay out user if quest was successfully finished
         if(outcome == uint8(QuestEntryStatus.SUCCESS)) {
             if (quests[id].isNode) {
-                // Don't check if node is active since pending quest entry prizes would be auto-deducted from deposits
-                // If a user would like to destroy a node
-                // Transfer out DBETs escrowed within contract to user
+                // Transfer out DBETs escrowed within node wallet to user
                 require(
-                    token.transfer(
+                    token.transferFrom(
+                        dbetNode.nodeWallet,
                         user,
                         quests[id].prize
                     ),
                     "ERROR_TOKEN_TRANSFER"
+                );
+                // Record prize distribution for successfully completing a quest
+                require(
+                    NodeWallet(dbetNode.nodeWallet)
+                        .completeQuest(
+                            quests[id].nodeId,
+                            id,
+                            quests[id].entryFee
+                        ),
+                    "ERROR_NODE_WALLET_COMPLETE_QUEST"
                 );
             } else
                 require(
@@ -435,14 +465,35 @@ LibQuest {
         // Increment user quest entry count
         userQuestEntryCount[user][id] += 1;
         // Transfer entryFee to user
-        require(
-            token.transferFrom(
-                admin.platformWallet(),
-                user,
-                quests[id].entryFee
-            ),
-            "ERROR_TOKEN_TRANSFER"
-        );
+        if (quests[id].isNode) {
+            // Transfer out DBETs escrowed within node wallet to user
+            require(
+                token.transferFrom(
+                    dbetNode.nodeWallet,
+                    user,
+                    quests[id].entryFee
+                ),
+                "ERROR_TOKEN_TRANSFER"
+            );
+            // Remove entry fee from node wallet quest fee records
+            require(
+                NodeWallet(dbetNode.nodeWallet)
+                .claimRefund(
+                    quests[id].nodeId,
+                    id,
+                    quests[id].entryFee
+                ),
+                "ERROR_NODE_WALLET_CLAIM_REFUND"
+            );
+        } else
+            require(
+                token.transferFrom(
+                    admin.platformWallet(),
+                    user,
+                    quests[id].entryFee
+                ),
+                "ERROR_TOKEN_TRANSFER"
+            );
         // Emit log refund quest entry event
         emit LogRefundQuestEntry(
             id,
@@ -483,14 +534,35 @@ LibQuest {
         // Increment user quest entry count
         userQuestEntryCount[user][id] += 1;
         // Transfer entryFee to user
-        require(
-            token.transferFrom(
-                admin.platformWallet(),
-                user,
-                quests[id].entryFee
-            ),
-            "ERROR_TOKEN_TRANSFER"
-        );
+        if (quests[id].isNode) {
+            // Transfer out DBETs escrowed within node wallet to user
+            require(
+                token.transferFrom(
+                    dbetNode.nodeWallet,
+                    user,
+                    quests[id].entryFee
+                ),
+                "ERROR_TOKEN_TRANSFER"
+            );
+            // Remove entry fee from node wallet quest fee records
+            require(
+                NodeWallet(dbetNode.nodeWallet)
+                .claimRefund(
+                    quests[id].nodeId,
+                    id,
+                    quests[id].entryFee
+                ),
+                "ERROR_NODE_WALLET_CLAIM_REFUND"
+            );
+        } else
+            require(
+                token.transferFrom(
+                    admin.platformWallet(),
+                    user,
+                    quests[id].entryFee
+                ),
+                "ERROR_TOKEN_TRANSFER"
+            );
         // Emit log refund quest entry event
         emit LogRefundQuestEntry(
             id,

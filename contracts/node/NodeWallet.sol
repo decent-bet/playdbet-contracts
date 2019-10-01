@@ -13,13 +13,23 @@ contract NodeWallet {
     // DBETNode contract
     DBETNode public dbetNode;
 
+    // Prize fund per quest for a node
+    // Node ID => (Quest ID => Prize fund)
+    mapping (uint256 => mapping (uint256 => uint256)) public prizeFund;
     // Fees collected per quest for a node
+    // Node ID => (Quest ID => Fees)
     mapping (uint256 => mapping (uint256 => uint256)) public questFees;
     // Total quest entry fees collected for a node
+    // Node ID => Quest entry fees
     mapping (uint256 => uint256) public totalQuestEntryFees = 0;
     // Total completed quest entry fees
+    // Node ID => Quest entry fees
     mapping (uint256 => uint256) public totalCompletedQuestEntryFees = 0;
 
+    event LogSetPrizeFund(
+        uint256 nodeId,
+        uint256 questId
+    );
     event LogAddQuestEntryFee(
         uint256 nodeId,
         uint256 questId
@@ -28,13 +38,16 @@ contract NodeWallet {
         uint256 nodeId,
         uint256 questId
     );
+    event LogClaimRefund(
+        uint256 nodeId,
+        uint256 questId
+    );
     event LogWithdrawCompletedQuestEntryFees(
         uint256 nodeId,
         uint256 amount
     );
 
-    constructor(
-    )
+    constructor()
     public {
         dbetNode = DBETNode(msg.sender);
         // Allow the quest contract to transfer tokens on behalf of this contract
@@ -44,6 +57,34 @@ contract NodeWallet {
                 // Max uint256
                 (2 ** 256) - 1
             )
+        );
+    }
+
+    /**
+    * Sets the available prize fund for a quest
+    * @param nodeId Unique user node ID
+    * @param questId Unique quest ID
+    * @param fund Prize fund for the quest
+    * @return Whether prize fund for quest was recorded
+    */
+    function setPrizeFund(
+        uint256 nodeId,
+        uint256 questId,
+        uint256 fund
+    )
+    public
+    returns (bool) {
+        // Only callable from within the quest contract
+        require(
+            msg.sender == address(dbetNode.quest),
+            "INVALID_SENDER"
+        );
+        // Set in prize fund mapping
+        prizeFund[nodeId][questId] = fund;
+        // Emit log set prize fund event
+        emit LogSetPrizeFund(
+            nodeId,
+            questId
         );
     }
 
@@ -79,11 +120,13 @@ contract NodeWallet {
 
     /**
     * Add to total completed fees on quest completion
+    * @param nodeId Node ID
     * @param questId Unique quest ID
     * @param fee Entry fee for quest
     * @return Whether completed quest was recorded
     */
     function completeQuest(
+        uint256 nodeId,
         uint256 questId,
         uint256 fee
     )
@@ -98,6 +141,36 @@ contract NodeWallet {
         totalCompletedQuestEntryFees[nodeId] = totalCompletedQuestEntryFees[nodeId].add(fee);
         // Emit log add quest entry fee event
         emit LogAddCompletedQuestEntryFee(
+            nodeId,
+            questId
+        );
+    }
+
+    /**
+    * Claim refund for an active quest entry
+    * @param nodeId Node ID
+    * @param questId Unique quest ID
+    * @param fee Entry fee for quest
+    * @return Whether refund claim was recorded
+    */
+    function claimRefund(
+        uint256 nodeId,
+        uint256 questId,
+        uint256 fee
+    )
+    public
+    returns (bool) {
+        // Only callable from within the quest contract
+        require(
+            msg.sender == address(dbetNode.quest),
+            "INVALID_SENDER"
+        );
+        // Remove from quest fees mapping
+        questFees[nodeId][questId] = questFees[nodeId][questId].sub(fee);
+        // Remove from total quest fees
+        totalQuestEntryFees[nodeId] = totalQuestEntryFees[nodeId].sub(fee);
+        // Emit log claim refund event
+        emit LogClaimRefund(
             nodeId,
             questId
         );
