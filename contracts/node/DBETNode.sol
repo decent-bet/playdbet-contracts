@@ -4,7 +4,7 @@ import "./interfaces/IDBETNode.sol";
 import "./libs/LibDBETNode.sol";
 
 import "../admin/Admin.sol";
-
+import "../quest/Quest.sol";
 import "../token/ERC20.sol";
 
 import "../utils/SafeMath.sol";
@@ -20,6 +20,8 @@ LibDBETNode {
 
     // Admin contract
     Admin public admin;
+    // Quest contract
+    Quest public quest;
     // Token contract
     ERC20 public token;
 
@@ -48,12 +50,14 @@ LibDBETNode {
 
     constructor(
         address _admin,
-        address _token
+        address _token,
+        address _quest
     )
     public {
         owner = msg.sender;
         admin = Admin(_admin);
         token = ERC20(_token);
+        quest = Quest(_quest);
     }
 
     /**
@@ -285,6 +289,19 @@ LibDBETNode {
     view
     returns (bool) {
         return nodeOwnership[user][node];
+    }
+
+    /**
+    * Returns node owner for a given node ID
+    * @param id Unique user node ID
+    */
+    function getNodeOwner(
+        uint256 id
+    )
+    public
+    view
+    returns (bool) {
+        return userNodes[id].owner;
     }
 
 }

@@ -4,8 +4,8 @@ import "./interfaces/IQuest.sol";
 import "./libs/LibQuest.sol";
 
 import "../admin/Admin.sol";
-
 import "../token/ERC20.sol";
+import "../node/DBETNode.sol";
 
 import "../utils/SafeMath.sol";
 
@@ -21,6 +21,8 @@ LibQuest {
     ERC20 public token;
     // Admin contract
     Admin public admin;
+    // DBETNode contract
+    DBETNode public dbetNode;
     // Quests mapping
     mapping (bytes32 => Quest) public quests;
     // User quest entries mapping
@@ -65,13 +67,15 @@ LibQuest {
 
     constructor (
         address _admin,
-        address _token
+        address _token,
+        address _dbetNode
     )
     public {
         require(_token != address(0));
         owner = msg.sender;
         token = ERC20(_token);
         admin = Admin(_admin);
+        dbetNode = DBETNode(_dbetNode);
     }
 
     /**
@@ -104,11 +108,88 @@ LibQuest {
         );
         // Add quest to contract
         quests[id] = Quest({
+            isNode: false,
+            nodeId: 0,
             entryFee: entryFee,
             prize: prize,
             status: uint8(QuestStatus.ACTIVE),
+            maxEntries: 0,
             count: 0
         });
+        // Emit new quest event
+        emit LogNewQuest(
+            id
+        );
+        return true;
+    }
+
+    /**
+    * Allows nodes to add quests
+    * @param nodeId Uniqe node ID in DBETNode contract
+    * @param id Unique quest ID
+    * @param entryFee Amount to pay in DBETs for quest entry
+    * @param prize Prize in DBETs to payout to winners
+    * @param maxEntries Maximum entries for this quest
+    * @return Whether the quest was added
+    */
+    function addNodeQuest(
+        uint256 nodeId,
+        bytes32 id,
+        uint256 entryFee,
+        uint256 prize,
+        uint256 maxEntries
+    )
+    public
+    returns (bool) {
+        // Allow only active node holders to add quests
+        require(
+            isActiveNode(
+                nodeId,
+                msg.sender
+            ),
+            "INVALID_NODE"
+        );
+        // Id cannot be default bytes32 value and cannot already exist on-chain
+        require(
+            id != 0 &&
+            quests[id].status == uint8(QuestStatus.INACTIVE),
+            "INVALID_QUEST_DETAILS"
+        );
+        // Check if uints are greater than 0
+        require(
+            entryFee > 0 &&
+            prize > 0 &&
+            maxEntries >= 0,
+            "INVALID_QUEST_DETAILS"
+        );
+        // Check if user has set an allowance of `maxEntries * prize` DBETs for this contract
+        require(
+            token.allowance(
+                msg.sender,
+                address(this),
+                maxEntries.mul(prize)
+            ),
+            "INVALID_TOKEN_ALLOWANCE"
+        );
+        // Add quest to contract
+        quests[id] = Quest({
+            isNode: true,
+            nodeId: nodeId,
+            entryFee: entryFee,
+            prize: prize,
+            status: uint8(QuestStatus.ACTIVE),
+            maxEntries: maxEntries,
+            count: 0
+        });
+        // Transfer `maxEntries * prize` DBETs to this contract
+        require(
+            token.transferFrom(
+                msg.sender,
+                address(this),
+                maxEntries.mul(prize)
+            ),
+            "ERROR_TOKEN_TRANSFER"
+        );
         // Emit new quest event
         emit LogNewQuest(
             id
@@ -158,14 +239,39 @@ LibQuest {
         // Increment quest count
         quests[id].count++;
         // Transfer entry fee to platform wallet
-        require(
-            token.transferFrom(
-                msg.sender,
-                admin.platformWallet(),
-                quests[id].entryFee
-            ),
-            "ERROR_TOKEN_TRANSFER"
-        );
+        if (quests[id].isNode) {
+            // Check if node is active
+            require(
+                isActiveNode(
+                    quests[id].nodeId,
+                    dbetNode.getNodeOwner(id)
+                ),
+                "INVALID_QUEST_NODE_STATUS"
+            );
+            // Check if max entries exceeded
+            require(
+                quests[id].count <= quests[id].maxEntries,
+                "MAX_ENTRIES_EXCEEDED"
+            );
+            // Transfer entry fee to node owner
+            require(
+                token.transferFrom(
+                    msg.sender,
+                    dbetNode.getNodeOwner(id),
+                    quests[id].entryFee
+                ),
+                "ERROR_TOKEN_TRANSFER"
+            );
+        } else
+            // Transfer entry fees to platform wallet
+            require(
+                token.transferFrom(
+                    msg.sender,
+                    admin.platformWallet(),
+                    quests[id].entryFee
+                ),
+                "ERROR_TOKEN_TRANSFER"
+            );
         // Emit log pay for quest event
         emit LogPayForQuest(
             id,
@@ -205,15 +311,28 @@ LibQuest {
         // Increment user quest entry count
         userQuestEntryCount[user][id] += 1;
         // Pay out user if quest was successfully finished
-        if(outcome == uint8(QuestEntryStatus.SUCCESS))
-            require(
-                token.transferFrom(
-                    admin.platformWallet(),
-                    user,
-                    quests[id].prize
-                ),
-                "ERROR_TOKEN_TRANSFER"
-            );
+        if(outcome == uint8(QuestEntryStatus.SUCCESS)) {
+            if (quests[id].isNode) {
+                // Don't check if node is active since pending quest entry prizes would be auto-deducted from deposits
+                // If a user would like to destroy a node
+                // Transfer out DBETs escrowed within contract to user
+                require(
+                    token.transfer(
+                        user,
+                        quests[id].prize
+                    ),
+                    "ERROR_TOKEN_TRANSFER"
+                );
+            } else
+                require(
+                    token.transferFrom(
+                        admin.platformWallet(),
+                        user,
+                        quests[id].prize
+                    ),
+                    "ERROR_TOKEN_TRANSFER"
+                );
+        }
         emit LogSetQuestOutcome(
             id,
             user,
@@ -378,6 +497,28 @@ LibQuest {
             user,
             false,
             _userQuestEntryCount
+        );
+    }
+
+    /**
+    * Returns whether an input node ID and owner is valid and active
+    * @param id Unique node ID
+    * @param owner Address of node owner
+    * @return Whether node is active
+    */
+    function isActiveNode(
+        uint256 id,
+        address owner
+    )
+    public
+    view
+    returns (bool) {
+        return (
+            dbetNode.isUserNodeActivated(id) &&
+            dbetNode.isUserNodeOwner(
+                owner,
+                id
+            )
         );
     }
 
