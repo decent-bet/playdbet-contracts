@@ -196,16 +196,19 @@ contract NodeWallet {
             dbetNode.isUserNodeActivated(nodeId),
             "INVALID_NODE_STATUS"
         );
+        uint256 fees = totalCompletedQuestEntryFees[nodeId];
+        // Set fees to 0
+        totalCompletedQuestEntryFees = 0;
         require(
             ERC20(address(dbetNode.token)).transfer(
                 msg.sender,
-                totalCompletedQuestEntryFees[nodeId]
+                fees
             ),
             "ERROR_TOKEN_TRANSFER"
         );
         emit LogWithdrawCompletedQuestEntryFees(
             nodeId,
-            totalCompletedQuestEntryFees[nodeId]
+            fees
         );
     }
 
