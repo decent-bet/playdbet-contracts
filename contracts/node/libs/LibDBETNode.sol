@@ -24,7 +24,8 @@ contract LibDBETNode {
         uint256 tokenThreshold;
         // Minimum amount of time in seconds to hold tokens to activate node
         uint256 timeThreshold;
-        // Maximum number of consecutive nodes that can be active at a time
+        // Maximum number of consecutive nodes with a deposit that can exist at a time
+        // Note: This isn't an active node count
         uint256 maxCount;
         // List of rewards linked to this node type
         uint8[] rewards;

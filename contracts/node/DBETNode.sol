@@ -146,8 +146,12 @@ LibDBETNode {
             userNodes[id].owner == msg.sender,
             "INVALID_NODE_OWNER"
         );
+        // Set destroy time for node
         userNodes[id].destroyTime = now;
+        // Revoke node ownership of node type for user
         nodeOwnership[msg.sender][userNodes[id].node] = false;
+        // Decrement number of nodes of user node type
+        nodes[userNodes[id].node].count--;
         // Transfer tokens to user
         require(
             token.transfer(
@@ -156,6 +160,7 @@ LibDBETNode {
             ),
             "TOKEN_TRANSFER_ERROR"
         );
+        // Emit log destroy user node event
         emit LogDestroyUserNode(id);
         return true;
     }
@@ -246,12 +251,16 @@ LibDBETNode {
     view
     returns (bool) {
         return (
+            // Must be a created user node
             userNodes[id].creationTime != 0 &&
+            // Must not be an already destroyed user node
             userNodes[id].destroyTime == 0 &&
             (
-            userNodes[id].deposit > 0
+            // Must have a deposit greater than or equal to the token threshold
+            userNodes[id].deposit >= nodes[userNodes[id].node].tokenThreshold
             ) &&
             (
+                // Must have been created at least `timeThreshold` seconds before now
                 now >=
                 (
                     userNodes[id].creationTime.add(
