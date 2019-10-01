@@ -167,9 +167,9 @@ LibQuest {
         require(
             token.allowance(
                 msg.sender,
-                address(this),
-                maxEntries.mul(prize)
-            ),
+                address(this)
+            ) >=
+            maxEntries.mul(prize),
             "INVALID_TOKEN_ALLOWANCE"
         );
         // Add quest to contract
@@ -186,14 +186,14 @@ LibQuest {
         require(
             token.transferFrom(
                 msg.sender,
-                dbetNode.nodeWallet,
+                address(dbetNode.nodeWallet()),
                 maxEntries.mul(prize)
             ),
             "ERROR_TOKEN_TRANSFER"
         );
         // Set prize fund for node quest in NodeWallet
         require(
-            NodeWallet(dbetNode.nodeWallet).setPrizeFund(
+            dbetNode.nodeWallet().setPrizeFund(
                 nodeId,
                 id,
                 maxEntries.mul(prize)
@@ -267,14 +267,14 @@ LibQuest {
             require(
                 token.transferFrom(
                     msg.sender,
-                    dbetNode.nodeWallet,
+                    address(dbetNode.nodeWallet()),
                     quests[id].entryFee
                 ),
                 "ERROR_TOKEN_TRANSFER"
             );
             // Add to quest entry fees in node wallet
             require(
-                NodeWallet(dbetNode.nodeWallet)
+                dbetNode.nodeWallet()
                     .addQuestEntryFee(
                         quests[id].nodeId,
                         id,
@@ -337,7 +337,7 @@ LibQuest {
                 // Transfer out DBETs escrowed within node wallet to user
                 require(
                     token.transferFrom(
-                        dbetNode.nodeWallet,
+                        address(dbetNode.nodeWallet()),
                         user,
                         quests[id].prize
                     ),
@@ -345,7 +345,7 @@ LibQuest {
                 );
                 // Record prize distribution for successfully completing a quest
                 require(
-                    NodeWallet(dbetNode.nodeWallet)
+                    dbetNode.nodeWallet()
                         .completeQuest(
                             quests[id].nodeId,
                             id,
@@ -469,7 +469,7 @@ LibQuest {
             // Transfer out DBETs escrowed within node wallet to user
             require(
                 token.transferFrom(
-                    dbetNode.nodeWallet,
+                    address(dbetNode.nodeWallet()),
                     user,
                     quests[id].entryFee
                 ),
@@ -477,13 +477,13 @@ LibQuest {
             );
             // Remove entry fee from node wallet quest fee records
             require(
-                NodeWallet(dbetNode.nodeWallet)
-                .claimRefund(
-                    quests[id].nodeId,
-                    id,
-                    quests[id].entryFee
-                ),
-                "ERROR_NODE_WALLET_CLAIM_REFUND"
+                dbetNode.nodeWallet()
+                    .claimRefund(
+                        quests[id].nodeId,
+                        id,
+                        quests[id].entryFee
+                    ),
+                    "ERROR_NODE_WALLET_CLAIM_REFUND"
             );
         } else
             require(
@@ -538,7 +538,7 @@ LibQuest {
             // Transfer out DBETs escrowed within node wallet to user
             require(
                 token.transferFrom(
-                    dbetNode.nodeWallet,
+                    address(dbetNode.nodeWallet()),
                     user,
                     quests[id].entryFee
                 ),
@@ -546,13 +546,13 @@ LibQuest {
             );
             // Remove entry fee from node wallet quest fee records
             require(
-                NodeWallet(dbetNode.nodeWallet)
-                .claimRefund(
-                    quests[id].nodeId,
-                    id,
-                    quests[id].entryFee
-                ),
-                "ERROR_NODE_WALLET_CLAIM_REFUND"
+                dbetNode.nodeWallet()
+                    .claimRefund(
+                        quests[id].nodeId,
+                        id,
+                        quests[id].entryFee
+                    ),
+                    "ERROR_NODE_WALLET_CLAIM_REFUND"
             );
         } else
             require(
@@ -575,12 +575,12 @@ LibQuest {
     /**
     * Returns whether an input node ID and owner is valid and active
     * @param id Unique node ID
-    * @param owner Address of node owner
+    * @param nodeOwner Address of node owner
     * @return Whether node is active
     */
     function isActiveNode(
         uint256 id,
-        address owner
+        address nodeOwner
     )
     public
     view
@@ -588,7 +588,7 @@ LibQuest {
         return (
             dbetNode.isUserNodeActivated(id) &&
             dbetNode.isUserNodeOwner(
-                owner,
+                nodeOwner,
                 id
             )
         );

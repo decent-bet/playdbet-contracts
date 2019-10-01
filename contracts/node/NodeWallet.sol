@@ -15,32 +15,32 @@ contract NodeWallet {
 
     // Prize fund per quest for a node
     // Node ID => (Quest ID => Prize fund)
-    mapping (uint256 => mapping (uint256 => uint256)) public prizeFund;
+    mapping (uint256 => mapping (bytes32 => uint256)) public prizeFund;
     // Fees collected per quest for a node
     // Node ID => (Quest ID => Fees)
-    mapping (uint256 => mapping (uint256 => uint256)) public questFees;
+    mapping (uint256 => mapping (bytes32 => uint256)) public questFees;
     // Total quest entry fees collected for a node
     // Node ID => Quest entry fees
-    mapping (uint256 => uint256) public totalQuestEntryFees = 0;
+    mapping (uint256 => uint256) public totalQuestEntryFees;
     // Total completed quest entry fees
     // Node ID => Quest entry fees
-    mapping (uint256 => uint256) public totalCompletedQuestEntryFees = 0;
+    mapping (uint256 => uint256) public totalCompletedQuestEntryFees;
 
     event LogSetPrizeFund(
         uint256 nodeId,
-        uint256 questId
+        bytes32 questId
     );
     event LogAddQuestEntryFee(
         uint256 nodeId,
-        uint256 questId
+        bytes32 questId
     );
     event LogAddCompletedQuestEntryFee(
         uint256 nodeId,
-        uint256 questId
+        bytes32 questId
     );
     event LogClaimRefund(
         uint256 nodeId,
-        uint256 questId
+        bytes32 questId
     );
     event LogWithdrawCompletedQuestEntryFees(
         uint256 nodeId,
@@ -52,7 +52,7 @@ contract NodeWallet {
         dbetNode = DBETNode(msg.sender);
         // Allow the quest contract to transfer tokens on behalf of this contract
         require(
-            ERC20(dbetNode.token).approve(
+            ERC20(address(dbetNode.token)).approve(
                 address(dbetNode.quest),
                 // Max uint256
                 (2 ** 256) - 1
@@ -69,7 +69,7 @@ contract NodeWallet {
     */
     function setPrizeFund(
         uint256 nodeId,
-        uint256 questId,
+        bytes32 questId,
         uint256 fund
     )
     public
@@ -97,7 +97,7 @@ contract NodeWallet {
     */
     function addQuestEntryFee(
         uint256 nodeId,
-        uint256 questId,
+        bytes32 questId,
         uint256 fee
     )
     public
@@ -127,7 +127,7 @@ contract NodeWallet {
     */
     function completeQuest(
         uint256 nodeId,
-        uint256 questId,
+        bytes32 questId,
         uint256 fee
     )
     public
@@ -155,7 +155,7 @@ contract NodeWallet {
     */
     function claimRefund(
         uint256 nodeId,
-        uint256 questId,
+        bytes32 questId,
         uint256 fee
     )
     public
@@ -197,7 +197,7 @@ contract NodeWallet {
             "INVALID_NODE_STATUS"
         );
         require(
-            ERC20(dbetNode.token).transfer(
+            ERC20(address(dbetNode.token)).transfer(
                 msg.sender,
                 totalCompletedQuestEntryFees[nodeId]
             ),

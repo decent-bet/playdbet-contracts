@@ -437,9 +437,8 @@ LibDBETNode {
             id,
             entryIndex,
             finalStanding,
-            tournaments[id].details.prizeType ==
-            uint8(TournamentPrizeType.STANDARD) ?
-            prizeTables[tournaments[id].details.poolPrizeTable][finalStanding] :
+            tournaments[id].details.prizeType == uint8(TournamentPrizeType.STANDARD) ?
+            prizeTables[tournaments[id].details.prizeTable][finalStanding] :
             0,
             prizeMoney
         );

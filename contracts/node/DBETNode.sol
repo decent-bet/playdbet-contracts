@@ -187,7 +187,7 @@ LibDBETNode {
         uint256 tokenThreshold,
         uint256 timeThreshold,
         uint256 maxCount,
-        uint8[] rewards
+        uint8[] memory rewards
     )
     public
     returns (bool) {
@@ -223,17 +223,14 @@ LibDBETNode {
             "INVALID_REWARDS_ARRAY"
         );
         // Validate rewards array
-        mapping (uint8 => bool) nodeRewards;
         for (uint256 i = 0; i < rewards.length; i++) {
+            // TODO: Check for duplicates
             require(
-                // Check if duplicate
-                !nodeRewards[rewards[i]] &&
                 // Check if within valid rewards range
                 rewards[i] >= 0 &&
                 rewards[i] <= uint8(Rewards.CREATE_TOURNAMENT),
                 "INVALID_REWARDS_ARRAY"
             );
-            nodeRewards[rewards[i]] = true;
         }
         nodes[nodeCount] = Node({
             name: name,
@@ -304,7 +301,7 @@ LibDBETNode {
     )
     public
     view
-    returns (bool) {
+    returns (address) {
         return userNodes[id].owner;
     }
 
