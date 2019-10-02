@@ -151,7 +151,7 @@ contract('Quest', accounts => {
         const questData = await quest.quests(id)
 
         assert.equal(
-            questData[2],
+            questData[4],
             true
         )
     })
@@ -573,7 +573,7 @@ contract('Quest', accounts => {
         const _quest = await quest.quests(id)
         const QUEST_STATUS_CANCELLED = 2
         assert.equal(
-            _quest[2],
+            _quest[4],
             QUEST_STATUS_CANCELLED
         )
     })

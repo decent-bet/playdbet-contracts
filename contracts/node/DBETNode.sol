@@ -244,8 +244,8 @@ LibDBETNode {
         // Must be valid rewards array
         require(
             rewards.length > 0 &&
-            rewards.length <= uint8(Rewards.CREATE_TOURNAMENT),
-            "INVALID_REWARDS_ARRAY"
+            rewards.length <= uint8(Rewards.CREATE_TOURNAMENT) + 1,
+            "INVALID_REWARDS_ARRAY_LENGTH"
         );
         // Validate rewards array
         for (uint256 i = 0; i < rewards.length; i++) {
