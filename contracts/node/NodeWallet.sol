@@ -198,7 +198,7 @@ contract NodeWallet {
         );
         uint256 fees = totalCompletedQuestEntryFees[nodeId];
         // Set fees to 0
-        totalCompletedQuestEntryFees = 0;
+        totalCompletedQuestEntryFees[nodeId] = 0;
         require(
             ERC20(address(dbetNode.token)).transfer(
                 msg.sender,

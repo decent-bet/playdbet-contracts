@@ -587,6 +587,7 @@ LibQuest {
     returns (bool) {
         return (
             dbetNode.isUserNodeActivated(id) &&
+            dbetNode.isQuestNode(id) &&
             dbetNode.isUserNodeOwner(
                 nodeOwner,
                 id

@@ -295,6 +295,7 @@ LibDBETNode {
     /**
     * Returns node owner for a given node ID
     * @param id Unique user node ID
+    * @return Returns owner address of a node
     */
     function getNodeOwner(
         uint256 id
@@ -303,6 +304,25 @@ LibDBETNode {
     view
     returns (address) {
         return userNodes[id].owner;
+    }
+
+    /**
+    * Returns whether a node has quest rewards
+    * @param id Unique user node ID
+    * @return Whether node has quest rewardsk
+    */
+    function isQuestNode(
+        uint256 id
+    )
+    public
+    view
+    returns (bool) {
+        bool _isQuestNode = false;
+        for (uint256 i = 0; i < nodes[userNodes[id].node].rewards.length; i++) {
+            if (nodes[userNodes[id].node].rewards[i] == uint8(Rewards.CREATE_QUEST))
+                _isQuestNode = true;
+        }
+        return _isQuestNode;
     }
 
 }
