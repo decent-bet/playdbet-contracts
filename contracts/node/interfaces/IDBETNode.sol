@@ -28,13 +28,17 @@ contract IDBETNode {
     * Adds a new node
     * @param name Name of node
     * @param tokenThreshold Minimum of tokens required to be held before node can be activated
-    * @param timeThreshold Minimum of time tokens need to be held before node can be activated
+    * @param timeThreshold Minimum time tokens need to be held before node can be activated
+    * @param maxCount Maximum number of nodes of this type that can be active at a time
+    * @param rewards Array of reward IDs linked to this node type
     * @return Whether node was added
     */
     function addNode(
         string memory name,
         uint256 tokenThreshold,
-        uint256 timeThreshold
+        uint256 timeThreshold,
+        uint256 maxCount,
+        uint8[] memory rewards
     )
     public
     returns (bool);

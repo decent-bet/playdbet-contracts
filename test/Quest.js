@@ -1,4 +1,5 @@
 const BigNumber = require('bignumber.js')
+const timeTraveler = require('ganache-time-traveler')
 const Web3 = require('web3')
 
 const contracts = require('./utils/contracts')
@@ -20,7 +21,9 @@ let user4
 
 const web3 = new Web3()
 
-const timeTravel = async timeDiff => await utils.timeTravel(timeDiff)
+const timeTravel = async timeDiff => {
+    await timeTraveler.advanceTime(timeDiff)
+}
 
 const getValidQuestParams = () => {
     const id = web3.utils.fromUtf8('123')

@@ -6,6 +6,7 @@ import "./libs/LibDBETNode.sol";
 import "../admin/Admin.sol";
 import "../quest/Quest.sol";
 import "../token/ERC20.sol";
+import "../tournament/Tournament.sol";
 import "./NodeWallet.sol";
 
 import "../utils/SafeMath.sol";
@@ -23,6 +24,8 @@ LibDBETNode {
     Admin public admin;
     // Quest contract
     Quest public quest;
+    // Tournament contract
+    Tournament public tournament;
     // Token contract
     ERC20 public token;
     // NodeWallet contract
@@ -41,6 +44,10 @@ LibDBETNode {
     // Maps addresses to node types and a bool representing whether the user owns the node type
     mapping (address => mapping (uint256 => bool)) nodeOwnership;
 
+    event LogSetContracts(
+        address quest,
+        address tournament
+    );
     event LogCreateUserNode(
         uint256 id
     );
@@ -53,15 +60,33 @@ LibDBETNode {
 
     constructor(
         address _admin,
-        address _token,
-        address _quest
+        address _token
     )
     public {
         owner = msg.sender;
         admin = Admin(_admin);
         token = ERC20(_token);
+    }
+
+    /**
+    * Sets the quest,  contract address
+    * @param _quest Quest contract address
+    * @param _tournament Tournament contract address
+    * @return Whether the contract addresses were set
+    */
+    function setContracts(
+        address _quest,
+        address _tournament
+    )
+    public
+    returns (bool) {
         quest = Quest(_quest);
+        tournament = Tournament(_tournament);
         nodeWallet = new NodeWallet();
+        emit LogSetContracts(
+            _quest,
+            _tournament
+        );
     }
 
     /**

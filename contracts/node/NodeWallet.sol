@@ -52,11 +52,21 @@ contract NodeWallet {
         dbetNode = DBETNode(msg.sender);
         // Allow the quest contract to transfer tokens on behalf of this contract
         require(
-            ERC20(address(dbetNode.token)).approve(
-                address(dbetNode.quest),
+            ERC20(address(dbetNode.token())).approve(
+                address(dbetNode.quest()),
                 // Max uint256
                 (2 ** 256) - 1
-            )
+            ),
+            "ERROR_APPROVE_TOKENS_QUEST_CONTRACT"
+        );
+        // Allow the tournament contract to transfer tokens on behalf of this contract
+        require(
+            ERC20(address(dbetNode.token())).approve(
+                address(dbetNode.tournament()),
+                // Max uint256
+                (2 ** 256) - 1
+            ),
+                "ERROR_APPROVE_TOKENS_TOURNAMENT_CONTRACT"
         );
     }
 
