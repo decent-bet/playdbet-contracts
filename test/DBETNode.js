@@ -3,6 +3,9 @@ const timeTraveler = require('ganache-time-traveler')
 
 const contracts = require('./utils/contracts')
 const utils = require('./utils/utils')
+const {
+    getNode
+} = require('./utils/nodes')
 
 let admin
 let dbetNode
@@ -14,34 +17,8 @@ let user2
 
 const web3 = utils.getWeb3()
 
-const REWARD_INCREASED_PRIZE_PAYOUTS = 0
-const REWARD_INCREASED_REFER_A_FRIEND = 1
-const REWARD_CREATE_QUEST = 2
-const REWARD_CREATE_PRIVATE_QUEST = 3
-const REWARD_CREATE_WHITELIST_QUEST = 4
-const REWARD_CREATE_TOURNAMENT = 5
-
-const rewards = [
-    REWARD_INCREASED_PRIZE_PAYOUTS,
-    REWARD_INCREASED_REFER_A_FRIEND,
-    REWARD_CREATE_QUEST,
-    REWARD_CREATE_PRIVATE_QUEST,
-    REWARD_CREATE_WHITELIST_QUEST,
-    REWARD_CREATE_TOURNAMENT
-]
-
 const timeTravel = async timeDiff => {
     await timeTraveler.advanceTime(timeDiff)
-}
-
-const _getNode = () => {
-    return {
-        name: 'House',
-        tokenThreshold: web3.utils.toWei('100000', 'ether'), // 100k DBETs
-        timeThreshold: 86400 * 7, // 1 week
-        maxCount: 10,
-        rewards
-    }
 }
 
 contract('DBETNode', accounts => {
@@ -62,7 +39,7 @@ contract('DBETNode', accounts => {
             timeThreshold,
             maxCount,
             rewards
-        } = _getNode()
+        } = getNode()
 
         await utils.assertFail(
             dbetNode.addNode(
@@ -85,7 +62,7 @@ contract('DBETNode', accounts => {
             timeThreshold,
             maxCount,
             rewards
-        } = _getNode()
+        } = getNode()
 
         await dbetNode.addNode(
             name,
@@ -106,7 +83,7 @@ contract('DBETNode', accounts => {
     it('does not allow users without an approved DBET balance to create a node', async () => {
         const {
             tokenThreshold
-        } = _getNode()
+        } = getNode()
 
         const _assertFailCreateNode = () => {
             utils.assertFail(
@@ -169,7 +146,7 @@ contract('DBETNode', accounts => {
     it('allows users to destroy valid nodes owned by them', async () => {
         const {
             tokenThreshold
-        } = _getNode()
+        } = getNode()
         const preDestroyBalance = await token.balanceOf(user1)
         await dbetNode.destroy(
             0,
@@ -207,7 +184,10 @@ contract('DBETNode', accounts => {
     })
 
     it('nodes are active if they meet time threshold', async () => {
-        await timeTravel(86400 * 7)
+        const {
+            timeThreshold
+        } = getNode()
+        await timeTravel(timeThreshold)
 
         const isUserNodeActivated = await dbetNode.isUserNodeActivated(1)
 

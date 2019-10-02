@@ -393,6 +393,43 @@ LibQuest {
     }
 
     /**
+    * Allows node holders to cancel node quests
+    * Admins are allowed to cancel node quests using `cancelQuest()` in-case nodes are destroyed without cancelling quests
+    * @param nodeId Unique node ID
+    * @param id Unique quest ID
+    * @return whether quest was cancelled
+    */
+    function cancelNodeQuest(
+        uint256 nodeId,
+        bytes32 id
+    )
+    public
+    returns (bool) {
+        // Allow only active node holders to cancel their nodes' quests
+        require(
+            isActiveNode(
+                nodeId,
+                msg.sender
+            ),
+            "INVALID_NODE"
+        );
+        // Quest must be added by node ID
+        require(
+            quests[id].isNode &&
+            quests[id].nodeId == nodeId,
+            "INVALID_QUEST_NODE_OWNERSHIP"
+        );
+        // Quest must be active
+        require(quests[id].status == uint8(QuestStatus.ACTIVE), "INVALID_QUEST_STATUS");
+        // Cancel quest
+        quests[id].status = uint8(QuestStatus.CANCELLED);
+        // Emit cancel quest event
+        emit LogCancelQuest(
+            id
+        );
+    }
+
+    /**
     * Cancels an individual quest entry
     * @param id Unique quest ID
     * @param user Address of user
@@ -555,6 +592,7 @@ LibQuest {
                     "ERROR_NODE_WALLET_CLAIM_REFUND"
             );
         } else
+        // Transfer out DBETs escrowed within platform wallet to user
             require(
                 token.transferFrom(
                     admin.platformWallet(),

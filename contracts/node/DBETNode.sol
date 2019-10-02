@@ -91,8 +91,8 @@ LibDBETNode {
 
     /**
     * Create a new DBET user node by depositing the required token threshold
-    * @param node unique ID of node
-    * @return whether node was created
+    * @param node Unique ID of node type
+    * @return Whether node was created
     */
     function create(
         uint256 node
