@@ -160,7 +160,7 @@ LibQuest {
         require(
             entryFee > 0 &&
             prize > 0 &&
-            maxEntries >= 0,
+            maxEntries > 0,
             "INVALID_QUEST_DETAILS"
         );
         // Check if user has set an allowance of `maxEntries * prize` DBETs for this contract

@@ -86,7 +86,7 @@ contract NodeWallet {
     returns (bool) {
         // Only callable from within the quest contract
         require(
-            msg.sender == address(dbetNode.quest),
+            msg.sender == address(dbetNode.quest()),
             "INVALID_SENDER"
         );
         // Set in prize fund mapping
@@ -96,6 +96,7 @@ contract NodeWallet {
             nodeId,
             questId
         );
+        return true;
     }
 
     /**
@@ -114,7 +115,7 @@ contract NodeWallet {
     returns (bool) {
         // Only callable from within the quest contract
         require(
-            msg.sender == address(dbetNode.quest),
+            msg.sender == address(dbetNode.quest()),
             "INVALID_SENDER"
         );
         // Add to quest fees mapping
@@ -126,6 +127,7 @@ contract NodeWallet {
             nodeId,
             questId
         );
+        return true;
     }
 
     /**
@@ -144,7 +146,7 @@ contract NodeWallet {
     returns (bool) {
         // Only callable from within the quest contract
         require(
-            msg.sender == address(dbetNode.quest),
+            msg.sender == address(dbetNode.quest()),
             "INVALID_SENDER"
         );
         // Add to total completed quest fees
@@ -154,6 +156,7 @@ contract NodeWallet {
             nodeId,
             questId
         );
+        return true;
     }
 
     /**
@@ -172,7 +175,7 @@ contract NodeWallet {
     returns (bool) {
         // Only callable from within the quest contract
         require(
-            msg.sender == address(dbetNode.quest),
+            msg.sender == address(dbetNode.quest()),
             "INVALID_SENDER"
         );
         // Remove from quest fees mapping
@@ -184,6 +187,7 @@ contract NodeWallet {
             nodeId,
             questId
         );
+        return true;
     }
 
     /**
@@ -220,6 +224,7 @@ contract NodeWallet {
             nodeId,
             fees
         );
+        return true;
     }
 
 }

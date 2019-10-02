@@ -170,7 +170,6 @@ contract('Quest', accounts => {
         )
 
         const questData = await quest.quests(id)
-
         assert.equal(
             questData[4],
             true
@@ -708,9 +707,16 @@ contract('Quest', accounts => {
             rewards
         )
 
-        // Approve tokens to be transferred on behalf of user from DBETNode contract
+        // Approve tokens to be transferred on behalf of user from DBETNode and Quest contracts
         await token.approve(
             dbetNode.address,
+            utils.MAX_VALUE,
+            {
+                from: nodeHolder
+            }
+        )
+        await token.approve(
+            quest.address,
             utils.MAX_VALUE,
             {
                 from: nodeHolder
@@ -899,10 +905,8 @@ contract('Quest', accounts => {
                 from: nodeHolder
             }
         )
-        // Admin cancels quest
-        const nodeId = 0
-        await quest.cancelNodeQuest(
-            nodeId,
+        // Admin cancels quest - admins do not need to call `cancelNodeQuest()`
+        await quest.cancelQuest(
             id
         )
     })
