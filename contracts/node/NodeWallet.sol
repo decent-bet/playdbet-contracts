@@ -2,11 +2,14 @@ pragma solidity 0.5.8;
 
 import "./DBETNode.sol";
 
+import "./libs/LibNodeWallet.sol";
+
 import "../token/ERC20.sol";
 
 import "../utils/SafeMath.sol";
 
-contract NodeWallet {
+contract NodeWallet is
+LibNodeWallet {
 
     using SafeMath for uint256;
 
@@ -14,35 +17,39 @@ contract NodeWallet {
     DBETNode public dbetNode;
 
     // Prize fund per quest for a node
-    // Node ID => (Quest ID => Prize fund)
-    mapping (uint256 => mapping (bytes32 => uint256)) public prizeFund;
-    // Fees collected per quest for a node
-    // Node ID => (Quest ID => Fees)
-    mapping (uint256 => mapping (bytes32 => uint256)) public questFees;
-    // Total quest entry fees collected for a node
-    // Node ID => Quest entry fees
-    mapping (uint256 => uint256) public totalQuestEntryFees;
-    // Total completed quest entry fees
-    // Node ID => Quest entry fees
-    mapping (uint256 => uint256) public totalCompletedQuestEntryFees;
+    // Offering type => (Node ID => (Quest ID => Prize fund))
+    mapping (uint8 => mapping(uint256 => mapping (bytes32 => uint256))) public prizeFund;
+    // Fees collected per offering event for a node
+    // Offering type => (Node ID => (Quest ID => Fees)
+    mapping (uint8 => mapping(uint256 => mapping (bytes32 => uint256))) public fees;
+    // Total entry fees collected for a node
+    // Offering type => (Node ID => entry fees)
+    mapping (uint8 => mapping(uint256 => uint256)) public totalEntryFees;
+    // Total completed entry fees
+    // Offering type => (Node ID => Completed entry fees)
+    mapping (uint8 => mapping(uint256 => uint256)) public totalCompletedEntryFees;
 
     event LogSetPrizeFund(
+        uint8 offeringType,
         uint256 nodeId,
-        bytes32 questId
+        bytes32 id
     );
-    event LogAddQuestEntryFee(
+    event LogAddEntryFee(
+        uint8 offeringType,
         uint256 nodeId,
-        bytes32 questId
+        bytes32 id
     );
-    event LogAddCompletedQuestEntryFee(
+    event LogAddCompletedEntryFee(
+        uint8 offeringType,
         uint256 nodeId,
-        bytes32 questId
+        bytes32 id
     );
     event LogClaimRefund(
+        uint8 offeringType,
         uint256 nodeId,
-        bytes32 questId
+        bytes32 id
     );
-    event LogWithdrawCompletedQuestEntryFees(
+    event LogWithdrawCompletedEntryFees(
         uint256 nodeId,
         uint256 amount
     );
@@ -71,131 +78,171 @@ contract NodeWallet {
     }
 
     /**
-    * Sets the available prize fund for a quest
+    * Sets the available prize fund for an offering
+    * @param offeringType Quest or tournament
     * @param nodeId Unique user node ID
-    * @param questId Unique quest ID
+    * @param id Unique offering event ID
     * @param fund Prize fund for the quest
     * @return Whether prize fund for quest was recorded
     */
     function setPrizeFund(
+        uint8 offeringType,
         uint256 nodeId,
-        bytes32 questId,
+        bytes32 id,
         uint256 fund
     )
     public
     returns (bool) {
-        // Only callable from within the quest contract
+        // Offering type must be valid
         require(
-            msg.sender == address(dbetNode.quest()),
+            isValidOfferingType(
+                offeringType
+            ),
+            "INVALID_OFFERING_TYPE"
+        );
+        // Only callable from within the offering types' contract
+        require(
+            msg.sender == getOfferingContractAddress(offeringType),
             "INVALID_SENDER"
         );
         // Set in prize fund mapping
-        prizeFund[nodeId][questId] = fund;
+        prizeFund[offeringType][nodeId][id] = fund;
         // Emit log set prize fund event
         emit LogSetPrizeFund(
+            offeringType,
             nodeId,
-            questId
+            id
         );
         return true;
     }
 
     /**
-    * Add to total quest entry fees
+    * Add to total entry fees
+    * @param offeringType Quest or tournament
     * @param nodeId Unique user node ID
-    * @param questId Unique quest ID
-    * @param fee Entry fee for quest
-    * @return Whether quest entry was recorded
+    * @param id Unique offering event ID
+    * @param fee Entry fee for offering event
+    * @return Whether entry fee was recorded
     */
-    function addQuestEntryFee(
+    function addEntryFee(
+        uint8 offeringType,
         uint256 nodeId,
-        bytes32 questId,
+        bytes32 id,
         uint256 fee
     )
     public
     returns (bool) {
-        // Only callable from within the quest contract
+        // Offering type must be valid
         require(
-            msg.sender == address(dbetNode.quest()),
+            isValidOfferingType(
+                offeringType
+            ),
+            "INVALID_OFFERING_TYPE"
+        );
+        // Only callable from within the offering types' contract
+        require(
+            msg.sender == getOfferingContractAddress(offeringType),
             "INVALID_SENDER"
         );
-        // Add to quest fees mapping
-        questFees[nodeId][questId] = questFees[nodeId][questId].add(fee);
-        // Add to total quest fees
-        totalQuestEntryFees[nodeId] = totalQuestEntryFees[nodeId].add(fee);
+        // Add to fees mapping
+        fees[offeringType][nodeId][id] = fees[offeringType][nodeId][id].add(fee);
+        // Add to total entry fees
+        totalEntryFees[offeringType][nodeId] = totalEntryFees[offeringType][nodeId].add(fee);
         // Emit log add quest entry fee event
-        emit LogAddQuestEntryFee(
+        emit LogAddEntryFee(
+            offeringType,
             nodeId,
-            questId
+            id
         );
         return true;
     }
 
     /**
-    * Add to total completed fees on quest completion
-    * @param nodeId Node ID
-    * @param questId Unique quest ID
-    * @param fee Entry fee for quest
-    * @return Whether completed quest was recorded
+    * Add to total completed fees on offering event completion
+    * @param offeringType Quest or tournament
+    * @param nodeId Unique user node ID
+    * @param id Unique offering event ID
+    * @param fee Entry fee for offering event
+    * @return Whether completed offering event was recorded
     */
-    function completeQuest(
+    function completeEvent(
+        uint8 offeringType,
         uint256 nodeId,
-        bytes32 questId,
+        bytes32 id,
         uint256 fee
     )
     public
     returns (bool) {
-        // Only callable from within the quest contract
+        // Offering type must be valid
         require(
-            msg.sender == address(dbetNode.quest()),
+            isValidOfferingType(
+                offeringType
+            ),
+            "INVALID_OFFERING_TYPE"
+        );
+        // Only callable from within the offering types' contract
+        require(
+            msg.sender == getOfferingContractAddress(offeringType),
             "INVALID_SENDER"
         );
-        // Add to total completed quest fees
-        totalCompletedQuestEntryFees[nodeId] = totalCompletedQuestEntryFees[nodeId].add(fee);
-        // Emit log add quest entry fee event
-        emit LogAddCompletedQuestEntryFee(
+        // Add to total completed fees
+        totalCompletedEntryFees[offeringType][nodeId] = totalCompletedEntryFees[offeringType][nodeId].add(fee);
+        // Emit log add entry fee event
+        emit LogAddCompletedEntryFee(
+            offeringType,
             nodeId,
-            questId
+            id
         );
         return true;
     }
 
     /**
-    * Claim refund for an active quest entry
-    * @param nodeId Node ID
-    * @param questId Unique quest ID
-    * @param fee Entry fee for quest
+    * Claim refund for an active offering event entry
+    * @param offeringType Quest or tournament
+    * @param nodeId Unique user node ID
+    * @param id Unique offering event ID
+    * @param fee Entry fee for offering event
     * @return Whether refund claim was recorded
     */
     function claimRefund(
+        uint8 offeringType,
         uint256 nodeId,
-        bytes32 questId,
+        bytes32 id,
         uint256 fee
     )
     public
     returns (bool) {
-        // Only callable from within the quest contract
+        // Offering type must be valid
         require(
-            msg.sender == address(dbetNode.quest()),
+            isValidOfferingType(
+                offeringType
+            ),
+            "INVALID_OFFERING_TYPE"
+        );
+        // Only callable from within the offering types' contract
+        require(
+            msg.sender == getOfferingContractAddress(offeringType),
             "INVALID_SENDER"
         );
         // Remove from quest fees mapping
-        questFees[nodeId][questId] = questFees[nodeId][questId].sub(fee);
-        // Remove from total quest fees
-        totalQuestEntryFees[nodeId] = totalQuestEntryFees[nodeId].sub(fee);
+        fees[offeringType][nodeId][id] = fees[offeringType][nodeId][id].sub(fee);
+        // Remove from total entry fees
+        totalEntryFees[offeringType][nodeId] = totalEntryFees[offeringType][nodeId].sub(fee);
         // Emit log claim refund event
         emit LogClaimRefund(
+            offeringType,
             nodeId,
-            questId
+            id
         );
         return true;
     }
 
     /**
-    * Withdraw fees from completed quest entries
+    * Withdraw fees from completed offering event entries
     * @param nodeId Unique node ID
     * @return Whether tokens were withdrawn
     */
-    function withdrawCompletedQuestEntryFees(
+    function withdrawCompletedEntryFees(
         uint256 nodeId
     )
     public
@@ -210,25 +257,62 @@ contract NodeWallet {
             dbetNode.isUserNodeActivated(nodeId),
             "INVALID_NODE_STATUS"
         );
-        uint256 fees = totalCompletedQuestEntryFees[nodeId];
+        uint256 questEntryFees = totalCompletedEntryFees[uint8(OfferingType.QUEST)][nodeId];
+        uint256 tournamentEntryFees= totalCompletedEntryFees[uint8(OfferingType.TOURNAMENT)][nodeId];
+        uint256 totalFees = questEntryFees.add(tournamentEntryFees);
         require(
-            fees > 0,
-            "COMPLETED_QUEST_ENTRY_FEES_UNAVAILABLE"
+            totalFees > 0,
+            "COMPLETED_ENTRY_FEES_UNAVAILABLE"
         );
         // Set fees to 0
-        totalCompletedQuestEntryFees[nodeId] = 0;
+        totalCompletedEntryFees[uint8(OfferingType.QUEST)][nodeId] = 0;
+        totalCompletedEntryFees[uint8(OfferingType.TOURNAMENT)][nodeId] = 0;
         require(
             ERC20(address(dbetNode.token())).transfer(
                 msg.sender,
-                fees
+                totalFees
             ),
             "ERROR_TOKEN_TRANSFER"
         );
-        emit LogWithdrawCompletedQuestEntryFees(
+        emit LogWithdrawCompletedEntryFees(
             nodeId,
-            fees
+            totalFees
         );
         return true;
+    }
+
+    /**
+    * Returns whether an offering type is valid
+    * @param offeringType Offering type
+    * @return whether offering type is valid
+    */
+    function isValidOfferingType(
+        uint8 offeringType
+    )
+    public
+    view
+    returns (bool) {
+        return (
+            offeringType == uint8(OfferingType.QUEST) ||
+            offeringType == uint8(OfferingType.TOURNAMENT)
+        );
+    }
+
+    /**
+    * Returns the contract address for an offering type
+    * @param offeringType Offering type
+    * @return offering contract address
+    */
+    function getOfferingContractAddress(
+        uint8 offeringType
+    )
+    public
+    view
+    returns (address) {
+        if (offeringType == uint8(OfferingType.QUEST))
+            return address(dbetNode.quest());
+        else if (offeringType == uint8(OfferingType.TOURNAMENT))
+            return address(dbetNode.tournament());
     }
 
 }

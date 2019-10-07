@@ -5,6 +5,7 @@ import "./interfaces/ITournament.sol";
 import "./libs/LibTournament.sol";
 
 import "../node/libs/LibDBETNode.sol";
+import "../node/libs/LibNodeWallet.sol";
 
 import "../admin/Admin.sol";
 import "../node/DBETNode.sol";
@@ -15,7 +16,8 @@ import "../utils/SafeMath.sol";
 contract Tournament is
 ITournament,
 LibTournament,
-LibDBETNode {
+LibDBETNode,
+LibNodeWallet {
 
     using SafeMath for uint256;
 
@@ -211,6 +213,100 @@ LibDBETNode {
     }
 
     /**
+    * Creates a tournament using an active node that users can enter
+    * @param nodeId Unique node ID in DBETNode contract
+    * @param entryFee Fee to enter the tournament
+    * @param entryLimit Entry limit for each unique address
+    * @param minEntries The minimum number of entries for the tournament
+    * @param maxEntries The maximum number of entries for the tournament
+    * @param rakePercent Percentage of the prize pool retained by Decent.bet
+    * @param prizeType Type of prize for tournament
+    * @param prizeTable Unique ID of prize table to be used for the tournament
+    * @return Unique ID of the created tournament
+    */
+    function createNodeTournament(
+        uint256 nodeId,
+        uint256 entryFee,
+        uint256 entryLimit,
+        uint256 minEntries,
+        uint256 maxEntries,
+        uint256 rakePercent,
+        uint8 prizeType,
+        bytes32 prizeTable
+    ) public returns (bytes32) {
+        // Allow only active node holders to add quests
+        require(
+            isActiveNode(
+                nodeId,
+                msg.sender
+            ),
+            "INVALID_NODE"
+        );
+        // Entry limit must be greater than 0
+        require(
+            entryLimit > 0,
+            "INVALID_ENTRY_LIMIT"
+        );
+        // Entry fee must be greater than 0
+        require(
+            entryFee > 0,
+            "INVALID_ENTRY_FEE"
+        );
+        // Min entries must be greater than 0 and less than or equal to max entries
+        require(
+            minEntries > 0 &&
+            minEntries <= maxEntries,
+            "INVALID_ENTRIES_RANGE"
+        );
+        // Rake percent must be greater than 0 and less than 100
+        require(
+            rakePercent > 0 &&
+            rakePercent < 100,
+            "INVALID_RAKE_PERCENT"
+        );
+        // Must be a valid prize type
+        require(
+            prizeType >= uint8(TournamentPrizeType.STANDARD) &&
+            prizeType <= uint8(TournamentPrizeType.FIFTY_FIFTY)
+        );
+        // If prize type is standard, prize table must be valid
+        if(prizeType == uint8(TournamentPrizeType.STANDARD))
+            require(prizeTables[prizeTable][0] != 0);
+
+        bytes32 id = keccak256(
+            abi.encode(
+                "tournament_",
+                entryFee,
+                entryLimit,
+                minEntries,
+                maxEntries,
+                rakePercent,
+                tournamentCount
+            )
+        );
+
+        // Assign params
+        tournaments[id].details = TournamentDetails({
+            entryFee: entryFee,
+            entryLimit: entryLimit,
+            minEntries: minEntries,
+            maxEntries: maxEntries,
+            prizeTable: prizeTable,
+            prizeType: prizeType,
+            rakePercent: rakePercent
+        });
+
+        tournaments[id].isNode = true;
+        tournaments[id].nodeId = nodeId;
+
+        // Emit log new tournament event
+        emit LogNewTournament(
+            id,
+            tournamentCount++
+        );
+    }
+
+    /**
     * Allows users to enter a tournament by paying the listed entry fee
     * @param id Unique ID of the tournament
     */
@@ -241,7 +337,7 @@ LibDBETNode {
         );
         // Cannot be over max entry count
         require(
-            tournaments[id].entries.length !=
+            tournaments[id].entries.length <=
             tournaments[id].details.maxEntries,
             "MAX_ENTRY_COUNT_EXCEEDED"
         );
@@ -251,15 +347,45 @@ LibDBETNode {
             token.allowance(msg.sender, address(this)) >= tournaments[id].details.entryFee,
             "INVALID_TOKEN_BALANCE_OR_ALLOWANCE"
         );
-        // Transfer tokens to contract
-        require(
-            token.transferFrom(
-                msg.sender,
-                address(this),
-                tournaments[id].details.entryFee
-            ),
-            "TOKEN_TRANSFER_ERROR"
-        );
+        if (tournaments[id].isNode) {
+            // Check if node is active
+            require(
+                isActiveNode(
+                    tournaments[id].nodeId,
+                    dbetNode.getNodeOwner(tournaments[id].nodeId)
+                ),
+                "INVALID_QUEST_NODE_STATUS"
+            );
+            // Transfer entry fee to node owner
+            require(
+                token.transferFrom(
+                    msg.sender,
+                    address(dbetNode.nodeWallet()),
+                    tournaments[id].details.entryFee
+                ),
+                "ERROR_TOKEN_TRANSFER"
+            );
+            // Add to tournament entry fees in node wallet
+            require(
+                dbetNode.nodeWallet().addEntryFee(
+                    uint8(OfferingType.TOURNAMENT),
+                    tournaments[id].nodeId,
+                    id,
+                    tournaments[id].details.entryFee
+                ),
+                "ERROR_NODE_WALLET_ADD_TOURNAMENT_ENTRY_FEE"
+            );
+        } else {
+            // Transfer tokens to contract
+            require(
+                token.transferFrom(
+                    msg.sender,
+                    address(this),
+                    tournaments[id].details.entryFee
+                ),
+                "TOKEN_TRANSFER_ERROR"
+            );
+        }
         uint256[] memory finalStandings;
         // Add to tournament
         tournaments[id].entries.push(TournamentEntry({
@@ -743,6 +869,29 @@ LibDBETNode {
         return tournaments[id]
                 .prizes[finalStanding]
                 [prizeWinnerIndex];
+    }
+
+    /**
+    * Returns whether an input node ID and owner is valid and active
+    * @param id Unique node ID
+    * @param nodeOwner Address of node owner
+    * @return Whether node is active
+    */
+    function isActiveNode(
+        uint256 id,
+        address nodeOwner
+    )
+    public
+    view
+    returns (bool) {
+        return (
+        dbetNode.isUserNodeActivated(id) &&
+        dbetNode.isTournamentNode(id) &&
+        dbetNode.isUserNodeOwner(
+            nodeOwner,
+            id
+        )
+        );
     }
 
 }

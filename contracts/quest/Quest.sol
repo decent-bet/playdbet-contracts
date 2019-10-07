@@ -7,12 +7,14 @@ import "../admin/Admin.sol";
 import "../token/ERC20.sol";
 import "../node/DBETNode.sol";
 import "../node/NodeWallet.sol";
+import "../node/libs/LibNodeWallet.sol";
 
 import "../utils/SafeMath.sol";
 
 contract Quest is
 IQuest,
-LibQuest {
+LibQuest,
+LibNodeWallet {
 
     using SafeMath for uint256;
 
@@ -126,7 +128,7 @@ LibQuest {
 
     /**
     * Allows nodes to add quests
-    * @param nodeId Uniqe node ID in DBETNode contract
+    * @param nodeId Unique node ID in DBETNode contract
     * @param id Unique quest ID
     * @param entryFee Amount to pay in DBETs for quest entry
     * @param prize Prize in DBETs to payout to winners
@@ -194,6 +196,7 @@ LibQuest {
         // Set prize fund for node quest in NodeWallet
         require(
             dbetNode.nodeWallet().setPrizeFund(
+                uint8(OfferingType.QUEST),
                 nodeId,
                 id,
                 maxEntries.mul(prize)
@@ -275,7 +278,8 @@ LibQuest {
             // Add to quest entry fees in node wallet
             require(
                 dbetNode.nodeWallet()
-                    .addQuestEntryFee(
+                    .addEntryFee(
+                        uint8(OfferingType.QUEST),
                         quests[id].nodeId,
                         id,
                         quests[id].entryFee
@@ -346,7 +350,8 @@ LibQuest {
                 // Record prize distribution for successfully completing a quest
                 require(
                     dbetNode.nodeWallet()
-                        .completeQuest(
+                        .completeEvent(
+                            uint8(OfferingType.QUEST),
                             quests[id].nodeId,
                             id,
                             quests[id].entryFee
@@ -516,6 +521,7 @@ LibQuest {
             require(
                 dbetNode.nodeWallet()
                     .claimRefund(
+                        uint8(OfferingType.QUEST),
                         quests[id].nodeId,
                         id,
                         quests[id].entryFee
@@ -585,6 +591,7 @@ LibQuest {
             require(
                 dbetNode.nodeWallet()
                     .claimRefund(
+                        uint8(OfferingType.QUEST),
                         quests[id].nodeId,
                         id,
                         quests[id].entryFee
