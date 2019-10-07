@@ -684,7 +684,7 @@ contract('Quest', accounts => {
         )
     })
 
-    it('throws if non-node holders add node quests', async () => {
+    it('throws if node holders add node quests before activation', async () => {
         // Transfer DBETs to node holder
         await token.transfer(
             nodeHolder,
@@ -729,9 +729,29 @@ contract('Quest', accounts => {
                 from: nodeHolder
             }
         )
-        // Move forward in time by `timeThreshold` to activate node
-        await timeTravel(timeThreshold)
+        // Try adding a node quest as a node holder before node activation
+        const {
+            id,
+            entryFee,
+            prize,
+            maxEntries
+        } = getValidNodeQuestParams()
 
+        await utils.assertFail(
+            quest.addNodeQuest(
+                0,
+                id,
+                entryFee,
+                prize,
+                maxEntries,
+                {
+                    from: nodeHolder
+                }
+            )
+        )
+    })
+
+    it('throws if non-node holders add node quests', async () => {
         // Try adding a node quest as a non-node holder
         const {
             id,
@@ -752,6 +772,12 @@ contract('Quest', accounts => {
     })
 
     it('throws if active node holders add node quests with invalid parameters', async () => {
+        const {
+            timeThreshold,
+        } = getNode()
+        // Move forward in time by `timeThreshold` to activate node
+        await timeTravel(timeThreshold)
+
         // Try adding a node quest as a node holder
         const {
             id,

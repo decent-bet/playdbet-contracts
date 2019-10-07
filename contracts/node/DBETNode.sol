@@ -334,7 +334,7 @@ LibDBETNode {
     /**
     * Returns whether a node has quest rewards
     * @param id Unique user node ID
-    * @return Whether node has quest rewardsk
+    * @return Whether node has quest rewards
     */
     function isQuestNode(
         uint256 id
@@ -348,6 +348,25 @@ LibDBETNode {
                 _isQuestNode = true;
         }
         return _isQuestNode;
+    }
+
+    /**
+    * Returns whether a node has tournament rewards
+    * @param id Unique user node ID
+    * @return Whether node has tournament rewards
+    */
+    function isTournamentNode(
+        uint256 id
+    )
+    public
+    view
+    returns (bool) {
+        bool _isTournamentNode = false;
+        for (uint256 i = 0; i < nodes[userNodes[id].node].rewards.length; i++) {
+            if (nodes[userNodes[id].node].rewards[i] == uint8(Rewards.CREATE_TOURNAMENT))
+                _isTournamentNode = true;
+        }
+        return _isTournamentNode;
     }
 
 }
