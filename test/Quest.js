@@ -5,7 +5,8 @@ const Web3 = require('web3')
 const contracts = require('./utils/contracts')
 const utils = require('./utils/utils')
 const {
-    getNode
+    getNode,
+    getValidNodeQuestParams
 } = require('./utils/nodes')
 
 const OUTCOME_SUCCESS = 2
@@ -39,20 +40,6 @@ const getValidQuestParams = () => {
         id,
         entryFee,
         prize
-    }
-}
-
-const getValidNodeQuestParams = () => {
-    const id = web3.utils.fromUtf8('456')
-    const entryFee = web3.utils.toWei('200', 'ether')
-    const prize = web3.utils.toWei('1000', 'ether')
-    const maxEntries = 100;
-
-    return {
-        id,
-        entryFee,
-        prize,
-        maxEntries
     }
 }
 

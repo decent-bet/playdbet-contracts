@@ -211,10 +211,14 @@ contract NodeWallet {
             "INVALID_NODE_STATUS"
         );
         uint256 fees = totalCompletedQuestEntryFees[nodeId];
+        require(
+            fees > 0,
+            "COMPLETED_QUEST_ENTRY_FEES_UNAVAILABLE"
+        );
         // Set fees to 0
         totalCompletedQuestEntryFees[nodeId] = 0;
         require(
-            ERC20(address(dbetNode.token)).transfer(
+            ERC20(address(dbetNode.token())).transfer(
                 msg.sender,
                 fees
             ),

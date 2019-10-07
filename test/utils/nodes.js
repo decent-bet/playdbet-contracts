@@ -24,6 +24,20 @@ const getNode = () => {
     }
 }
 
+const getValidNodeQuestParams = () => {
+    const id = web3.utils.fromUtf8('456')
+    const entryFee = web3.utils.toWei('200', 'ether')
+    const prize = web3.utils.toWei('1000', 'ether')
+    const maxEntries = 100;
+
+    return {
+        id,
+        entryFee,
+        prize,
+        maxEntries
+    }
+}
+
 module.exports = {
     REWARD_INCREASED_PRIZE_PAYOUTS,
     REWARD_INCREASED_REFER_A_FRIEND,
@@ -32,5 +46,6 @@ module.exports = {
     REWARD_CREATE_WHITELIST_QUEST,
     REWARD_CREATE_TOURNAMENT,
     rewards,
-    getNode
+    getNode,
+    getValidNodeQuestParams
 }
