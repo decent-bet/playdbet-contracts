@@ -425,7 +425,15 @@ LibDBETNode {
             // Set tournament status to completed
             tournaments[id].status = uint8(TournamentStatus.COMPLETED);
             if (tournaments[id].isNode) {
-                //
+                // Record rake fee transfer in node wallet
+                require(
+                    dbetNode.nodeWallet().addTournamentRakeFee(
+                        tournaments[id].nodeId,
+                        id,
+                        getRakeFee(id)
+                    ),
+                    "ERROR_ADDING_RAKE_FEE"
+                );
                 // Transfer tournament rake fee to node wallet
                 require(
                     token.transfer(
@@ -552,8 +560,8 @@ LibDBETNode {
             entryIndex,
             finalStanding,
             tournaments[id].details.prizeType == uint8(TournamentPrizeType.STANDARD) ?
-            prizeTables[tournaments[id].details.prizeTable][finalStanding] :
-            0,
+                prizeTables[tournaments[id].details.prizeTable][finalStanding] :
+                0,
             prizeMoney
         );
     }

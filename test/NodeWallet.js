@@ -7,18 +7,32 @@ const {
     getNode,
     getValidNodeQuestParams
 } = require('./utils/nodes')
+const {
+    PRIZE_TYPE_WINNER_TAKE_ALL,
+    PRIZE_TYPE_FIFTY_FIFTY,
+    getValidPrizeTable,
+    getValidTournamentParams,
+    getValidTournamentCompletionParams,
+    assertStandardClaimCalculations,
+    assertWinnerTakeAllClaimCalculations,
+    assertFiftyFiftyClaimCalculations
+} = require('./utils/tournament')
 
 let admin
 let dbetNode
 let nodeWallet
 let quest
 let token
+let tournament
 
 let owner
 let user1
 let user2
 let user3
 let nodeHolder
+
+let prizeTableId
+let standardTournamentId
 
 const web3 = utils.getWeb3()
 const nodeId = 0
@@ -43,6 +57,7 @@ contract('NodeWallet', accounts => {
         dbetNode = await contracts.DBETNode.deployed()
         quest = await contracts.Quest.deployed()
         token = await contracts.DBETVETToken.deployed()
+        tournament = await contracts.Tournament.deployed()
 
         nodeWallet = await contracts.NodeWallet.at(
             await dbetNode.nodeWallet()
@@ -208,6 +223,10 @@ contract('NodeWallet', accounts => {
         )
     })
 
+    it('throws if non-tournament address tries to call add tournament rake fee in node wallet contract', async () => {
+
+    })
+
     it('prize fund is set in node wallet contract on adding a quest in Quest contract', async () => {
         // Check if prize fund in node wallet for added quest is equal to (prize * maxEntries)
         const {
@@ -312,7 +331,6 @@ contract('NodeWallet', accounts => {
             ),
             true
         )
-
     })
 
     it('quest entry fee is subtracted from total quest entry fees on claim refund call in Quest contract', async () => {
@@ -356,12 +374,6 @@ contract('NodeWallet', accounts => {
             ),
             true
         )
-        const userQuestEntryCount = await quest.userQuestEntryCount(user3, id)
-        const userQuestEntry = await quest.userQuestEntries(
-            user3,
-            id,
-            userQuestEntryCount
-        )
         const preClaimTotalQuestEntryFees = await nodeWallet.totalQuestEntryFees(
             nodeId
         )
@@ -403,9 +415,6 @@ contract('NodeWallet', accounts => {
         const preWithdrawNodeHolderBalance = await token.balanceOf(
             nodeHolder
         )
-        const preWithdrawNodeWalletBalance = await token.balanceOf(
-            nodeWallet.address
-        )
         const preWithdrawTotalCompletedQuestEntryFees =
             await nodeWallet.totalCompletedQuestEntryFees(nodeId)
 
@@ -439,6 +448,276 @@ contract('NodeWallet', accounts => {
                 postWithdrawTotalCompletedQuestEntryFees
             ).isEqualTo(0),
             true
+        )
+    })
+
+    it('rake fee is added to total rake fee and tournament rake fee in node wallet contract on completing a tournament', async () => {
+        // Add prize table
+        const prizeTable = getValidPrizeTable()
+        const tx = await tournament.createPrizeTable(
+            prizeTable,
+            {
+                from: owner
+            }
+        )
+        prizeTableId = tx.logs[0].args.id
+        const prizeTableCount = await tournament.prizeTableCount()
+        assert.equal(
+            prizeTableCount.toString(),
+            '1'
+        )
+
+        // Create node tournament
+        const createNodeTournament = async (
+            _entryLimit,
+            _tournamentCountAtCreation
+        ) => {
+            const {
+                entryFee,
+                entryLimit,
+                minEntries,
+                maxEntries,
+                rakePercent,
+                prizeType
+            } = getValidTournamentParams(_entryLimit)
+
+            const tx = await tournament.createNodeTournament(
+                nodeId,
+                entryFee,
+                entryLimit,
+                minEntries,
+                maxEntries,
+                rakePercent,
+                prizeType,
+                prizeTableId,
+                {
+                    from: nodeHolder
+                }
+            )
+
+            let tournamentId = tx.logs[0].args.id
+            let tournamentCountAtCreation = tx.logs[0].args.count
+
+            assert.equal(
+                tournamentCountAtCreation,
+                _tournamentCountAtCreation
+            )
+
+            return tournamentId
+        }
+
+        // Standard tournaments
+        standardTournamentId = await createNodeTournament(
+            5,
+            0
+        )
+
+        const tokenAmount = web3.utils.toWei('100000', 'ether')
+        // Approve tokens for transfer for user1
+        await token.approve(
+            tournament.address,
+            tokenAmount,
+            {
+                from: user1
+            }
+        )
+        // Approve tokens for transfer for user2
+        await token.approve(
+            tournament.address,
+            tokenAmount,
+            {
+                from: user2
+            }
+        )
+        const enterTournament = async (
+            user,
+            tournamentId
+        ) => {
+            const preEnterTournamentUserBalance =
+                await token.balanceOf(user)
+            const tx = await tournament.enterTournament(
+                tournamentId,
+                {
+                    from: user
+                }
+            )
+            const postEnterTournamentUserBalance =
+                await token.balanceOf(user)
+
+            console.log(
+                'Tournament', tournamentId,
+                'User', user,
+                web3.utils.fromWei(preEnterTournamentUserBalance.toString(), 'ether'),
+                web3.utils.fromWei(postEnterTournamentUserBalance.toString(), 'ether')
+            )
+
+            assert.equal(
+                tx.logs[0].args.id,
+                tournamentId
+            )
+        }
+        // User 1 enters tournament
+        await enterTournament(
+            user1,
+            standardTournamentId
+        )
+        // User 2 enters tournament
+        await enterTournament(
+            user2,
+            standardTournamentId
+        )
+
+        const finalStandings = [[0], [1]]
+        const uniqueFinalStandings = 2
+
+        // Pre-completion rake fees
+        const preCompleteTournamentRakeFees = await nodeWallet.rakeFees(
+            nodeId,
+            standardTournamentId
+        )
+        const preCompleteTournamentTotalRakeFees = await nodeWallet.totalRakeFees(
+            nodeId
+        )
+        // Complete tournament
+        const completeTournamentTx = await tournament.completeTournament(
+            standardTournamentId,
+            finalStandings,
+            uniqueFinalStandings,
+            {
+                from: owner
+            }
+        )
+        assert.equal(
+            completeTournamentTx.logs[0].args.id,
+            standardTournamentId
+        )
+        // Post-completion rake fees
+        const postCompleteTournamentRakeFees = await nodeWallet.rakeFees(
+            nodeId,
+            standardTournamentId
+        )
+        const postCompleteTournamentTotalRakeFees = await nodeWallet.totalRakeFees(
+            nodeId
+        )
+        const {
+            entryFee
+        } = getValidTournamentParams()
+        const participantCount = 2
+        // Rake fee %
+        const rakeFeePercent = 0.2
+        const totalPrizePool = (entryFee * participantCount * (1 - rakeFeePercent))
+        const totalRakeFees = entryFee * participantCount * rakeFeePercent
+        console.log('tournament fees',
+            web3.utils.fromWei(preCompleteTournamentRakeFees.toString(), 'ether'),
+            web3.utils.fromWei(postCompleteTournamentRakeFees.toString(), 'ether'),
+            web3.utils.fromWei(totalRakeFees.toString(), 'ether')
+        )
+        assert.equal(
+            new BigNumber(postCompleteTournamentRakeFees).isEqualTo(
+                new BigNumber(preCompleteTournamentRakeFees).plus(
+                    totalRakeFees
+                )
+            ),
+            true
+        )
+        assert.equal(
+            new BigNumber(postCompleteTournamentTotalRakeFees).isEqualTo(
+                new BigNumber(preCompleteTournamentTotalRakeFees).plus(
+                    totalRakeFees
+                )
+            ),
+            true
+        )
+
+        // Validate prize distribution
+        const preClaimUser1TokenBalance = await token.balanceOf(user1)
+        await tournament.claimTournamentPrize(
+            standardTournamentId,
+            0,
+            0,
+            {
+                from: user1
+            }
+        )
+        const postClaimUser1TokenBalance = await token.balanceOf(user1)
+
+        const preClaimUser2TokenBalance = await token.balanceOf(user2)
+        await tournament.claimTournamentPrize(
+            standardTournamentId,
+            1,
+            0,
+            {
+                from: user2
+            }
+        )
+        const postClaimUser2TokenBalance = await token.balanceOf(user2)
+
+        console.log(
+            'tournament prizes - user1',
+            web3.utils.fromWei(postClaimUser1TokenBalance.toString(), 'ether'),
+            web3.utils.fromWei(preClaimUser1TokenBalance.toString(), 'ether'),
+        )
+        console.log(
+            'tournament prizes - user2',
+            web3.utils.fromWei(postClaimUser2TokenBalance.toString(), 'ether'),
+            web3.utils.fromWei(preClaimUser2TokenBalance.toString(), 'ether'),
+        )
+
+        assertStandardClaimCalculations(
+            web3.utils.fromWei(postClaimUser1TokenBalance, 'ether'),
+            web3.utils.fromWei(preClaimUser1TokenBalance, 'ether'),
+            100,
+            50,
+            1,
+            20,
+            1
+        )
+
+        assertStandardClaimCalculations(
+            web3.utils.fromWei(postClaimUser2TokenBalance, 'ether'),
+            web3.utils.fromWei(preClaimUser2TokenBalance, 'ether'),
+            100,
+            30,
+            1,
+            20,
+            1
+        )
+    })
+
+    it('throws if non-node holder tries to withdraw rake fees for node in node wallet', async () => {
+        await utils.assertFail(
+            nodeWallet.withdrawTournamentRakeFees(
+                nodeId
+            )
+        )
+    })
+
+    it('allows node holders to withdraw rake fees if it has a positive total rake fees balance', async () => {
+        const totalRakeFees = await nodeWallet.totalRakeFees(nodeId)
+        const preWithdrawNodeHolderBalance = await token.balanceOf(nodeHolder)
+        await nodeWallet.withdrawTournamentRakeFees(
+                nodeId,
+                {
+                    from: nodeHolder
+                }
+            )
+        const postWithdrawNodeHolderBalance = await token.balanceOf(nodeHolder)
+        assert.equal(
+            new BigNumber(postWithdrawNodeHolderBalance).isEqualTo(
+                new BigNumber(preWithdrawNodeHolderBalance).plus(totalRakeFees)
+            ),
+            true
+        )
+    })
+
+    it('throws if node holders withdraw rake fees when it\'s 0', async () => {
+        await utils.assertFail(
+            nodeWallet.withdrawTournamentRakeFees(
+                nodeId,
+                {
+                    from: nodeHolder
+                }
+            )
         )
     })
 
