@@ -5,7 +5,6 @@ import "./interfaces/ITournament.sol";
 import "./libs/LibTournament.sol";
 
 import "../node/libs/LibDBETNode.sol";
-import "../node/libs/LibNodeWallet.sol";
 
 import "../admin/Admin.sol";
 import "../node/DBETNode.sol";
@@ -16,8 +15,7 @@ import "../utils/SafeMath.sol";
 contract Tournament is
 ITournament,
 LibTournament,
-LibDBETNode,
-LibNodeWallet {
+LibDBETNode {
 
     using SafeMath for uint256;
 
@@ -347,7 +345,7 @@ LibNodeWallet {
             token.allowance(msg.sender, address(this)) >= tournaments[id].details.entryFee,
             "INVALID_TOKEN_BALANCE_OR_ALLOWANCE"
         );
-        if (tournaments[id].isNode) {
+        if (tournaments[id].isNode)
             // Check if node is active
             require(
                 isActiveNode(
@@ -356,36 +354,15 @@ LibNodeWallet {
                 ),
                 "INVALID_QUEST_NODE_STATUS"
             );
-            // Transfer entry fee to node owner
-            require(
-                token.transferFrom(
-                    msg.sender,
-                    address(dbetNode.nodeWallet()),
-                    tournaments[id].details.entryFee
-                ),
-                "ERROR_TOKEN_TRANSFER"
-            );
-            // Add to tournament entry fees in node wallet
-            require(
-                dbetNode.nodeWallet().addEntryFee(
-                    uint8(OfferingType.TOURNAMENT),
-                    tournaments[id].nodeId,
-                    id,
-                    tournaments[id].details.entryFee
-                ),
-                "ERROR_NODE_WALLET_ADD_TOURNAMENT_ENTRY_FEE"
-            );
-        } else {
-            // Transfer tokens to contract
-            require(
-                token.transferFrom(
-                    msg.sender,
-                    address(this),
-                    tournaments[id].details.entryFee
-                ),
-                "TOKEN_TRANSFER_ERROR"
-            );
-        }
+        // Transfer tokens to contract
+        require(
+            token.transferFrom(
+                msg.sender,
+                address(this),
+                tournaments[id].details.entryFee
+            ),
+            "TOKEN_TRANSFER_ERROR"
+        );
         uint256[] memory finalStandings;
         // Add to tournament
         tournaments[id].entries.push(TournamentEntry({
@@ -447,14 +424,25 @@ LibNodeWallet {
             tournaments[id].uniqueFinalStandings = uniqueFinalStandings;
             // Set tournament status to completed
             tournaments[id].status = uint8(TournamentStatus.COMPLETED);
-            // Transfer tournament rake fee to platform wallet
-            require(
-                token.transfer(
-                    admin.platformWallet(),
-                    getRakeFee(id)
-                ),
-                "TOKEN_TRANSFER_ERROR"
-            );
+            if (tournaments[id].isNode) {
+                //
+                // Transfer tournament rake fee to node wallet
+                require(
+                    token.transfer(
+                        address(dbetNode.nodeWallet()),
+                        getRakeFee(id)
+                    )
+                );
+            } else {
+                // Transfer tournament rake fee to platform wallet
+                require(
+                    token.transfer(
+                        admin.platformWallet(),
+                        getRakeFee(id)
+                    ),
+                    "TOKEN_TRANSFER_ERROR"
+                );
+            }
             // Emit log completed tournament event
             emit LogCompletedTournament(
                 id,
@@ -885,12 +873,12 @@ LibNodeWallet {
     view
     returns (bool) {
         return (
-        dbetNode.isUserNodeActivated(id) &&
-        dbetNode.isTournamentNode(id) &&
-        dbetNode.isUserNodeOwner(
-            nodeOwner,
-            id
-        )
+            dbetNode.isUserNodeActivated(id) &&
+            dbetNode.isTournamentNode(id) &&
+            dbetNode.isUserNodeOwner(
+                nodeOwner,
+                id
+            )
         );
     }
 

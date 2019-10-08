@@ -24,9 +24,8 @@ const web3 = utils.getWeb3()
 const nodeId = 0
 
 const OUTCOME_SUCCESS = 2
-
-const OFFERING_TYPE_QUEST = 0
-const OFFERING_TYPE_TOURNAMENT = 1
+const OUTCOME_FAILED = 3
+const OUTCOME_INVALID = 4
 
 const timeTravel = async timeDiff => {
     await timeTraveler.advanceTime(timeDiff)
@@ -92,7 +91,7 @@ contract('NodeWallet', accounts => {
             maxCount,
             rewards
         } = getNode()
-        await dbetNode.addNode(
+        const addNodeTx = await dbetNode.addNode(
             name,
             tokenThreshold,
             timeThreshold,
@@ -160,7 +159,6 @@ contract('NodeWallet', accounts => {
         // Set prize fund in node wallet contract
         await utils.assertFail(
             nodeWallet.setPrizeFund(
-                OFFERING_TYPE_QUEST,
                 nodeId,
                 id,
                 web3.utils.toWei('1000', 'ether')
@@ -174,8 +172,7 @@ contract('NodeWallet', accounts => {
         } = getValidNodeQuestParams()
         // Add quest entry fee in node wallet contract
         await utils.assertFail(
-            nodeWallet.addEntryFee(
-                OFFERING_TYPE_QUEST,
+            nodeWallet.addQuestEntryFee(
                 nodeId,
                 id,
                 web3.utils.toWei('10', 'ether')
@@ -189,8 +186,7 @@ contract('NodeWallet', accounts => {
         } = getValidNodeQuestParams()
         // Complete quest in node wallet contract
         await utils.assertFail(
-            nodeWallet.completeEvent(
-                OFFERING_TYPE_QUEST,
+            nodeWallet.completeQuest(
                 nodeId,
                 id,
                 web3.utils.toWei('10', 'ether')
@@ -205,7 +201,6 @@ contract('NodeWallet', accounts => {
         // Claim refund in node wallet contract
         await utils.assertFail(
             nodeWallet.claimRefund(
-                OFFERING_TYPE_QUEST,
                 nodeId,
                 id,
                 web3.utils.toWei('10', 'ether')
@@ -221,11 +216,7 @@ contract('NodeWallet', accounts => {
             id
         } = getValidNodeQuestParams()
 
-        const prizeFund = await nodeWallet.prizeFund(
-            OFFERING_TYPE_QUEST,
-            nodeId,
-            id
-        )
+        const prizeFund = await nodeWallet.prizeFund(nodeId, id)
 
         assert.equal(
             new BigNumber(
@@ -256,8 +247,7 @@ contract('NodeWallet', accounts => {
             }
         )
 
-        const prePayForQuestEntryFees = await nodeWallet.fees(
-            OFFERING_TYPE_QUEST,
+        const prePayForQuestEntryFees = await nodeWallet.questFees(
             nodeId,
             id
         )
@@ -269,8 +259,7 @@ contract('NodeWallet', accounts => {
                 from: user1
             }
         )
-        const postPayForQuestEntryFees = await nodeWallet.fees(
-            OFFERING_TYPE_QUEST,
+        const postPayForQuestEntryFees = await nodeWallet.questFees(
             nodeId,
             id
         )
@@ -286,7 +275,7 @@ contract('NodeWallet', accounts => {
 
     it('throws if node holder tries withdrawing entry fees that aren\'t completed', async () => {
         await utils.assertFail(
-            nodeWallet.withdrawCompletedEntryFees(
+            nodeWallet.withdrawCompletedQuestEntryFees(
                 nodeId,
                 {
                     from: nodeHolder
@@ -301,8 +290,7 @@ contract('NodeWallet', accounts => {
             entryFee
         } = getValidNodeQuestParams()
 
-        const preQuestCompleteTotalCompletedQuestEntryFees = await nodeWallet.totalCompletedEntryFees(
-            OFFERING_TYPE_QUEST,
+        const preQuestCompleteTotalCompletedQuestEntryFees = await nodeWallet.totalCompletedQuestEntryFees(
             nodeId
         )
         // Set quest as success
@@ -312,8 +300,7 @@ contract('NodeWallet', accounts => {
             OUTCOME_SUCCESS
         )
 
-        const postQuestCompleteTotalCompletedQuestEntryFees = await nodeWallet.totalCompletedEntryFees(
-            OFFERING_TYPE_QUEST,
+        const postQuestCompleteTotalCompletedQuestEntryFees = await nodeWallet.totalCompletedQuestEntryFees(
             nodeId
         )
 
@@ -346,8 +333,7 @@ contract('NodeWallet', accounts => {
                 from: user3
             }
         )
-        const prePayForQuestEntryFees = await nodeWallet.fees(
-            OFFERING_TYPE_QUEST,
+        const prePayForQuestEntryFees = await nodeWallet.questFees(
             nodeId,
             id
         )
@@ -359,8 +345,7 @@ contract('NodeWallet', accounts => {
                 from: user3
             }
         )
-        const postPayForQuestEntryFees = await nodeWallet.fees(
-            OFFERING_TYPE_QUEST,
+        const postPayForQuestEntryFees = await nodeWallet.questFees(
             nodeId,
             id
         )
@@ -371,8 +356,13 @@ contract('NodeWallet', accounts => {
             ),
             true
         )
-        const preClaimTotalQuestEntryFees = await nodeWallet.totalEntryFees(
-            OFFERING_TYPE_QUEST,
+        const userQuestEntryCount = await quest.userQuestEntryCount(user3, id)
+        const userQuestEntry = await quest.userQuestEntries(
+            user3,
+            id,
+            userQuestEntryCount
+        )
+        const preClaimTotalQuestEntryFees = await nodeWallet.totalQuestEntryFees(
             nodeId
         )
         // Cancel quest entry for user3
@@ -380,10 +370,10 @@ contract('NodeWallet', accounts => {
             id,
             user3
         )
-        const postClaimTotalQuestEntryFees = await nodeWallet.totalEntryFees(
-            OFFERING_TYPE_QUEST,
+        const postClaimTotalQuestEntryFees = await nodeWallet.totalQuestEntryFees(
             nodeId
         )
+
         // Post-claim total quest entry fees must be equal to pre-claim total quest entry fees minus entry fee
         assert.equal(
             new BigNumber(
@@ -400,7 +390,7 @@ contract('NodeWallet', accounts => {
 
     it('throws if non-node owner tries to withdraw completed quest entry fees in node wallet contract', async () => {
         await utils.assertFail(
-            nodeWallet.withdrawCompletedEntryFees(
+            nodeWallet.withdrawCompletedQuestEntryFees(
                 nodeId,
                 {
                     from: user3
@@ -413,13 +403,13 @@ contract('NodeWallet', accounts => {
         const preWithdrawNodeHolderBalance = await token.balanceOf(
             nodeHolder
         )
+        const preWithdrawNodeWalletBalance = await token.balanceOf(
+            nodeWallet.address
+        )
         const preWithdrawTotalCompletedQuestEntryFees =
-            await nodeWallet.totalCompletedEntryFees(
-                OFFERING_TYPE_QUEST,
-                nodeId
-            )
+            await nodeWallet.totalCompletedQuestEntryFees(nodeId)
 
-        await nodeWallet.withdrawCompletedEntryFees(
+        await nodeWallet.withdrawCompletedQuestEntryFees(
             nodeId,
             {
                 from: nodeHolder
@@ -429,10 +419,7 @@ contract('NodeWallet', accounts => {
             nodeHolder
         )
         const postWithdrawTotalCompletedQuestEntryFees =
-            await nodeWallet.totalCompletedEntryFees(
-                OFFERING_TYPE_QUEST,
-                nodeId
-            )
+            await nodeWallet.totalCompletedQuestEntryFees(nodeId)
 
         // Post-withdraw node holder balance must be equal to pre-withdraw node holder balance plus
         // pre-withdraw total completed quest entry fees
