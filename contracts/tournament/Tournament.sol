@@ -317,7 +317,7 @@ LibDBETNode {
             "INVALID_TOURNAMENT_ID"
         );
         // Cannot have already entered the tournament if entryLimit is false
-        if(tournaments[id].details.entryLimit > 1) {
+        if (tournaments[id].details.entryLimit > 1) {
             uint256 entryCount = 0;
             for (uint256 i = 0; i < tournaments[id].entries.length; i++) {
                 if(tournaments[id].entries[i]._address == msg.sender) {
@@ -432,14 +432,15 @@ LibDBETNode {
                         id,
                         getRakeFee(id)
                     ),
-                    "ERROR_ADDING_RAKE_FEE"
+                    "ERROR_ADDING_NODE_WALLET_RAKE_FEE"
                 );
                 // Transfer tournament rake fee to node wallet
                 require(
                     token.transfer(
                         address(dbetNode.nodeWallet()),
                         getRakeFee(id)
-                    )
+                    ),
+                    "TOKEN_TRANSFER_ERROR"
                 );
             } else {
                 // Transfer tournament rake fee to platform wallet
