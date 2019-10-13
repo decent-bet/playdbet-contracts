@@ -10,6 +10,7 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
     let platformWallet
 
     let admin,
+        dbetNode,
         quest,
         token,
         tournament
@@ -26,7 +27,7 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
     const getDefaultOptions = from => {
         return {
             from: from ? from : defaultAccount,
-            gas: 4000000
+            gas: 8000000
         }
     }
 
@@ -43,6 +44,7 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
         try {
             if(chain === constants.CHAIN_SOLO || chain === constants.CHAIN_TESTNET) {
                 const Admin = contractManager.getContract('Admin')
+                const DBETNode = contractManager.getContract('DBETNode')
                 const DecentBetToken = contractManager.getContract('DBETVETToken')
                 const Quest = contractManager.getContract('Quest')
                 const Tournament = contractManager.getContract('Tournament')
@@ -90,15 +92,26 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
                     ).send(getDefaultOptions())
                     console.log('Transferred', bootstrapTokenAmount, 'DBETs to admin:', adminAddress)
                 }
+                // Deploy the DBETNode contract
+                console.log('Deploying DBET node', admin.options.address, token.options.address)
+                dbetNode = await deployer.deploy(
+                    DBETNode,
+                    admin.options.address,
+                    token.options.address,
+                    getDefaultOptions()
+                )
+                console.log('Deployed DBET node')
 
                 // Deploy the Quest contract
                 quest = await deployer.deploy(
                     Quest,
                     admin.options.address,
                     token.options.address,
+                    dbetNode.options.address,
                     getDefaultOptions()
                 )
                 console.log('Deployed quest')
+                // Approve platform wallet to transfer tokens via quest contract
                 await token.methods.approve(
                     quest.options.address,
                     bootstrapTokenAmount
@@ -110,13 +123,27 @@ function MigrationScript(web3, contractManager, deployer, builder, args) {
                     Tournament,
                     admin.options.address,
                     token.options.address,
+                    dbetNode.options.address,
                     getDefaultOptions()
                 )
                 console.log('Deployed tournament')
+                // Approve platform wallet to transfer tokens via tournament contract
+                await token.methods.approve(
+                    tournament.options.address,
+                    bootstrapTokenAmount
+                ).send(getDefaultOptions())
+
+                console.log('Setting DBET node contracts', quest.options.address, tournament.options.address)
+                // Set contract addresses in the DBET Node contract
+                await dbetNode.methods.setContracts(
+                    quest.options.address,
+                    tournament.options.address
+                ).send(getDefaultOptions())
 
                 console.log(
                     'Deployed:',
                     '\nAdmin: ' + admin.options.address,
+                    '\nDBETNode: ' + dbetNode.options.address,
                     '\nQuest: ' + quest.options.address,
                     '\nToken: ' + token.options.address,
                     '\nTournament: ' + tournament.options.address

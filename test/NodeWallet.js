@@ -106,7 +106,7 @@ contract('NodeWallet', accounts => {
             maxCount,
             rewards
         } = getNode()
-        const addNodeTx = await dbetNode.addNode(
+        await dbetNode.addNode(
             name,
             tokenThreshold,
             timeThreshold,
