@@ -1,14 +1,20 @@
 const BigNumber = require('bignumber.js')
+const timeTraveler = require('ganache-time-traveler')
 const Web3 = require('web3')
 
 const contracts = require('./utils/contracts')
 const utils = require('./utils/utils')
+const {
+    getNode,
+    getValidNodeQuestParams
+} = require('./utils/nodes')
 
 const OUTCOME_SUCCESS = 2
 const OUTCOME_FAILED = 3
 const OUTCOME_INVALID = 4
 
 let admin,
+    dbetNode,
     quest,
     token
 
@@ -17,10 +23,13 @@ let user1
 let user2
 let user3
 let user4
+let nodeHolder
 
 const web3 = new Web3()
 
-const timeTravel = async timeDiff => await utils.timeTravel(timeDiff)
+const timeTravel = async timeDiff => {
+    await timeTraveler.advanceTime(timeDiff)
+}
 
 const getValidQuestParams = () => {
     const id = web3.utils.fromUtf8('123')
@@ -41,7 +50,9 @@ contract('Quest', accounts => {
         user2 = accounts[2]
         user3 = accounts[3]
         user4 = accounts[4]
+        nodeHolder = accounts[5]
 
+        dbetNode = await contracts.DBETNode.deployed()
         quest = await contracts.Quest.deployed()
         token = await contracts.DBETVETToken.deployed()
         admin = await contracts.Admin.deployed()
@@ -146,9 +157,8 @@ contract('Quest', accounts => {
         )
 
         const questData = await quest.quests(id)
-
         assert.equal(
-            questData[2],
+            questData[4],
             true
         )
     })
@@ -570,7 +580,7 @@ contract('Quest', accounts => {
         const _quest = await quest.quests(id)
         const QUEST_STATUS_CANCELLED = 2
         assert.equal(
-            _quest[2],
+            _quest[4],
             QUEST_STATUS_CANCELLED
         )
     })
@@ -658,6 +668,324 @@ contract('Quest', accounts => {
         assert.equal(
             userQuestEntry[2],
             true
+        )
+    })
+
+    it('throws if node holders add node quests before activation', async () => {
+        // Transfer DBETs to node holder
+        await token.transfer(
+            nodeHolder,
+            web3.utils.toWei('1000000', 'ether')
+        )
+
+        // Add a new node type as admin
+        const {
+            name,
+            tokenThreshold,
+            timeThreshold,
+            maxCount,
+            rewards
+        } = getNode()
+        await dbetNode.addNode(
+            name,
+            tokenThreshold,
+            timeThreshold,
+            maxCount,
+            rewards
+        )
+
+        // Approve tokens to be transferred on behalf of user from DBETNode and Quest contracts
+        await token.approve(
+            dbetNode.address,
+            utils.MAX_VALUE,
+            {
+                from: nodeHolder
+            }
+        )
+        await token.approve(
+            quest.address,
+            utils.MAX_VALUE,
+            {
+                from: nodeHolder
+            }
+        )
+        // Create node of type ID 0
+        await dbetNode.create(
+            0,
+            {
+                from: nodeHolder
+            }
+        )
+        // Try adding a node quest as a node holder before node activation
+        const {
+            id,
+            entryFee,
+            prize,
+            maxEntries
+        } = getValidNodeQuestParams()
+
+        await utils.assertFail(
+            quest.addNodeQuest(
+                0,
+                id,
+                entryFee,
+                prize,
+                maxEntries,
+                {
+                    from: nodeHolder
+                }
+            )
+        )
+    })
+
+    it('throws if non-node holders add node quests', async () => {
+        // Try adding a node quest as a non-node holder
+        const {
+            id,
+            entryFee,
+            prize,
+            maxEntries
+        } = getValidNodeQuestParams()
+
+        await utils.assertFail(
+            quest.addNodeQuest(
+                0,
+                id,
+                entryFee,
+                prize,
+                maxEntries
+            )
+        )
+    })
+
+    it('throws if active node holders add node quests with invalid parameters', async () => {
+        const {
+            timeThreshold,
+        } = getNode()
+        // Move forward in time by `timeThreshold` to activate node
+        await timeTravel(timeThreshold)
+
+        // Try adding a node quest as a node holder
+        const {
+            id,
+            entryFee,
+            prize,
+            maxEntries
+        } = getValidNodeQuestParams()
+
+        // Invalid id - existing quest ID
+        await utils.assertFail(
+            quest.addNodeQuest(
+                0,
+                web3.utils.fromUtf8('123'),
+                entryFee,
+                prize,
+                maxEntries,
+                {
+                    from: nodeHolder
+                }
+            )
+        )
+
+        // Invalid entry fee - 0
+        await utils.assertFail(
+            quest.addNodeQuest(
+                0,
+                id,
+                0,
+                prize,
+                maxEntries,
+                {
+                    from: nodeHolder
+                }
+            )
+        )
+
+        // Invalid prize - 0
+        await utils.assertFail(
+            quest.addNodeQuest(
+                0,
+                id,
+                entryFee,
+                0,
+                maxEntries,
+                {
+                    from: nodeHolder
+                }
+            )
+        )
+
+        // Invalid max entries - 0
+        await utils.assertFail(
+            quest.addNodeQuest(
+                0,
+                id,
+                entryFee,
+                prize,
+                0,
+                {
+                    from: nodeHolder
+                }
+            )
+        )
+    })
+
+    it('allows active node holders to add node quests', async () => {
+        // Add node quest as a node holder
+        const {
+            id,
+            entryFee,
+            prize,
+            maxEntries
+        } = getValidNodeQuestParams()
+
+        // Add node quest
+        await quest.addNodeQuest(
+            0,
+            id,
+            entryFee,
+            prize,
+            maxEntries,
+            {
+                from: nodeHolder
+            }
+        )
+
+        // Check if quest was successfully added
+        const questData = await quest.quests(id)
+        assert.equal(
+            questData[4],
+            true
+        )
+    })
+
+    it('throws if non-node holders or non-admins cancel node quests', async () => {
+        const {
+            id
+        } = getValidNodeQuestParams()
+        const nodeId = 0
+        await utils.assertFail(
+            quest.cancelNodeQuest(
+                nodeId,
+                id,
+                {
+                    from: user2
+                }
+            )
+        )
+    })
+
+    it('throws if active node holders cancel invalid quest IDs', async () => {
+        const invalidId = web3.utils.fromUtf8('789')
+        const nodeId = 0
+        await utils.assertFail(
+            quest.cancelNodeQuest(
+                nodeId,
+                invalidId
+            )
+        )
+    })
+
+    it('allows active node holders to cancel active node quests', async () => {
+        const {id} = getValidNodeQuestParams()
+        const nodeId = 0
+        await quest.cancelNodeQuest(
+            nodeId,
+            id,
+            {
+                from: nodeHolder
+            }
+        )
+    })
+
+    it('allows admins to cancel active node quests', async () => {
+        // Try adding quest using an inactive node
+        const {
+            entryFee,
+            prize,
+            maxEntries
+        } = getValidNodeQuestParams()
+        const id = web3.utils.fromUtf8('789')
+
+        // Add node quest as node holder
+        await quest.addNodeQuest(
+            0,
+            id,
+            entryFee,
+            prize,
+            maxEntries,
+            {
+                from: nodeHolder
+            }
+        )
+        // Admin cancels quest - admins do not need to call `cancelNodeQuest()`
+        await quest.cancelQuest(
+            id
+        )
+    })
+
+    it('throws if non-active node holders add quests', async () => {
+        const {
+            entryFee,
+            prize,
+            maxEntries
+        } = getValidNodeQuestParams()
+        // Add node quest for next test
+        await quest.addNodeQuest(
+            0,
+            web3.utils.fromUtf8('111'),
+            entryFee,
+            prize,
+            maxEntries,
+            {
+                from: nodeHolder
+            }
+        )
+
+        // Destroy active node
+        const preDestroyBalance = await token.balanceOf(nodeHolder)
+        await dbetNode.destroy(
+            0,
+            {
+                from: nodeHolder
+            }
+        )
+        const postDestroyBalance = await token.balanceOf(nodeHolder)
+        // Check if node holder received locked deposit
+        const {
+            tokenThreshold
+        } = getNode()
+        assert.equal(
+            new BigNumber(postDestroyBalance).minus(preDestroyBalance).isEqualTo(tokenThreshold),
+            true
+        )
+
+        // Try adding quest using an inactive node
+        await utils.assertFail(
+            quest.addNodeQuest(
+                0,
+                web3.utils.fromUtf8('222'),
+                entryFee,
+                prize,
+                maxEntries,
+                {
+                    from: nodeHolder
+                }
+            )
+        )
+    })
+
+    it('throws if non-active node holders cancel quests', async () => {
+        // Try cancelling quest using inactive node
+        const nodeId = 0
+        await utils.assertFail(
+            quest.cancelNodeQuest(
+                nodeId,
+                web3.utils.fromUtf8('111'),
+                {
+                    from: nodeHolder
+                }
+            )
         )
     })
 

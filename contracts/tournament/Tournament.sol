@@ -4,15 +4,18 @@ pragma experimental ABIEncoderV2;
 import "./interfaces/ITournament.sol";
 import "./libs/LibTournament.sol";
 
-import "../admin/Admin.sol";
+import "../node/libs/LibDBETNode.sol";
 
+import "../admin/Admin.sol";
+import "../node/DBETNode.sol";
 import "../token/ERC20.sol";
 
 import "../utils/SafeMath.sol";
 
 contract Tournament is
 ITournament,
-LibTournament {
+LibTournament,
+LibDBETNode {
 
     using SafeMath for uint256;
 
@@ -22,6 +25,8 @@ LibTournament {
     Admin public admin;
     // Token contract
     ERC20 public token;
+    // DBET node contract
+    DBETNode public dbetNode;
 
     // Prize table mapping
     mapping (bytes32 => uint256[]) public prizeTables;
@@ -69,12 +74,14 @@ LibTournament {
 
     constructor (
         address _admin,
-        address _token
+        address _token,
+        address _dbetNode
     )
     public {
         owner = msg.sender;
         admin = Admin(_admin);
         token = ERC20(_token);
+        dbetNode = DBETNode(_dbetNode);
     }
 
     /**
@@ -204,6 +211,100 @@ LibTournament {
     }
 
     /**
+    * Creates a tournament using an active node that users can enter
+    * @param nodeId Unique node ID in DBETNode contract
+    * @param entryFee Fee to enter the tournament
+    * @param entryLimit Entry limit for each unique address
+    * @param minEntries The minimum number of entries for the tournament
+    * @param maxEntries The maximum number of entries for the tournament
+    * @param rakePercent Percentage of the prize pool retained by Decent.bet
+    * @param prizeType Type of prize for tournament
+    * @param prizeTable Unique ID of prize table to be used for the tournament
+    * @return Unique ID of the created tournament
+    */
+    function createNodeTournament(
+        uint256 nodeId,
+        uint256 entryFee,
+        uint256 entryLimit,
+        uint256 minEntries,
+        uint256 maxEntries,
+        uint256 rakePercent,
+        uint8 prizeType,
+        bytes32 prizeTable
+    ) public returns (bytes32) {
+        // Allow only active node holders to add quests
+        require(
+            isActiveNode(
+                nodeId,
+                msg.sender
+            ),
+            "INVALID_NODE"
+        );
+        // Entry limit must be greater than 0
+        require(
+            entryLimit > 0,
+            "INVALID_ENTRY_LIMIT"
+        );
+        // Entry fee must be greater than 0
+        require(
+            entryFee > 0,
+            "INVALID_ENTRY_FEE"
+        );
+        // Min entries must be greater than 0 and less than or equal to max entries
+        require(
+            minEntries > 0 &&
+            minEntries <= maxEntries,
+            "INVALID_ENTRIES_RANGE"
+        );
+        // Rake percent must be greater than 0 and less than 100
+        require(
+            rakePercent > 0 &&
+            rakePercent < 100,
+            "INVALID_RAKE_PERCENT"
+        );
+        // Must be a valid prize type
+        require(
+            prizeType >= uint8(TournamentPrizeType.STANDARD) &&
+            prizeType <= uint8(TournamentPrizeType.FIFTY_FIFTY)
+        );
+        // If prize type is standard, prize table must be valid
+        if(prizeType == uint8(TournamentPrizeType.STANDARD))
+            require(prizeTables[prizeTable][0] != 0);
+
+        bytes32 id = keccak256(
+            abi.encode(
+                "tournament_",
+                entryFee,
+                entryLimit,
+                minEntries,
+                maxEntries,
+                rakePercent,
+                tournamentCount
+            )
+        );
+
+        // Assign params
+        tournaments[id].details = TournamentDetails({
+            entryFee: entryFee,
+            entryLimit: entryLimit,
+            minEntries: minEntries,
+            maxEntries: maxEntries,
+            prizeTable: prizeTable,
+            prizeType: prizeType,
+            rakePercent: rakePercent
+        });
+
+        tournaments[id].isNode = true;
+        tournaments[id].nodeId = nodeId;
+
+        // Emit log new tournament event
+        emit LogNewTournament(
+            id,
+            tournamentCount++
+        );
+    }
+
+    /**
     * Allows users to enter a tournament by paying the listed entry fee
     * @param id Unique ID of the tournament
     */
@@ -216,7 +317,7 @@ LibTournament {
             "INVALID_TOURNAMENT_ID"
         );
         // Cannot have already entered the tournament if entryLimit is false
-        if(tournaments[id].details.entryLimit > 1) {
+        if (tournaments[id].details.entryLimit > 1) {
             uint256 entryCount = 0;
             for (uint256 i = 0; i < tournaments[id].entries.length; i++) {
                 if(tournaments[id].entries[i]._address == msg.sender) {
@@ -234,7 +335,7 @@ LibTournament {
         );
         // Cannot be over max entry count
         require(
-            tournaments[id].entries.length !=
+            tournaments[id].entries.length <=
             tournaments[id].details.maxEntries,
             "MAX_ENTRY_COUNT_EXCEEDED"
         );
@@ -244,6 +345,15 @@ LibTournament {
             token.allowance(msg.sender, address(this)) >= tournaments[id].details.entryFee,
             "INVALID_TOKEN_BALANCE_OR_ALLOWANCE"
         );
+        if (tournaments[id].isNode)
+            // Check if node is active
+            require(
+                isActiveNode(
+                    tournaments[id].nodeId,
+                    dbetNode.getNodeOwner(tournaments[id].nodeId)
+                ),
+                "INVALID_QUEST_NODE_STATUS"
+            );
         // Transfer tokens to contract
         require(
             token.transferFrom(
@@ -268,7 +378,7 @@ LibTournament {
     }
 
     /**
-    * Allows the admin to complete the tournament by publishing the final standings
+    * Allows admins to complete tournaments by publishing it's final standings
     * @param id Unique ID of the tournament
     * @param finalStandings Final standings for entries in the tournament. 1d index => entry index, 2d => final standings for entry index
     * @param uniqueFinalStandings Number of unique positions in the final standing array
@@ -314,14 +424,34 @@ LibTournament {
             tournaments[id].uniqueFinalStandings = uniqueFinalStandings;
             // Set tournament status to completed
             tournaments[id].status = uint8(TournamentStatus.COMPLETED);
-            // Transfer tournament rake fee to platform wallet
-            require(
-                token.transfer(
-                    admin.platformWallet(),
-                    getRakeFee(id)
-                ),
-                "TOKEN_TRANSFER_ERROR"
-            );
+            if (tournaments[id].isNode) {
+                // Record rake fee transfer in node wallet
+                require(
+                    dbetNode.nodeWallet().addTournamentRakeFee(
+                        tournaments[id].nodeId,
+                        id,
+                        getRakeFee(id)
+                    ),
+                    "ERROR_ADDING_NODE_WALLET_RAKE_FEE"
+                );
+                // Transfer tournament rake fee to node wallet
+                require(
+                    token.transfer(
+                        address(dbetNode.nodeWallet()),
+                        getRakeFee(id)
+                    ),
+                    "TOKEN_TRANSFER_ERROR"
+                );
+            } else {
+                // Transfer tournament rake fee to platform wallet
+                require(
+                    token.transfer(
+                        admin.platformWallet(),
+                        getRakeFee(id)
+                    ),
+                    "TOKEN_TRANSFER_ERROR"
+                );
+            }
             // Emit log completed tournament event
             emit LogCompletedTournament(
                 id,
@@ -430,10 +560,9 @@ LibTournament {
             id,
             entryIndex,
             finalStanding,
-            tournaments[id].details.prizeType ==
-                uint8(TournamentPrizeType.STANDARD) ?
-                    prizeTables[tournaments[id].details.prizeTable][finalStanding] :
-                    0,
+            tournaments[id].details.prizeType == uint8(TournamentPrizeType.STANDARD) ?
+                prizeTables[tournaments[id].details.prizeTable][finalStanding] :
+                0,
             prizeMoney
         );
     }
@@ -737,6 +866,29 @@ LibTournament {
         return tournaments[id]
                 .prizes[finalStanding]
                 [prizeWinnerIndex];
+    }
+
+    /**
+    * Returns whether an input node ID and owner is valid and active
+    * @param id Unique node ID
+    * @param nodeOwner Address of node owner
+    * @return Whether node is active
+    */
+    function isActiveNode(
+        uint256 id,
+        address nodeOwner
+    )
+    public
+    view
+    returns (bool) {
+        return (
+            dbetNode.isUserNodeActivated(id) &&
+            dbetNode.isTournamentNode(id) &&
+            dbetNode.isUserNodeOwner(
+                nodeOwner,
+                id
+            )
+        );
     }
 
 }

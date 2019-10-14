@@ -1,5 +1,6 @@
 const appRoot = require('app-root-path')
 const Admin = artifacts.require('Admin')
+const DBETNode = artifacts.require('DBETNode')
 const DecentBetToken = artifacts.require('DBETVETToken')
 const MultiSigWallet = artifacts.require('MultiSigWallet')
 const Quest = artifacts.require('Quest')
@@ -11,6 +12,7 @@ let deploy = async (deployer, network) => {
 
     let admin,
         multiSigWallet,
+        dbetNode,
         quest,
         token,
         tournament
@@ -79,15 +81,26 @@ let deploy = async (deployer, network) => {
                     BOOTSTRAP_TOKEN_AMOUNT
                 )
             }
+            // Deploy the DBETNode contract
+            console.log('Deploying DBET node')
+            await deployer.deploy(
+                DBETNode,
+                admin.address,
+                token.address
+            )
+            dbetNode = await getContractInstanceAndInfo(DBETNode)
+            console.log('Successfully deployed DBET node')
 
             // Deploy the quest contract
             await deployer.deploy(
                 Quest,
                 admin.address,
-                token.address
+                token.address,
+                dbetNode.address
             )
             quest = await getContractInstanceAndInfo(Quest)
             console.log('Deployed quest')
+
             await token.approve(
                 quest.address,
                 BOOTSTRAP_TOKEN_AMOUNT
@@ -97,14 +110,23 @@ let deploy = async (deployer, network) => {
             await deployer.deploy(
                 Tournament,
                 admin.address,
-                token.address
+                token.address,
+                dbetNode.address
             )
             tournament = await getContractInstanceAndInfo(Tournament)
             console.log('Deployed tournament')
 
+            console.log('Setting DBET node contracts', quest.address, tournament.address)
+            // Set contract addresses in the DBET Node contract
+            await dbetNode.setContracts(
+                quest.address,
+                tournament.address
+            )
+
             console.log(
                 'Deployed:',
                 '\nAdmin: ' + admin.address,
+                '\nDBETNode: ' + dbetNode.address,
                 '\nQuest: ' + quest.address,
                 '\nToken: ' + token.address,
                 '\nTournament: ' + tournament.address,

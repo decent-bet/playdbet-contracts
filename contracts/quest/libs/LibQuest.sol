@@ -19,12 +19,18 @@ contract LibQuest {
     }
 
     struct Quest {
+        // Was the quest added by a node
+        bool isNode;
+        // Unique node ID
+        uint256 nodeId;
         // Amount to pay in DBETs for quest entry
         uint256 entryFee;
         // Prize in DBETs to payout to winners
         uint256 prize;
         // Quest status
         uint8 status;
+        // Maximum number of quest entries - ignored if set at 0
+        uint256 maxEntries;
         // Number of quest entries
         uint256 count;
     }

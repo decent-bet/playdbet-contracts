@@ -34,6 +34,7 @@
     "ethereumjs-wallet": "^0.6.0",
     "ethers": "^3.0.25",
     "ganache-cli": "^6.1.6",
+    "ganache-time-traveler": "^1.0.5",
     "keythereum": "^1.0.4",
     "lodash": "^4.17.11",
     "mkdirp": "^0.5.1",

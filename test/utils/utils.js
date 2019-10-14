@@ -40,6 +40,7 @@ module.exports = {
     startBlockMainNet: 3445888,
     endBlockMainNet: 3618688,
     multisigWalletAddressMainNet: '0x0',
+    MAX_VALUE: '115792089237316195423570985008687907853269984665640564039457584007913129639935',
     getWeb3: function() {
         return myWeb3
     },

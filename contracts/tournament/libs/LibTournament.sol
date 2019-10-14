@@ -15,6 +15,10 @@ contract LibTournament {
     }
 
     struct Tournament {
+        // Was the quest added by a node
+        bool isNode;
+        // Unique node ID
+        uint256 nodeId;
         // Tournament details
         TournamentDetails details;
         // Participants in tournament
