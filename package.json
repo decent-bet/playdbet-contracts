@@ -1,6 +1,6 @@
 {
   "name": "playdbet-contracts",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "main": "index.js",
   "author": "dev <dev@decent.bet>",
   "license": "GPL-3.0",
