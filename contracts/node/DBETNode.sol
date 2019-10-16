@@ -51,6 +51,10 @@ LibDBETNode {
     event LogCreateUserNode(
         uint256 id
     );
+    event LogUpgradeUserNode(
+        uint256 id,
+        uint256 previousNodeType
+    );
     event LogDestroyUserNode(
         uint256 id
     );
@@ -151,6 +155,82 @@ LibDBETNode {
         );
         // Emit create user node event
         emit LogCreateUserNode(userNodeCount++);
+        return true;
+    }
+
+    /**
+    * Upgrades an existing node by locking up additional collateral
+    * @param id unique ID of node
+    * @param upgradeNodeType Node type to upgrade to
+    * @return Whether node was upgraded
+    */
+    function upgrade(
+        uint256 id,
+        uint256 upgradeNodeType
+    )
+    public
+    returns (bool) {
+        // Validate node type
+        require(
+            nodes[upgradeNodeType].timeThreshold != 0,
+            "INVALID_NODE_TYPE"
+        );
+        // User cannot already own the same node
+        require(
+            !nodeOwnership[msg.sender][upgradeNodeType],
+            "NODE_TYPE_ALREADY_OWNED"
+        );
+        // Must be an upgrade
+        require(
+            nodes[upgradeNodeType].tokenThreshold > userNodes[id].deposit,
+            "MUST_BE_UPGRADE"
+        );
+        uint256 tokenRequirement = nodes[upgradeNodeType].tokenThreshold.sub(userNodes[id].deposit);
+        // User must meet the token requirement threshold
+        require(
+            token.balanceOf(msg.sender) >= tokenRequirement,
+            "INVALID_TOKEN_BALANCE"
+        );
+        // User must have approved DBETNode contract to transfer tokens on users' behalf
+        require(
+            token.allowance(
+                msg.sender,
+                address(this)
+            ) >= tokenRequirement,
+            "INVALID_TOKEN_ALLOWANCE"
+        );
+        // Node count for node type must be lesser than max count
+        require(
+            nodes[upgradeNodeType].count.add(1) <= nodes[node].maxCount,
+            "MAX_NODE_COUNT_EXCEEDED"
+        );
+        // Update user node
+        uint256 previousNodeType = usersNodes[id].node;
+        usersNodes[id].node = upgradeNodeType;
+        usersNodes[id].deposit = nodes[upgradeNodeType].tokenThreshold;
+        usersNodes[id].index = nodes[upgradeNodeType].count;
+        // Increment node type count
+        nodes[upgradeNode].count++;
+        // Decrement previous node type count
+        nodes[previousNodeType].count--;
+        // Assign node ownership for node type to user
+        nodeOwnership[msg.sender][upgradeNodeType] = true;
+        // Remove node ownership for previous node type from user
+        nodeOwnership[msg.sender][previousNodeType] = false;
+        // Transfer threshold tokens to contract
+        require(
+            token.transferFrom(
+                msg.sender,
+                address(this),
+                tokenRequirement
+            ),
+            "TOKEN_TRANSFER_ERROR"
+        );
+        // Emit upgrade user node event
+        emit LogUpgradeUserNode(
+            id,
+            previousNodeType
+        );
         return true;
     }
 
