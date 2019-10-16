@@ -201,16 +201,16 @@ LibDBETNode {
         );
         // Node count for node type must be lesser than max count
         require(
-            nodes[upgradeNodeType].count.add(1) <= nodes[node].maxCount,
+            nodes[upgradeNodeType].count.add(1) <= nodes[upgradeNodeType].maxCount,
             "MAX_NODE_COUNT_EXCEEDED"
         );
         // Update user node
-        uint256 previousNodeType = usersNodes[id].node;
-        usersNodes[id].node = upgradeNodeType;
-        usersNodes[id].deposit = nodes[upgradeNodeType].tokenThreshold;
-        usersNodes[id].index = nodes[upgradeNodeType].count;
+        uint256 previousNodeType = userNodes[id].node;
+        userNodes[id].node = upgradeNodeType;
+        userNodes[id].deposit = nodes[upgradeNodeType].tokenThreshold;
+        userNodes[id].index = nodes[upgradeNodeType].count;
         // Increment node type count
-        nodes[upgradeNode].count++;
+        nodes[upgradeNodeType].count++;
         // Decrement previous node type count
         nodes[previousNodeType].count--;
         // Assign node ownership for node type to user
