@@ -22,6 +22,12 @@ const timeTravel = async timeDiff => {
     await timeTraveler.advanceTime(timeDiff)
 }
 
+const getNodeUpgradeTokenRequirement = () => {
+    const tier1TokenThreshold = getNode().tokenThreshold
+    const tier2TokenThreshold = getUpgradedNode().tokenThreshold
+    return new BigNumber(tier2TokenThreshold).minus(tier1TokenThreshold).toFixed()
+}
+
 contract('DBETNode', accounts => {
     it('initializes DBETNode contract', async () => {
         owner = accounts[0]
@@ -156,13 +162,11 @@ contract('DBETNode', accounts => {
     })
 
     it('does not allow users without an existing node to upgrade a node', async () => {
-        const {
-            tokenThreshold
-        } = getUpgradedNode()
+        const tokenRequirement = getNodeUpgradeTokenRequirement()
         // Transfer tokens to user2
         await token.transfer(
             user1,
-            tokenThreshold
+            tokenRequirement
         )
         // Approve tokens to be transferred on behalf of user from DBETNode contract
         await token.approve(
@@ -185,16 +189,8 @@ contract('DBETNode', accounts => {
     })
 
     it('allows users to upgrade a node with an existing node', async () => {
-        const {
-            tokenThreshold
-        } = getUpgradedNode()
-
-        // Transfer tokens to user 1
-        await token.transfer(
-            user1,
-            tokenThreshold
-        )
-
+        const tokenRequirement = getNodeUpgradeTokenRequirement()
+        const preUpgradeBalance = await token.balanceOf(user1)
         // Upgrade node to Tier II
         await dbetNode.upgrade(
             0,
@@ -203,7 +199,16 @@ contract('DBETNode', accounts => {
                 from: user1
             }
         )
+        const postUpgradeBalance = await token.balanceOf(user1)
 
+        console.log(
+            'pre/post upgrade balances',
+            web3.utils.fromWei(preUpgradeBalance.toString(), 'ether'),
+            web3.utils.fromWei(postUpgradeBalance.toString(), 'ether'),
+            web3.utils.fromWei(tokenRequirement, 'ether')
+        )
+        // Token balance must be 0 now
+        assert.equal(new BigNumber(preUpgradeBalance).minus(postUpgradeBalance).isEqualTo(tokenRequirement), true)
         const userNode = await dbetNode.userNodes(0)
         // Node must be owned by user
         assert.equal(userNode.owner, user1)
