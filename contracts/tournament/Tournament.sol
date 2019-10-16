@@ -40,7 +40,8 @@ LibDBETNode {
     // Log new prize table
     event LogNewPrizeTable(
         bytes32 indexed id,
-        uint256 indexed count
+        uint256 indexed count,
+        uint256 tableLength
     );
     // Log new tournament
     event LogNewTournament(
@@ -120,7 +121,8 @@ LibDBETNode {
         prizeTables[id] = table;
         emit LogNewPrizeTable(
             id,
-            prizeTableCount++
+            prizeTableCount++,
+            table.length
         );
     }
 

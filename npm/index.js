@@ -1,5 +1,5 @@
 module.exports = {
-    "VERSION": "1.0.9",
+    "VERSION": "1.0.10",
     "AdminContract": {
         "raw": {
             "abi": [{
@@ -98,7 +98,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0x66Fd024A7D54BF62cA45C7481DD41a605DBfF1D6",
+            "0x27": "0x038bB7Da39E2723d05FE42f987E6C5C3d00c089C",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0x4a": "0xE1A9dA3a8E10B74AB05Bc068272254C242DaFb4D",
             "0xa4": "0xd74313287364cA0fd80425d52c6c6B13538c0247"
@@ -330,7 +330,7 @@ module.exports = {
                 "type": "function",
                 "signature": "0x8533022a"
             }]
-        }, "address": {"0x27": "0x88909Caa28A0790FfE407b4660a1abBB66072b67"}
+        }, "address": {"0x27": "0xF93442b770B04b3F2EA7B34014628aF4C5F6D6D5"}
     },
     "QuestContract": {
         "raw": {
@@ -583,7 +583,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0x45072DC2A759E2Dfd0c31cF2A3eF19bca7da6fAf",
+            "0x27": "0x79b337400408A655448EE2695AdBe1706F8bc6B1",
             "0xc7": "0x55db2feE8A2A039BCA83b014cf0b455a31E77Cda",
             "0x4a": "0x0E599Dc9e307251729Dbf05Be79E61E0165f3FbF",
             "0xa4": "0x5379897279457f4f8F182f29273E087e505aF8c0"
@@ -897,10 +897,10 @@ module.exports = {
                     "indexed": true,
                     "name": "count",
                     "type": "uint256"
-                }],
+                }, {"indexed": false, "name": "tableLength", "type": "uint256"}],
                 "name": "LogNewPrizeTable",
                 "type": "event",
-                "signature": "0x01def64f7f3b9d1d5462857c37b202a7450786a4922c3d1dc29ee54efa765a25"
+                "signature": "0x8672fa1c21e5e2c681a9cdeb6bab51d7b92fe1998b6f6789f7ffa185714e56c5"
             }, {
                 "anonymous": false,
                 "inputs": [{"indexed": true, "name": "id", "type": "bytes32"}, {
@@ -1164,7 +1164,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0x1D6f5F4b62f2Ddc77826E147179029De67b38029",
+            "0x27": "0x87B26eBe3a27a635B172BF7d715846c9123b9620",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0x4a": "0x5dc557E3b082ecA7c6EA890f806F5bddE4D39d50",
             "0xa4": "0x86F3EC2f5C82C86974f2407c0ac9c627015eCcA0"
