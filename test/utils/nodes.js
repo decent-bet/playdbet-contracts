@@ -24,6 +24,16 @@ const getNode = () => {
     }
 }
 
+const getUpgradedNode = () => {
+    return {
+        name: 'House Tier II',
+        tokenThreshold: web3.utils.toWei('200000', 'ether'), // 100k DBETs
+        timeThreshold: 86400 * 14, // 2 weeks
+        maxCount: 5,
+        rewards
+    }
+}
+
 const getValidNodeQuestParams = () => {
     const id = web3.utils.fromUtf8('456')
     const entryFee = web3.utils.toWei('200', 'ether')
@@ -47,5 +57,6 @@ module.exports = {
     REWARD_CREATE_TOURNAMENT,
     rewards,
     getNode,
+    getUpgradedNode,
     getValidNodeQuestParams
 }
