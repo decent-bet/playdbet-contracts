@@ -20,7 +20,8 @@ const getNode = () => {
         tokenThreshold: web3.utils.toWei('100000', 'ether'), // 100k DBETs
         timeThreshold: 86400 * 7, // 1 week
         maxCount: 10,
-        rewards
+        rewards,
+        entryFeeDiscount: 10
     }
 }
 
@@ -30,7 +31,8 @@ const getUpgradedNode = () => {
         tokenThreshold: web3.utils.toWei('200000', 'ether'), // 100k DBETs
         timeThreshold: 86400 * 14, // 2 weeks
         maxCount: 5,
-        rewards
+        rewards,
+        entryFeeDiscount: 25
     }
 }
 

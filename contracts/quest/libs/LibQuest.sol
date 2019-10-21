@@ -38,6 +38,8 @@ contract LibQuest {
     struct UserQuestEntry {
         // Entry time
         uint256 entryTime;
+        // Entry fee - can vary based on whether user has an active node at time of entering a quest
+        uint256 entryFee;
         // Quest entry status
         uint8 status;
         // True if user claims refund for a cancelled quest

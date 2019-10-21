@@ -285,6 +285,7 @@ LibDBETNode {
     * @param timeThreshold Minimum time tokens need to be held before node can be activated
     * @param maxCount Maximum number of nodes of this type that can be active at a time
     * @param rewards Array of reward IDs linked to this node type
+    * @param entryFeeDiscount Entry fee discount
     * @return Whether node was added
     */
     function addNode(
@@ -292,7 +293,8 @@ LibDBETNode {
         uint256 tokenThreshold,
         uint256 timeThreshold,
         uint256 maxCount,
-        uint8[] memory rewards
+        uint8[] memory rewards,
+        uint256 entryFeeDiscount
     )
     public
     returns (bool) {
@@ -321,6 +323,12 @@ LibDBETNode {
             maxCount > 0,
             "INVALID_MAX_COUNT"
         );
+        // Entry fee discount must be between 0 and 100
+        require(
+            entryFeeDiscount <= 100 &&
+            entryFeeDiscount > 0,
+            "INVALID_ENTRY_FEE_DISCOUNT"
+        );
         // Must be valid rewards array
         require(
             rewards.length > 0 &&
@@ -343,6 +351,7 @@ LibDBETNode {
             timeThreshold: timeThreshold,
             maxCount: maxCount,
             rewards: rewards,
+            entryFeeDiscount: entryFeeDiscount,
             count: 0
         });
         emit LogNewNode(nodeCount++);

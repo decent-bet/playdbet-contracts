@@ -104,14 +104,16 @@ contract('NodeWallet', accounts => {
             tokenThreshold,
             timeThreshold,
             maxCount,
-            rewards
+            rewards,
+            entryFeeDiscount
         } = getNode()
         await dbetNode.addNode(
             name,
             tokenThreshold,
             timeThreshold,
             maxCount,
-            rewards
+            rewards,
+            entryFeeDiscount
         )
 
         // Approve tokens to be transferred on behalf of user from DBETNode and Quest contracts

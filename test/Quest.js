@@ -261,7 +261,7 @@ contract('Quest', accounts => {
         )
         const questEntryStatus_started = 1
         assert.equal(
-            userQuestEntry[1],
+            userQuestEntry[2],
             questEntryStatus_started
         )
     })
@@ -382,7 +382,7 @@ contract('Quest', accounts => {
             new BigNumber(postSetOutcomeQuestEntryCount).toFixed()
         )
         assert.equal(
-            userQuestEntry[1],
+            userQuestEntry[2],
             OUTCOME_SUCCESS
         )
     })
@@ -514,13 +514,13 @@ contract('Quest', accounts => {
 
         // Quest status is cancelled
         assert.equal(
-            questEntry[1],
+            questEntry[2],
             QUEST_ENTRY_STATUS_CANCELLED
         )
 
         // Quest must be refunded
         assert.equal(
-            questEntry[2],
+            questEntry[3],
             true
         )
     })
@@ -684,14 +684,16 @@ contract('Quest', accounts => {
             tokenThreshold,
             timeThreshold,
             maxCount,
-            rewards
+            rewards,
+            entryFeeDiscount
         } = getNode()
         await dbetNode.addNode(
             name,
             tokenThreshold,
             timeThreshold,
             maxCount,
-            rewards
+            rewards,
+            entryFeeDiscount
         )
 
         // Approve tokens to be transferred on behalf of user from DBETNode and Quest contracts

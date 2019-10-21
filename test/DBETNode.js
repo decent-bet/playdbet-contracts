@@ -45,7 +45,8 @@ contract('DBETNode', accounts => {
             tokenThreshold,
             timeThreshold,
             maxCount,
-            rewards
+            rewards,
+            entryFeeDiscount
         } = getNode()
 
         await utils.assertFail(
@@ -55,6 +56,7 @@ contract('DBETNode', accounts => {
                 timeThreshold,
                 maxCount,
                 rewards,
+                entryFeeDiscount,
                 {
                     from: user1
                 }
@@ -69,7 +71,8 @@ contract('DBETNode', accounts => {
                 tokenThreshold,
                 timeThreshold,
                 maxCount,
-                rewards
+                rewards,
+                entryFeeDiscount
             } = node
 
             await dbetNode.addNode(
@@ -77,7 +80,8 @@ contract('DBETNode', accounts => {
                 tokenThreshold,
                 timeThreshold,
                 maxCount,
-                rewards
+                rewards,
+                entryFeeDiscount
             )
 
             const nodeType = await dbetNode.nodes(index)
