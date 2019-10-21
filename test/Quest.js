@@ -675,7 +675,7 @@ contract('Quest', accounts => {
         // Transfer DBETs to node holder
         await token.transfer(
             nodeHolder,
-            web3.utils.toWei('1000000', 'ether')
+            web3.utils.toWei('2000000', 'ether')
         )
 
         // Add a new node type as admin
@@ -857,6 +857,73 @@ contract('Quest', accounts => {
         const questData = await quest.quests(id)
         assert.equal(
             questData[4],
+            true
+        )
+    })
+
+    it('pays discounted fees if node holders pays for quest', async () => {
+        const {
+            id,
+            entryFee
+        } = getValidNodeQuestParams()
+        const {
+            entryFeeDiscount
+        } = getNode()
+        const nodeId = 0
+
+        const prePayForQuestBalance = await token.balanceOf(nodeHolder)
+        await quest.payForQuestWithNode(
+            id,
+            nodeId,
+            nodeHolder,
+            {
+                from: nodeHolder
+            }
+        )
+        const postPayForQuestBalance = await token.balanceOf(nodeHolder)
+        assert.equal(
+            new BigNumber(postPayForQuestBalance).isEqualTo(
+                new BigNumber(prePayForQuestBalance).minus(
+                    new BigNumber(entryFee).multipliedBy((100 - entryFeeDiscount)/100)
+                )
+            ),
+            true
+        )
+        const userQuestEntryFee = (await quest.userQuestEntries(
+            nodeHolder,
+            id,
+            0
+        )).entryFee
+        assert.equal(
+            new BigNumber(userQuestEntryFee).isEqualTo(
+                new BigNumber(entryFee).multipliedBy((100 - entryFeeDiscount)/100)
+            ),
+            true
+        )
+    })
+
+    it('refunds discounted entry fee for cancelled node holder quest entries', async () => {
+        const {
+            id
+        } = getValidNodeQuestParams()
+
+        const {entryFee} = await quest.userQuestEntries(
+            nodeHolder,
+            id,
+            0
+        )
+        const preCancelQuestEntryBalance = await token.balanceOf(nodeHolder)
+        await quest.cancelQuestEntry(
+            id,
+            nodeHolder
+        )
+        const postCancelQuestEntryBalance = await token.balanceOf(nodeHolder)
+        assert.equal(
+            new BigNumber(postCancelQuestEntryBalance).isEqualTo(
+                new BigNumber(preCancelQuestEntryBalance).plus(
+                    new BigNumber(entryFee)
+                )
+            ),
             true
         )
     })
