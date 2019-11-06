@@ -23,6 +23,8 @@ contract LibTournament {
         TournamentDetails details;
         // Participants in tournament
         TournamentEntry[] entries;
+        // Total entry fees for tournament
+        uint256 totalEntryFees;
         // Prize table to entries array mapping
         mapping (uint256 => uint256[]) prizes;
         // Unique standings - used to determine number of unique final standings excluding tied entries for prize giveaway calculation.
@@ -56,6 +58,8 @@ contract LibTournament {
     struct TournamentEntry {
         // Address of entered user
         address _address;
+        // Entry fee paid
+        uint256 entryFee;
         // Final standing index
         uint256[] finalStandings;
     }

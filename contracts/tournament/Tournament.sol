@@ -52,7 +52,8 @@ LibDBETNode {
     event LogEnteredTournament(
         bytes32 indexed id,
         address indexed participant,
-        uint256 indexed entryIndex
+        uint256 indexed entryIndex,
+        uint256 entryFee
     );
     // Log completed tournament
     event LogCompletedTournament(
@@ -318,7 +319,7 @@ LibDBETNode {
             tournaments[id].details.entryFee != 0,
             "INVALID_TOURNAMENT_ID"
         );
-        // Cannot have already entered the tournament if entryLimit is false
+        // Cannot have already entered the tournament if entryLimit is exceeded
         if (tournaments[id].details.entryLimit > 1) {
             uint256 entryCount = 0;
             for (uint256 i = 0; i < tournaments[id].entries.length; i++) {
@@ -356,6 +357,16 @@ LibDBETNode {
                 ),
                 "INVALID_QUEST_NODE_STATUS"
             );
+        uint256[] memory finalStandings;
+        // Add to tournament
+        tournaments[id].entries.push(TournamentEntry({
+            _address: msg.sender,
+            entryFee: tournaments[id].details.entryFee,
+            finalStandings: finalStandings
+        }));
+        // Add to total tournament entry fees
+        tournaments[id].totalEntryFees =
+            tournaments[id].totalEntryFees.add(tournaments[id].details.entryFee);
         // Transfer tokens to contract
         require(
             token.transferFrom(
@@ -365,17 +376,105 @@ LibDBETNode {
             ),
             "TOKEN_TRANSFER_ERROR"
         );
-        uint256[] memory finalStandings;
-        // Add to tournament
-        tournaments[id].entries.push(TournamentEntry({
-            _address: msg.sender,
-            finalStandings: finalStandings
-        }));
         // Emit log entered tournament event
         emit LogEnteredTournament(
             id,
             msg.sender,
-            tournaments[id].entries.length - 1
+            tournaments[id].entries.length - 1,
+            tournaments[id].details.entryFee
+        );
+    }
+
+    /**
+    * Allows users to enter a tournament by paying the listed entry fee with a discount
+    * using an active DBET node
+    * @param id Unique ID of the tournament
+    */
+    function enterTournamentWithNode(
+        bytes32 id,
+        bytes32 nodeId
+    ) public returns (bool) {
+        // Must be a valid tournament
+        require(
+            tournaments[id].details.entryFee != 0,
+            "INVALID_TOURNAMENT_ID"
+        );
+        // Allow only active node holders to pay for quests
+        require(
+            isActiveNode(
+                nodeId,
+                msg.sender
+            ),
+            "INVALID_NODE"
+        );
+        (uint256 node,,,,,) = dbetNode.userNodes(nodeId);
+        // Get discounted entry fee for node
+        uint256 entryFee = getEntryFeeForNodeType(
+            node,
+            tournaments[id].details.entryFee
+        );
+        // Cannot have already entered the tournament if entryLimit is exceeded
+        if (tournaments[id].details.entryLimit > 1) {
+            uint256 entryCount = 0;
+            for (uint256 i = 0; i < tournaments[id].entries.length; i++) {
+                if(tournaments[id].entries[i]._address == msg.sender) {
+                    require(
+                        ++entryCount <= tournaments[id].details.entryLimit,
+                        "ENTRY_LIMIT_EXCEEDED"
+                    );
+                }
+            }
+        }
+        // Tournament cannot have been completed
+        require(
+            tournaments[id].status == uint8(TournamentStatus.ACTIVE),
+            "INVALID_TOURNAMENT_STATUS"
+        );
+        // Cannot be over max entry count
+        require(
+            tournaments[id].entries.length <=
+            tournaments[id].details.maxEntries,
+            "MAX_ENTRY_COUNT_EXCEEDED"
+        );
+        // Must have a balance and allowance >= entryFee
+        require(
+            token.balanceOf(msg.sender) >= entryFee &&
+            token.allowance(msg.sender, address(this)) >= entryFee,
+            "INVALID_TOKEN_BALANCE_OR_ALLOWANCE"
+        );
+        if (tournaments[id].isNode)
+            // Check if node is active
+            require(
+                isActiveNode(
+                    tournaments[id].nodeId,
+                    dbetNode.getNodeOwner(tournaments[id].nodeId)
+                ),
+                "INVALID_QUEST_NODE_STATUS"
+            );
+        uint256[] memory finalStandings;
+        // Add entry to tournament
+        tournaments[id].entries.push(TournamentEntry({
+            _address: msg.sender,
+            entryFee: entryFee,
+            finalStandings: finalStandings
+        }));
+        // Add to total tournament entry fees
+        tournaments[id].totalEntryFees = tournaments[id].totalEntryFees.add(entryFee);
+        // Transfer tokens to contract
+        require(
+            token.transferFrom(
+                msg.sender,
+                address(this),
+                entryFee
+            ),
+            "TOKEN_TRANSFER_ERROR"
+        );
+        // Emit log entered tournament event
+        emit LogEnteredTournament(
+            id,
+            msg.sender,
+            tournaments[id].entries.length - 1,
+            entryFee
         );
     }
 
@@ -737,7 +836,7 @@ LibDBETNode {
         require(
             token.transfer(
                 msg.sender,
-                tournaments[id].details.entryFee
+                tournaments[id].entries[entryIndex].entryFee
             ),
             "TOKEN_TRANSFER_ERROR"
         );
@@ -760,8 +859,7 @@ LibDBETNode {
     public
     view
     returns (uint256) {
-        return (tournaments[id].entries.length
-            .mul(tournaments[id].details.entryFee))
+        return (tournaments[id].totalEntryFees)
             .sub(getRakeFee(id));
     }
 
@@ -776,8 +874,7 @@ LibDBETNode {
     public
     view
     returns (uint256) {
-        return (tournaments[id].details.entryFee)
-            .mul(tournaments[id].entries.length)
+        return (tournaments[id].totalEntryFees)
             .mul(tournaments[id].details.rakePercent)
             .div(100);
     }
@@ -891,6 +988,23 @@ LibDBETNode {
                 id
             )
         );
+    }
+
+    /**
+    * Returns entry fees for node types
+    * @param nodeType Type of node
+    * @return Entry fee after discount for node type
+    */
+    function getEntryFeeForNodeType(
+        uint256 nodeType,
+        uint256 entryFee
+    )
+    public
+    view
+    returns (uint256) {
+        (,,,,uint256 discount,) = dbetNode.nodes(nodeType);
+        // entryFee * (1 - discount)/100
+        return entryFee.mul(uint256(100).sub(discount)).div(100);
     }
 
 }

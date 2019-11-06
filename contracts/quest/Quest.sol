@@ -50,6 +50,7 @@ LibQuest {
         bytes32 indexed id,
         address indexed user,
         address indexed payer,
+        uint256 entryFee,
         uint256 questEntryCount
     );
     // On set quest outcome
@@ -275,17 +276,15 @@ LibQuest {
             );
             // Add to quest entry fees in node wallet
             require(
-                dbetNode.nodeWallet()
-                .addQuestEntryFee(
+                dbetNode.nodeWallet().addQuestEntryFee(
                     quests[id].nodeId,
                     id,
                     quests[id].entryFee
-                )
-            ,
+                ),
                 "ERROR_NODE_WALLET_ADD_QUEST_ENTRY_FEE"
             );
         } else
-        // Transfer entry fees to platform wallet
+            // Transfer entry fees to platform wallet
             require(
                 token.transferFrom(
                     msg.sender,
@@ -299,6 +298,7 @@ LibQuest {
             id,
             user,
             msg.sender,
+            quests[id].entryFee,
             _userQuestEntryCount
         );
     }
@@ -317,11 +317,11 @@ LibQuest {
     ) public returns (bool) {
         // Must be a valid quest ID
         require(quests[id].status == uint8(QuestStatus.ACTIVE), "INVALID_QUEST_ID");
-        // Allow only active node holders to add quests
+        // Allow only active node holders to pay for quests
         require(
             isActiveNode(
                 nodeId,
-                msg.sender
+                user
             ),
             "INVALID_NODE"
         );
@@ -387,8 +387,7 @@ LibQuest {
             );
             // Add to quest entry fees in node wallet
             require(
-                dbetNode.nodeWallet()
-                .addQuestEntryFee(
+                dbetNode.nodeWallet().addQuestEntryFee(
                     quests[id].nodeId,
                     id,
                     entryFee
@@ -410,6 +409,7 @@ LibQuest {
             id,
             user,
             msg.sender,
+            entryFee,
             _userQuestEntryCount
         );
     }
@@ -695,8 +695,7 @@ LibQuest {
             );
             // Remove entry fee from node wallet quest fee records
             require(
-                dbetNode.nodeWallet()
-                .claimRefund(
+                dbetNode.nodeWallet().claimRefund(
                     quests[id].nodeId,
                     id,
                     userQuestEntries[user][id][_userQuestEntryCount].entryFee
@@ -704,7 +703,7 @@ LibQuest {
                 "ERROR_NODE_WALLET_CLAIM_REFUND"
             );
         } else
-        // Transfer out DBETs escrowed within platform wallet to user
+            // Transfer out DBETs escrow-ed within platform wallet to user
             require(
                 token.transferFrom(
                     admin.platformWallet(),
