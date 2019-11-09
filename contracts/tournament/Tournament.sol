@@ -392,7 +392,7 @@ LibDBETNode {
     */
     function enterTournamentWithNode(
         bytes32 id,
-        bytes32 nodeId
+        uint256 nodeId
     ) public returns (bool) {
         // Must be a valid tournament
         require(

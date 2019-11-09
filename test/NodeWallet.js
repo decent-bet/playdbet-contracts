@@ -225,10 +225,6 @@ contract('NodeWallet', accounts => {
         )
     })
 
-    it('throws if non-tournament address tries to call add tournament rake fee in node wallet contract', async () => {
-
-    })
-
     it('prize fund is set in node wallet contract on adding a quest in Quest contract', async () => {
         // Check if prize fund in node wallet for added quest is equal to (prize * maxEntries)
         const {
@@ -683,6 +679,16 @@ contract('NodeWallet', accounts => {
             1,
             20,
             1
+        )
+    })
+
+    it('throws if non-tournament address tries to call add tournament rake fee in node wallet contract', async () => {
+        await utils.assertFail(
+            nodeWallet.addTournamentRakeFee(
+                nodeId,
+                standardTournamentId,
+                100
+            )
         )
     })
 

@@ -20,6 +20,7 @@ const web3 = utils.getWeb3()
 
 const timeTravel = async timeDiff => {
     await timeTraveler.advanceTime(timeDiff)
+    await timeTraveler.advanceBlock()
 }
 
 const getNodeUpgradeTokenRequirement = () => {
