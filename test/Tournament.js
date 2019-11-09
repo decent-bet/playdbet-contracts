@@ -1,3 +1,5 @@
+const timeTraveler = require('ganache-time-traveler')
+
 const contracts = require('./utils/contracts')
 const utils = require('./utils/utils')
 const {
@@ -11,7 +13,12 @@ const {
     assertFiftyFiftyClaimCalculations
 } = require('./utils/tournament')
 
+const {
+    getNode
+} = require('./utils/nodes')
+
 let admin,
+    dbetNode,
     token,
     tournament
 
@@ -19,8 +26,13 @@ let owner
 let platformWallet
 let user1
 let user2
+let nodeHolder
 
 let web3 = utils.getWeb3()
+
+const timeTravel = async timeDiff => {
+    await timeTraveler.advanceTime(timeDiff)
+}
 
 let prizeTableId
 let standardTournamentId1
@@ -30,14 +42,18 @@ let standardTournamentId3
 let winnerTakeAllTournamentId
 let fiftyFiftyTournamentId
 
+let nodeTournamentId
+
 contract('Tournament', accounts => {
     it('initializes tournament contract', async () => {
         owner = accounts[0]
         platformWallet = accounts[1]
         user1 = accounts[2]
         user2 = accounts[3]
+        nodeHolder = accounts[4]
 
         admin = await contracts.Admin.deployed()
+        dbetNode = await contracts.DBETNode.deployed()
         token = await contracts.DBETVETToken.deployed()
         tournament = await contracts.Tournament.deployed()
 
@@ -1091,7 +1107,304 @@ contract('Tournament', accounts => {
             9,
             0
         )
+    })
 
+    it('throws if non-node holders create node tournaments', async () => {
+        const {
+            entryFee,
+            entryLimit,
+            minEntries,
+            maxEntries,
+            rakePercent,
+            prizeType
+        } = getValidTournamentParams(1)
+
+        await utils.assertFail(
+            tournament.createNodeTournament(
+                0,
+                entryFee,
+                entryLimit,
+                minEntries,
+                maxEntries,
+                rakePercent,
+                prizeType,
+                prizeTableId,
+                {
+                    from: owner
+                }
+            )
+        )
+    })
+
+    it('throws if node holders create node tournaments before activation', async () => {
+        // Transfer DBETs to node holder
+        await token.transfer(
+            nodeHolder,
+            web3.utils.toWei('2000000', 'ether')
+        )
+
+        // Add a new node type as admin
+        const {
+            name,
+            tokenThreshold,
+            timeThreshold,
+            maxCount,
+            rewards,
+            entryFeeDiscount
+        } = getNode()
+        await dbetNode.addNode(
+            name,
+            tokenThreshold,
+            timeThreshold,
+            maxCount,
+            rewards,
+            entryFeeDiscount
+        )
+
+        // Approve tokens to be transferred on behalf of user from DBETNode and Quest contracts
+        await token.approve(
+            dbetNode.address,
+            utils.MAX_VALUE,
+            {
+                from: nodeHolder
+            }
+        )
+        await token.approve(
+            tournament.address,
+            utils.MAX_VALUE,
+            {
+                from: nodeHolder
+            }
+        )
+        // Create node of type ID 0
+        await dbetNode.create(
+            0,
+            {
+                from: nodeHolder
+            }
+        )
+        // Try adding create a node tournament before node activation
+        const {
+            entryFee,
+            entryLimit,
+            minEntries,
+            maxEntries,
+            rakePercent,
+            prizeType
+        } = getValidTournamentParams(1)
+
+        const nodeId = 0
+        await utils.assertFail(
+            tournament.createNodeTournament(
+                nodeId,
+                entryFee,
+                entryLimit,
+                minEntries,
+                maxEntries,
+                rakePercent,
+                prizeType,
+                prizeTableId,
+                {
+                    from: nodeHolder
+                }
+            )
+        )
+    })
+
+    it('throws if active node holders create node tournaments with invalid parameters', async () => {
+        const {
+            timeThreshold,
+        } = getNode()
+        // Move forward in time by `timeThreshold` to activate node
+        await timeTravel(timeThreshold)
+
+        const {
+            entryFee,
+            entryLimit,
+            minEntries,
+            maxEntries,
+            rakePercent,
+            prizeType
+        } = getValidTournamentParams(1)
+
+        const nodeId = 0
+        // Invalid node ID
+        await utils.assertFail(
+            tournament.createNodeTournament(
+                1,
+                entryFee,
+                entryLimit,
+                minEntries,
+                maxEntries,
+                rakePercent,
+                prizeType,
+                prizeTableId,
+                {
+                    from: nodeHolder
+                }
+            )
+        )
+
+        // Invalid entry fee
+        await utils.assertFail(
+            tournament.createNodeTournament(
+                nodeId,
+                0,
+                entryLimit,
+                minEntries,
+                maxEntries,
+                rakePercent,
+                prizeType,
+                prizeTableId,
+                {
+                    from: nodeHolder
+                }
+            )
+        )
+
+        // Invalid entry limit
+        await utils.assertFail(
+            tournament.createNodeTournament(
+                nodeId,
+                entryFee,
+                0,
+                minEntries,
+                maxEntries,
+                rakePercent,
+                prizeType,
+                prizeTableId,
+                {
+                    from: nodeHolder
+                }
+            )
+        )
+
+        // Invalid min entries
+        await utils.assertFail(
+            tournament.createNodeTournament(
+                nodeId,
+                entryFee,
+                entryLimit,
+                0,
+                maxEntries,
+                rakePercent,
+                prizeType,
+                prizeTableId,
+                {
+                    from: nodeHolder
+                }
+            )
+        )
+
+        // Invalid max entries
+        await utils.assertFail(
+            tournament.createNodeTournament(
+                nodeId,
+                entryFee,
+                entryLimit,
+                minEntries,
+                0,
+                rakePercent,
+                prizeType,
+                prizeTableId,
+                {
+                    from: nodeHolder
+                }
+            )
+        )
+
+        // Invalid rake percent
+        await utils.assertFail(
+            tournament.createNodeTournament(
+                nodeId,
+                entryFee,
+                entryLimit,
+                minEntries,
+                maxEntries,
+                0,
+                prizeType,
+                prizeTableId,
+                {
+                    from: nodeHolder
+                }
+            )
+        )
+
+        // Invalid prize type
+        await utils.assertFail(
+            tournament.createNodeTournament(
+                nodeId,
+                entryFee,
+                entryLimit,
+                minEntries,
+                maxEntries,
+                rakePercent,
+                3,
+                prizeTableId,
+                {
+                    from: nodeHolder
+                }
+            )
+        )
+
+        // Invalid prize table ID
+        await utils.assertFail(
+            tournament.createNodeTournament(
+                nodeId,
+                entryFee,
+                entryLimit,
+                minEntries,
+                maxEntries,
+                rakePercent,
+                prizeType,
+                web3.utils.fromUtf8('abc'),
+                {
+                    from: nodeHolder
+                }
+            )
+        )
+    })
+
+    it('allows active node holders to create node tournaments', async () => {
+        const {
+            entryFee,
+            entryLimit,
+            minEntries,
+            maxEntries,
+            rakePercent,
+            prizeType
+        } = getValidTournamentParams(1)
+
+        const nodeId = 0
+        const tx = await tournament.createNodeTournament(
+            nodeId,
+            entryFee,
+            entryLimit,
+            minEntries,
+            maxEntries,
+            rakePercent,
+            prizeType,
+            prizeTableId,
+            {
+                from: nodeHolder
+            }
+        )
+
+
+        nodeTournamentId = tx.logs[0].args.id
+        let tournamentCountAtCreation = tx.logs[0].args.count
+
+        assert.equal(
+            tournamentCountAtCreation,
+            '5'
+        )
+    })
+
+    it('pays discounted fee if active node holder enters tournament', async () => {
+
+    })
+
+    it('refunds discounted entry fee for cancelled node holder tournament entries', async () => {
 
     })
 
