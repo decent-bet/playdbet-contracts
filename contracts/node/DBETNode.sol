@@ -42,24 +42,26 @@ LibDBETNode {
     uint256 public userNodeCount;
 
     // Maps addresses to node types and a bool representing whether the user owns the node type
-    mapping (address => mapping (uint256 => bool)) nodeOwnership;
+    mapping (address => mapping (uint256 => bool)) public nodeOwnership;
 
     event LogSetContracts(
         address quest,
         address tournament
     );
     event LogCreateUserNode(
-        uint256 id
+        uint256 indexed id,
+        address indexed user
     );
     event LogUpgradeUserNode(
-        uint256 id,
+        uint256 indexed id,
         uint256 previousNodeType
     );
     event LogDestroyUserNode(
-        uint256 id
+        uint256 indexed id,
+        address indexed user
     );
     event LogNewNode(
-        uint256 id
+        uint256 indexed id
     );
 
     constructor(
@@ -154,7 +156,10 @@ LibDBETNode {
             "TOKEN_TRANSFER_ERROR"
         );
         // Emit create user node event
-        emit LogCreateUserNode(userNodeCount++);
+        emit LogCreateUserNode(
+            userNodeCount++,
+            msg.sender
+        );
         return true;
     }
 
@@ -274,7 +279,10 @@ LibDBETNode {
             "TOKEN_TRANSFER_ERROR"
         );
         // Emit log destroy user node event
-        emit LogDestroyUserNode(id);
+        emit LogDestroyUserNode(
+            id,
+            msg.sender
+        );
         return true;
     }
 
