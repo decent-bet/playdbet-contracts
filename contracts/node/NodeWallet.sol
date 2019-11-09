@@ -32,34 +32,33 @@ contract NodeWallet {
     // Node ID => Rake fees
     mapping (uint256 => uint256) public totalRakeFees;
 
-
     event LogSetPrizeFund(
-        uint256 nodeId,
-        bytes32 questId
+        uint256 indexed nodeId,
+        bytes32 indexed questId
     );
     event LogAddQuestEntryFee(
-        uint256 nodeId,
-        bytes32 questId
+        uint256 indexed nodeId,
+        bytes32 indexed questId
     );
     event LogAddCompletedQuestEntryFee(
-        uint256 nodeId,
-        bytes32 questId
+        uint256 indexed nodeId,
+        bytes32 indexed questId
     );
     event LogClaimRefund(
-        uint256 nodeId,
-        bytes32 questId
+        uint256 indexed nodeId,
+        bytes32 indexed questId
     );
     event LogWithdrawCompletedQuestEntryFees(
-        uint256 nodeId,
-        uint256 amount
+        uint256 indexed nodeId,
+        uint256 indexed amount
     );
     event LogAddTournamentRakeFees(
-        uint256 nodeId,
-        bytes32 tournamentId
+        uint256 indexed nodeId,
+        bytes32 indexed tournamentId
     );
     event LogWithdrawTournamentRakeFees(
-        uint256 nodeId,
-        uint256 amount
+        uint256 indexed nodeId,
+        uint256 indexed amount
     );
 
     constructor()
