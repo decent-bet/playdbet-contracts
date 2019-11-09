@@ -1,3 +1,4 @@
+const BigNumber = require('bignumber.js')
 const timeTraveler = require('ganache-time-traveler')
 
 const contracts = require('./utils/contracts')
@@ -1401,11 +1402,85 @@ contract('Tournament', accounts => {
     })
 
     it('pays discounted fee if active node holder enters tournament', async () => {
+        const {
+            entryFee
+        } = getValidTournamentParams(1)
+        const {
+            entryFeeDiscount
+        } = getNode()
 
+        const nodeId = 0
+        const preEnterTournamentUserBalance =
+            await token.balanceOf(nodeHolder)
+        await tournament.enterTournamentWithNode(
+            nodeTournamentId,
+            nodeId,
+            {
+                from: nodeHolder
+            }
+        )
+        const postEnterTournamentUserBalance =
+            await token.balanceOf(nodeHolder)
+
+        assert.equal(
+            new BigNumber(
+                web3.utils.fromWei(postEnterTournamentUserBalance.toString(), 'ether')
+            ).isEqualTo(
+                new BigNumber(web3.utils.fromWei(preEnterTournamentUserBalance.toString(), 'ether'))
+                    .minus(
+                        new BigNumber(web3.utils.fromWei(entryFee, 'ether'))
+                            .multipliedBy(100 - entryFeeDiscount)
+                            .dividedBy(100)
+                    )
+            ),
+            true
+        )
     })
 
     it('refunds discounted entry fee for cancelled node holder tournament entries', async () => {
+        const {
+            entryFee
+        } = getValidTournamentParams(1)
+        const {
+            entryFeeDiscount
+        } = getNode()
 
+        // Complete tournament with `FAILED` status
+        await tournament.completeTournament(
+            nodeTournamentId,
+            [],
+            0,
+            {
+                from: owner
+            }
+        )
+
+        // Claim tournament refund
+        const preClaimRefundUserBalance =
+            await token.balanceOf(nodeHolder)
+        await tournament.claimTournamentRefund(
+            nodeTournamentId,
+            0,
+            {
+                from: nodeHolder
+            }
+        )
+        const postClaimRefundUserBalance =
+            await token.balanceOf(nodeHolder)
+
+        assert.equal(
+            new BigNumber(
+                web3.utils.fromWei(postClaimRefundUserBalance.toString(), 'ether')
+            ).isEqualTo(
+                new BigNumber(web3.utils.fromWei(preClaimRefundUserBalance.toString(), 'ether'))
+                    .plus(
+                        new BigNumber(web3.utils.fromWei(entryFee, 'ether'))
+                            .multipliedBy(100 - entryFeeDiscount)
+                            .dividedBy(100)
+                    )
+            ),
+            true
+        )
     })
 
 })
