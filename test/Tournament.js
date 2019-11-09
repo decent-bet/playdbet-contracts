@@ -1391,7 +1391,6 @@ contract('Tournament', accounts => {
             }
         )
 
-
         nodeTournamentId = tx.logs[0].args.id
         let tournamentCountAtCreation = tx.logs[0].args.count
 
@@ -1437,10 +1436,135 @@ contract('Tournament', accounts => {
         )
     })
 
-    it('refunds discounted entry fee for cancelled node holder tournament entries', async () => {
+    it('allows user to claim node tournament prizes with valid IDs and indices', async () => {
         const {
-            entryFee
+            finalStandings1,
+            uniqueFinalStandings1
+        } = getValidTournamentCompletionParams()
+
+        // Complete tournament 1
+        const tx = await tournament.completeTournament(
+            nodeTournamentId,
+            finalStandings1,
+            uniqueFinalStandings1,
+            {
+                from: owner
+            }
+        )
+
+        assert.equal(
+            tx.logs[0].args.id,
+            nodeTournamentId
+        )
+
+        const claimAndAssertTournamentPrize = async (
+            tournamentId,
+            user,
+            entryIndex,
+            finalStandingIndex,
+            totalEntryFee,
+            finalStandingPercent,
+            uniqueFinalStandings,
+            excessPrizePercent,
+            sharedFinalStandings
+        ) => {
+            const preClaimTournamentUserBalance =
+                web3.utils.fromWei(await token.balanceOf(user), 'ether')
+
+            const tx = await tournament.claimTournamentPrize(
+                tournamentId,
+                entryIndex,
+                finalStandingIndex,
+                {
+                    from: user
+                }
+            )
+
+            const postClaimTournamentUserBalance =
+                web3.utils.fromWei(await token.balanceOf(user), 'ether')
+
+            console.log(
+                'Tournament', tournamentId,
+                'User', user,
+                preClaimTournamentUserBalance,
+                postClaimTournamentUserBalance,
+                tx.logs[0].args.finalStanding.toString(),
+                tx.logs[0].args.prizeFromTable.toString(),
+                tx.logs[0].args.prizeMoney.toString()
+            )
+
+            assertStandardClaimCalculations(
+                postClaimTournamentUserBalance,
+                preClaimTournamentUserBalance,
+                totalEntryFee,
+                finalStandingPercent,
+                uniqueFinalStandings,
+                excessPrizePercent,
+                sharedFinalStandings
+            )
+
+            assert.equal(
+                tx.logs[0].args.id,
+                tournamentId
+            )
+        }
+
+        // Claim node tournament prize as user 1
+        await claimAndAssertTournamentPrize(
+            nodeTournamentId,
+            nodeHolder,
+            0,  // entry index
+            0,  // final standing index
+            45, // total entry fee
+            50, // final standing percent
+            1,  // unique final standings
+            50, // excess prize percent
+            1   // shared final standings
+        )
+    })
+
+    it('refunds discounted entry fee for cancelled node holder tournament entries', async () => {
+        // Create another node tournament
+        const {
+            entryFee,
+            entryLimit,
+            minEntries,
+            maxEntries,
+            rakePercent,
+            prizeType
         } = getValidTournamentParams(1)
+
+        const nodeId = 0
+        const tx = await tournament.createNodeTournament(
+            nodeId,
+            entryFee,
+            entryLimit,
+            minEntries,
+            maxEntries,
+            rakePercent,
+            prizeType,
+            prizeTableId,
+            {
+                from: nodeHolder
+            }
+        )
+
+        nodeTournamentId = tx.logs[0].args.id
+        let tournamentCountAtCreation = tx.logs[0].args.count
+
+        assert.equal(
+            tournamentCountAtCreation,
+            '6'
+        )
+
+        await tournament.enterTournamentWithNode(
+            nodeTournamentId,
+            nodeId,
+            {
+                from: nodeHolder
+            }
+        )
+
         const {
             entryFeeDiscount
         } = getNode()
