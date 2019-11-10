@@ -82,6 +82,22 @@ paying the listed entry fee.
 This requires the user to have a balance and allowance of `entryFee` DBETs 
    with the Tournament contract.
    
+### 5. Enter tournament with node
+
+```
+enterTournamentWithNode(
+    bytes32 id,
+    uint256 nodeId
+) public returns (bool)
+```
+
+Allows users to enter a tournament by passing it's unique tournament ID and an 
+active node ID owned by the user. The user would have to pay a discounted entry 
+fee based on `entryFeeDiscount` set for the active node type.
+
+This requires the user to have a balance and allowance of 
+`entryFee * (100 - entryFeeDiscount/100)` DBETs with the Tournament contract.
+   
 ### 5. Complete tournament 
 
 ```
