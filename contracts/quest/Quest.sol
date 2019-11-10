@@ -220,86 +220,10 @@ LibQuest {
     ) public returns (bool) {
         // Must be a valid quest ID
         require(quests[id].status == uint8(QuestStatus.ACTIVE), "INVALID_QUEST_ID");
-        // Balance of user must be greater or equal to quest entry fee
-        require(
-            (
-                token.balanceOf(msg.sender) >=
-                quests[id].entryFee
-            ) &&
-            (
-                token.allowance(
-                    msg.sender,
-                    address(this)
-                ) >=
-                quests[id].entryFee
-            ),
-            "INVALID_TOKEN_BALANCE_ALLOWANCE"
-        );
-        uint256 _userQuestEntryCount = userQuestEntryCount[user][id];
-        // Previous user quest entry must be NOT_STARTED
-        require(
-            userQuestEntries[user][id][_userQuestEntryCount].status == uint8(QuestEntryStatus.NOT_STARTED),
-            "INVALID_PREVIOUS_QUEST_ENTRY_STATUS"
-        );
-        // Add user quest entry
-        userQuestEntries[user][id][_userQuestEntryCount] = UserQuestEntry({
-            entryTime: block.timestamp,
-            entryFee: quests[id].entryFee,
-            status: uint8(QuestEntryStatus.STARTED),
-            refunded: false
-        });
-        // Increment quest count
-        quests[id].count++;
-        // Transfer entry fee to platform wallet
-        if (quests[id].isNode) {
-            // Check if node is active
-            require(
-                isActiveNode(
-                    quests[id].nodeId,
-                    dbetNode.getNodeOwner(quests[id].nodeId)
-                ),
-                "INVALID_QUEST_NODE_STATUS"
-            );
-            // Check if max entries exceeded
-            require(
-                quests[id].count <= quests[id].maxEntries,
-                "MAX_ENTRIES_EXCEEDED"
-            );
-            // Transfer entry fee to node owner
-            require(
-                token.transferFrom(
-                    msg.sender,
-                    address(dbetNode.nodeWallet()),
-                    quests[id].entryFee
-                ),
-                "ERROR_TOKEN_TRANSFER"
-            );
-            // Add to quest entry fees in node wallet
-            require(
-                dbetNode.nodeWallet().addQuestEntryFee(
-                    quests[id].nodeId,
-                    id,
-                    quests[id].entryFee
-                ),
-                "ERROR_NODE_WALLET_ADD_QUEST_ENTRY_FEE"
-            );
-        } else
-            // Transfer entry fees to platform wallet
-            require(
-                token.transferFrom(
-                    msg.sender,
-                    admin.platformWallet(),
-                    quests[id].entryFee
-                ),
-                "ERROR_TOKEN_TRANSFER"
-            );
-        // Emit log pay for quest event
-        emit LogPayForQuest(
+        return _completePayForQuest(
             id,
             user,
-            msg.sender,
-            quests[id].entryFee,
-            _userQuestEntryCount
+            quests[id].entryFee
         );
     }
 
@@ -331,6 +255,27 @@ LibQuest {
             node,
             quests[id].entryFee
         );
+        return _completePayForQuest(
+            id,
+            user,
+            entryFee
+        );
+    }
+
+    /**
+    * Completes pay for quest logic based on the quest ID, user address and entry fee after discounts (if applicable)
+    * @param id Unique quest ID
+    * @param user User entering a quest
+    * @param entryFee Quest entry fee post discounts
+    * @return Whether the quest was paid for
+    */
+    function _completePayForQuest(
+        bytes32 id,
+        address user,
+        uint256 entryFee
+    )
+    internal
+    returns (bool) {
         // Balance of user must be greater or equal to quest entry fee
         require(
             (
@@ -338,10 +283,10 @@ LibQuest {
                 entryFee
             ) &&
             (
-                token.allowance(
-                    msg.sender,
-                    address(this)
-                ) >=
+            token.allowance(
+                msg.sender,
+                address(this)
+            ) >=
                 entryFee
             ),
             "INVALID_TOKEN_BALANCE_ALLOWANCE"
@@ -395,7 +340,7 @@ LibQuest {
                 "ERROR_NODE_WALLET_ADD_QUEST_ENTRY_FEE"
             );
         } else
-            // Transfer entry fees to platform wallet
+        // Transfer entry fees to platform wallet
             require(
                 token.transferFrom(
                     msg.sender,
@@ -412,6 +357,7 @@ LibQuest {
             entryFee,
             _userQuestEntryCount
         );
+        return true;
     }
 
     /**
@@ -480,6 +426,7 @@ LibQuest {
             user,
             _userQuestEntryCount
         );
+        return true;
     }
 
     /**
@@ -502,6 +449,7 @@ LibQuest {
         emit LogCancelQuest(
             id
         );
+        return true;
     }
 
     /**
@@ -539,6 +487,7 @@ LibQuest {
         emit LogCancelQuest(
             id
         );
+        return true;
     }
 
     /**
@@ -576,6 +525,7 @@ LibQuest {
             user,
             _userQuestEntryCount
         );
+        return true;
     }
 
     /**
@@ -650,6 +600,7 @@ LibQuest {
             true,
             _userQuestEntryCount
         );
+        return true;
     }
 
     /**
@@ -719,6 +670,7 @@ LibQuest {
             false,
             _userQuestEntryCount
         );
+        return true;
     }
 
     /**

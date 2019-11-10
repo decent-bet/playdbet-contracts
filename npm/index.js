@@ -1,5 +1,5 @@
 module.exports = {
-    "VERSION": "1.0.10",
+    "VERSION": "1.0.11",
     "AdminContract": {
         "raw": {
             "abi": [{
@@ -98,7 +98,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0x038bB7Da39E2723d05FE42f987E6C5C3d00c089C",
+            "0x27": "0xbD1049428e732aED13874b283E07ae8710648a92",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0x4a": "0xE1A9dA3a8E10B74AB05Bc068272254C242DaFb4D",
             "0xa4": "0xd74313287364cA0fd80425d52c6c6B13538c0247"
@@ -116,7 +116,7 @@ module.exports = {
                 }, {"name": "timeThreshold", "type": "uint256"}, {
                     "name": "maxCount",
                     "type": "uint256"
-                }, {"name": "count", "type": "uint256"}],
+                }, {"name": "entryFeeDiscount", "type": "uint256"}, {"name": "count", "type": "uint256"}],
                 "payable": false,
                 "stateMutability": "view",
                 "type": "function",
@@ -163,6 +163,15 @@ module.exports = {
                 "stateMutability": "view",
                 "type": "function",
                 "signature": "0x51964f3a"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "", "type": "address"}, {"name": "", "type": "uint256"}],
+                "name": "nodeOwnership",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0x65f1b165"
             }, {
                 "constant": true,
                 "inputs": [],
@@ -226,19 +235,37 @@ module.exports = {
                 "signature": "0xc8ac2a6c11cbd4da449119940b906ecd3f5dcf48fec513b91d3adffe3cdf2493"
             }, {
                 "anonymous": false,
-                "inputs": [{"indexed": false, "name": "id", "type": "uint256"}],
+                "inputs": [{"indexed": true, "name": "id", "type": "uint256"}, {
+                    "indexed": true,
+                    "name": "user",
+                    "type": "address"
+                }],
                 "name": "LogCreateUserNode",
                 "type": "event",
-                "signature": "0xb852525fd4f6e1a23e030cd26f4343dc6e72b6fa902be025e0128cd8b89dc497"
+                "signature": "0x45b9bae30cde858c2e22536f48cf48b7ddcf275b8c2ba5edab7bc969d600d975"
             }, {
                 "anonymous": false,
-                "inputs": [{"indexed": false, "name": "id", "type": "uint256"}],
+                "inputs": [{"indexed": true, "name": "id", "type": "uint256"}, {
+                    "indexed": false,
+                    "name": "previousNodeType",
+                    "type": "uint256"
+                }],
+                "name": "LogUpgradeUserNode",
+                "type": "event",
+                "signature": "0x9a5479b8e6bbf8fad2b1dc7d477f4035c655b7808590d8e139042fe1d24d8269"
+            }, {
+                "anonymous": false,
+                "inputs": [{"indexed": true, "name": "id", "type": "uint256"}, {
+                    "indexed": true,
+                    "name": "user",
+                    "type": "address"
+                }],
                 "name": "LogDestroyUserNode",
                 "type": "event",
-                "signature": "0xf8cc6fb8b259728f3a8d689d5433514b69b755e1cb2a02d711acc01da96f938d"
+                "signature": "0x3376c15012e84e96494909f552c426052f0cf2d207b963d5bb16470e9734d180"
             }, {
                 "anonymous": false,
-                "inputs": [{"indexed": false, "name": "id", "type": "uint256"}],
+                "inputs": [{"indexed": true, "name": "id", "type": "uint256"}],
                 "name": "LogNewNode",
                 "type": "event",
                 "signature": "0xfd87414d354ab22a67e24dc515e141be1f584cb4c6ea9f287c1a842be0b330fb"
@@ -262,6 +289,15 @@ module.exports = {
                 "signature": "0x780900dc"
             }, {
                 "constant": false,
+                "inputs": [{"name": "id", "type": "uint256"}, {"name": "upgradeNodeType", "type": "uint256"}],
+                "name": "upgrade",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function",
+                "signature": "0x451450ec"
+            }, {
+                "constant": false,
                 "inputs": [{"name": "id", "type": "uint256"}],
                 "name": "destroy",
                 "outputs": [{"name": "", "type": "bool"}],
@@ -277,13 +313,13 @@ module.exports = {
                 }, {"name": "timeThreshold", "type": "uint256"}, {
                     "name": "maxCount",
                     "type": "uint256"
-                }, {"name": "rewards", "type": "uint8[]"}],
+                }, {"name": "rewards", "type": "uint8[]"}, {"name": "entryFeeDiscount", "type": "uint256"}],
                 "name": "addNode",
                 "outputs": [{"name": "", "type": "bool"}],
                 "payable": false,
                 "stateMutability": "nonpayable",
                 "type": "function",
-                "signature": "0x9c95d6d2"
+                "signature": "0xfff59703"
             }, {
                 "constant": true,
                 "inputs": [{"name": "id", "type": "uint256"}],
@@ -330,7 +366,7 @@ module.exports = {
                 "type": "function",
                 "signature": "0x8533022a"
             }]
-        }, "address": {"0x27": "0xF93442b770B04b3F2EA7B34014628aF4C5F6D6D5"}
+        }, "address": {"0x27": "0xCb45E34C7865364FefA298760A2aDbE56098BE09"}
     },
     "QuestContract": {
         "raw": {
@@ -342,9 +378,9 @@ module.exports = {
                 }],
                 "name": "userQuestEntries",
                 "outputs": [{"name": "entryTime", "type": "uint256"}, {
-                    "name": "status",
-                    "type": "uint8"
-                }, {"name": "refunded", "type": "bool"}],
+                    "name": "entryFee",
+                    "type": "uint256"
+                }, {"name": "status", "type": "uint8"}, {"name": "refunded", "type": "bool"}],
                 "payable": false,
                 "stateMutability": "view",
                 "type": "function",
@@ -420,7 +456,7 @@ module.exports = {
                 "signature": "constructor"
             }, {
                 "anonymous": false,
-                "inputs": [{"indexed": true, "name": "id", "type": "bytes32"}],
+                "inputs": [{"indexed": false, "name": "id", "type": "bytes32"}],
                 "name": "LogNewQuest",
                 "type": "event",
                 "signature": "0x06809877c9cf1ec1fd8430c60fda9db629d86f4ed619153f7f08dd798dc416cd"
@@ -448,12 +484,12 @@ module.exports = {
                     "type": "address"
                 }, {"indexed": true, "name": "payer", "type": "address"}, {
                     "indexed": false,
-                    "name": "questEntryCount",
+                    "name": "entryFee",
                     "type": "uint256"
-                }],
+                }, {"indexed": false, "name": "questEntryCount", "type": "uint256"}],
                 "name": "LogPayForQuest",
                 "type": "event",
-                "signature": "0xfad6ff84d2baafa62a2688137e151a5f3db368a0a5c695c4f853c1c0ec6b1930"
+                "signature": "0xb623f46755c30a01b522f9097474004c7f013ae124cd3688c18df7a03bf8fc5e"
             }, {
                 "anonymous": false,
                 "inputs": [{"indexed": true, "name": "id", "type": "bytes32"}, {
@@ -514,6 +550,18 @@ module.exports = {
                 "stateMutability": "nonpayable",
                 "type": "function",
                 "signature": "0x7e5a78a2"
+            }, {
+                "constant": false,
+                "inputs": [{"name": "id", "type": "bytes32"}, {"name": "nodeId", "type": "uint256"}, {
+                    "name": "user",
+                    "type": "address"
+                }],
+                "name": "payForQuestWithNode",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function",
+                "signature": "0xcecdd6fd"
             }, {
                 "constant": false,
                 "inputs": [{"name": "id", "type": "bytes32"}, {"name": "user", "type": "address"}, {
@@ -580,10 +628,19 @@ module.exports = {
                 "stateMutability": "view",
                 "type": "function",
                 "signature": "0x874fa1a1"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "nodeType", "type": "uint256"}, {"name": "entryFee", "type": "uint256"}],
+                "name": "getEntryFeeForNodeType",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0x5ab6f638"
             }]
         },
         "address": {
-            "0x27": "0x79b337400408A655448EE2695AdBe1706F8bc6B1",
+            "0x27": "0x5289b50EF5A7C328e8A97B9943CC5469D9277DDD",
             "0xc7": "0x55db2feE8A2A039BCA83b014cf0b455a31E77Cda",
             "0x4a": "0x0E599Dc9e307251729Dbf05Be79E61E0165f3FbF",
             "0xa4": "0x5379897279457f4f8F182f29273E087e505aF8c0"
@@ -814,7 +871,10 @@ module.exports = {
                         "name": "prizeType",
                         "type": "uint8"
                     }, {"name": "prizeTable", "type": "bytes32"}], "name": "details", "type": "tuple"
-                }, {"name": "uniqueFinalStandings", "type": "uint256"}, {"name": "status", "type": "uint8"}],
+                }, {"name": "totalEntryFees", "type": "uint256"}, {
+                    "name": "uniqueFinalStandings",
+                    "type": "uint256"
+                }, {"name": "status", "type": "uint8"}],
                 "payable": false,
                 "stateMutability": "view",
                 "type": "function",
@@ -917,10 +977,14 @@ module.exports = {
                     "indexed": true,
                     "name": "participant",
                     "type": "address"
-                }, {"indexed": true, "name": "entryIndex", "type": "uint256"}],
+                }, {"indexed": true, "name": "entryIndex", "type": "uint256"}, {
+                    "indexed": false,
+                    "name": "entryFee",
+                    "type": "uint256"
+                }],
                 "name": "LogEnteredTournament",
                 "type": "event",
-                "signature": "0x63b13bba6d64871dc901b12d2e356327260de470c659a13964b930dec73cb1c0"
+                "signature": "0x954bc578844efd2bc38f682c0fc6072587fd0dab5ac594f5e1682c31d3dd7dae"
             }, {
                 "anonymous": false,
                 "inputs": [{"indexed": true, "name": "id", "type": "bytes32"}, {
@@ -1009,6 +1073,15 @@ module.exports = {
                 "stateMutability": "nonpayable",
                 "type": "function",
                 "signature": "0xf34e55de"
+            }, {
+                "constant": false,
+                "inputs": [{"name": "id", "type": "bytes32"}, {"name": "nodeId", "type": "uint256"}],
+                "name": "enterTournamentWithNode",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function",
+                "signature": "0x99c22c5b"
             }, {
                 "constant": false,
                 "inputs": [{"name": "id", "type": "bytes32"}, {
@@ -1102,9 +1175,9 @@ module.exports = {
                 "name": "getTournamentEntry",
                 "outputs": [{
                     "components": [{"name": "_address", "type": "address"}, {
-                        "name": "finalStandings",
-                        "type": "uint256[]"
-                    }], "name": "", "type": "tuple"
+                        "name": "entryFee",
+                        "type": "uint256"
+                    }, {"name": "finalStandings", "type": "uint256[]"}], "name": "", "type": "tuple"
                 }],
                 "payable": false,
                 "stateMutability": "view",
@@ -1161,10 +1234,19 @@ module.exports = {
                 "stateMutability": "view",
                 "type": "function",
                 "signature": "0x874fa1a1"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "nodeType", "type": "uint256"}, {"name": "entryFee", "type": "uint256"}],
+                "name": "getEntryFeeForNodeType",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0x5ab6f638"
             }]
         },
         "address": {
-            "0x27": "0x87B26eBe3a27a635B172BF7d715846c9123b9620",
+            "0x27": "0x83d4A2322041AA54b1Bc2C394e6A65087695de25",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0x4a": "0x5dc557E3b082ecA7c6EA890f806F5bddE4D39d50",
             "0xa4": "0x86F3EC2f5C82C86974f2407c0ac9c627015eCcA0"
