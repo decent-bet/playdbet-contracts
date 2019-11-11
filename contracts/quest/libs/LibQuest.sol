@@ -40,6 +40,8 @@ contract LibQuest {
         uint256 entryTime;
         // Entry fee - can vary based on whether user has an active node at time of entering a quest
         uint256 entryFee;
+        // Node ID used when entering quest
+        uint256 nodeId;
         // Quest entry status
         uint8 status;
         // True if user claims refund for a cancelled quest

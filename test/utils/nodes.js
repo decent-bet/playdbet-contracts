@@ -21,7 +21,8 @@ const getNode = () => {
         timeThreshold: 86400 * 7, // 1 week
         maxCount: 10,
         rewards,
-        entryFeeDiscount: 10
+        entryFeeDiscount: 10,
+        increasedPrizePayout: 10
     }
 }
 
@@ -32,7 +33,8 @@ const getUpgradedNode = () => {
         timeThreshold: 86400 * 14, // 2 weeks
         maxCount: 5,
         rewards,
-        entryFeeDiscount: 25
+        entryFeeDiscount: 25,
+        increasedPrizePayout: 25
     }
 }
 

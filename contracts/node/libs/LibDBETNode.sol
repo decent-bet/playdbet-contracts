@@ -31,6 +31,8 @@ contract LibDBETNode {
         uint8[] rewards;
         // % discount on entry fees
         uint256 entryFeeDiscount;
+        // % increase in prize payouts
+        uint256 increasedPrizePayout;
         // Number of nodes created of this type
         uint256 count;
     }

@@ -133,8 +133,8 @@ LibDBETNode {
             nodes[node].count.add(1) <= nodes[node].maxCount,
             "MAX_NODE_COUNT_EXCEEDED"
         );
-        // Add user node
-        userNodes[userNodeCount] = UserNode({
+        // Add user node - userNodeCount would start with 1-index
+        userNodes[++userNodeCount] = UserNode({
             node: node,
             owner: msg.sender,
             deposit: nodes[node].tokenThreshold,
@@ -157,7 +157,7 @@ LibDBETNode {
         );
         // Emit create user node event
         emit LogCreateUserNode(
-            userNodeCount++,
+            userNodeCount,
             msg.sender
         );
         return true;
@@ -294,6 +294,7 @@ LibDBETNode {
     * @param maxCount Maximum number of nodes of this type that can be active at a time
     * @param rewards Array of reward IDs linked to this node type
     * @param entryFeeDiscount Entry fee discount
+    * @param increasedPrizePayout % increment on prizes won from quests by node holders
     * @return Whether node was added
     */
     function addNode(
@@ -302,7 +303,8 @@ LibDBETNode {
         uint256 timeThreshold,
         uint256 maxCount,
         uint8[] memory rewards,
-        uint256 entryFeeDiscount
+        uint256 entryFeeDiscount,
+        uint256 increasedPrizePayout
     )
     public
     returns (bool) {
@@ -337,6 +339,12 @@ LibDBETNode {
             entryFeeDiscount > 0,
             "INVALID_ENTRY_FEE_DISCOUNT"
         );
+        // Increased prize payout must be between 0 and 100
+        require(
+            increasedPrizePayout <= 100 &&
+            increasedPrizePayout > 0,
+            "INVALID_INCREASED_PRIZE_PAYOUT"
+        );
         // Must be valid rewards array
         require(
             rewards.length > 0 &&
@@ -360,6 +368,7 @@ LibDBETNode {
             maxCount: maxCount,
             rewards: rewards,
             entryFeeDiscount: entryFeeDiscount,
+            increasedPrizePayout: increasedPrizePayout,
             count: 0
         });
         emit LogNewNode(nodeCount++);

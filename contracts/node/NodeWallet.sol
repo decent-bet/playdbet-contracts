@@ -25,6 +25,9 @@ contract NodeWallet {
     // Total completed quest entry fees
     // Node ID => Quest entry fees
     mapping (uint256 => uint256) public totalCompletedQuestEntryFees;
+    // Total completed quest prize payouts
+    // Node ID => Quest prize payouts
+    mapping (uint256 => uint256) public totalCompletedQuestPrizePayouts;
     // Tournament rake fees per tournament for a node
     // Node ID => (Tournament ID => Rake fees)
     mapping (uint256 => mapping (bytes32 => uint256)) public rakeFees;
@@ -149,12 +152,14 @@ contract NodeWallet {
     * @param nodeId Node ID
     * @param questId Unique quest ID
     * @param fee Entry fee for quest
+    * @param prize Prize money for completed quest
     * @return Whether completed quest was recorded
     */
     function completeQuest(
         uint256 nodeId,
         bytes32 questId,
-        uint256 fee
+        uint256 fee,
+        uint256 prize
     )
     public
     returns (bool) {
@@ -165,6 +170,8 @@ contract NodeWallet {
         );
         // Add to total completed quest fees
         totalCompletedQuestEntryFees[nodeId] = totalCompletedQuestEntryFees[nodeId].add(fee);
+        // Add to total completed quest prize payouts
+        totalCompletedQuestPrizePayouts[nodeId] = totalCompletedQuestPrizePayouts[nodeId].add(prize);
         // Emit log add quest entry fee event
         emit LogAddCompletedQuestEntryFee(
             nodeId,

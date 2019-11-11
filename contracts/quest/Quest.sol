@@ -223,6 +223,7 @@ LibQuest {
         return _completePayForQuest(
             id,
             user,
+            0,
             quests[id].entryFee
         );
     }
@@ -258,6 +259,7 @@ LibQuest {
         return _completePayForQuest(
             id,
             user,
+            nodeId,
             entryFee
         );
     }
@@ -266,12 +268,14 @@ LibQuest {
     * Completes pay for quest logic based on the quest ID, user address and entry fee after discounts (if applicable)
     * @param id Unique quest ID
     * @param user User entering a quest
+    * @param nodeId Unique node ID in DBETNode contract
     * @param entryFee Quest entry fee post discounts
     * @return Whether the quest was paid for
     */
     function _completePayForQuest(
         bytes32 id,
         address user,
+        uint256 nodeId,
         uint256 entryFee
     )
     internal
@@ -301,6 +305,7 @@ LibQuest {
         userQuestEntries[user][id][_userQuestEntryCount] = UserQuestEntry({
             entryTime: block.timestamp,
             entryFee: entryFee,
+            nodeId: nodeId,
             status: uint8(QuestEntryStatus.STARTED),
             refunded: false
         });
@@ -340,7 +345,7 @@ LibQuest {
                 "ERROR_NODE_WALLET_ADD_QUEST_ENTRY_FEE"
             );
         } else
-        // Transfer entry fees to platform wallet
+            // Transfer entry fees to platform wallet
             require(
                 token.transferFrom(
                     msg.sender,
@@ -391,13 +396,20 @@ LibQuest {
         userQuestEntryCount[user][id] += 1;
         // Pay out user if quest was successfully finished
         if(outcome == uint8(QuestEntryStatus.SUCCESS)) {
+            (uint256 node,,,,,) = dbetNode.userNodes(
+                userQuestEntries[user][id][_userQuestEntryCount].nodeId
+            );
+            uint256 prize = getPrizePayoutForNodeType(
+                node,
+                quests[id].prize
+            );
             if (quests[id].isNode) {
-                // Transfer out DBETs escrowed within node wallet to user
+                // Transfer out DBETs escrow-ed within node wallet to user
                 require(
                     token.transferFrom(
                         address(dbetNode.nodeWallet()),
                         user,
-                        quests[id].prize
+                        prize
                     ),
                     "ERROR_TOKEN_TRANSFER"
                 );
@@ -407,7 +419,8 @@ LibQuest {
                     .completeQuest(
                         quests[id].nodeId,
                         id,
-                        userQuestEntries[user][id][_userQuestEntryCount].entryFee
+                        userQuestEntries[user][id][_userQuestEntryCount].entryFee,
+                        prize
                     ),
                     "ERROR_NODE_WALLET_COMPLETE_QUEST"
                 );
@@ -416,7 +429,7 @@ LibQuest {
                     token.transferFrom(
                         admin.platformWallet(),
                         user,
-                        quests[id].prize
+                        prize
                     ),
                     "ERROR_TOKEN_TRANSFER"
                 );
@@ -699,6 +712,7 @@ LibQuest {
     /**
     * Returns entry fees for node types
     * @param nodeType Type of node
+    * @param entryFee Entry fee
     * @return Entry fee after discount for node type
     */
     function getEntryFeeForNodeType(
@@ -708,9 +722,27 @@ LibQuest {
     public
     view
     returns (uint256) {
-        (,,,,uint256 discount,) = dbetNode.nodes(nodeType);
+        (,,,,uint256 discount,,) = dbetNode.nodes(nodeType);
         // entryFee * (1 - discount)/100
         return entryFee.mul(uint256(100).sub(discount)).div(100);
+    }
+
+    /**
+    * Returns prize payout for node types
+    * @param nodeType Type of node
+    * @param prize Prize to be paid out
+    * @return Prize payout after increase for node type
+    */
+    function getPrizePayoutForNodeType(
+        uint256 nodeType,
+        uint256 prize
+    )
+    public
+    view
+    returns (uint256) {
+        (,,,,,uint256 increasedPrizePayout,) = dbetNode.nodes(nodeType);
+        // prize + ((prize * increasedPrizePayout/100))
+        return prize.add(prize.mul(increasedPrizePayout).div(100));
     }
 
 }

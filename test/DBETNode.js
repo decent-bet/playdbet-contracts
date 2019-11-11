@@ -47,7 +47,8 @@ contract('DBETNode', accounts => {
             timeThreshold,
             maxCount,
             rewards,
-            entryFeeDiscount
+            entryFeeDiscount,
+            increasedPrizePayout
         } = getNode()
 
         await utils.assertFail(
@@ -58,6 +59,7 @@ contract('DBETNode', accounts => {
                 maxCount,
                 rewards,
                 entryFeeDiscount,
+                increasedPrizePayout,
                 {
                     from: user1
                 }
@@ -73,7 +75,8 @@ contract('DBETNode', accounts => {
                 timeThreshold,
                 maxCount,
                 rewards,
-                entryFeeDiscount
+                entryFeeDiscount,
+                increasedPrizePayout
             } = node
 
             await dbetNode.addNode(
@@ -82,7 +85,8 @@ contract('DBETNode', accounts => {
                 timeThreshold,
                 maxCount,
                 rewards,
-                entryFeeDiscount
+                entryFeeDiscount,
+                increasedPrizePayout
             )
 
             const nodeType = await dbetNode.nodes(index)
@@ -140,18 +144,20 @@ contract('DBETNode', accounts => {
             }
         )
 
+
         // Check if user is owner of node
-        const userNode = await dbetNode.userNodes(0)
+        const userNode = await dbetNode.userNodes(1)
+        console.log('user node', userNode, userNode.owner, user1)
         assert.equal(userNode.owner, user1)
 
         // Node must not be activated
-        assert.equal(await dbetNode.isUserNodeActivated(0), false)
+        assert.equal(await dbetNode.isUserNodeActivated(1), false)
 
         // Activate node
         await timeTravel(7 * 86400)
 
         // Node must be activated
-        assert.equal(await dbetNode.isUserNodeActivated(0), true)
+        assert.equal(await dbetNode.isUserNodeActivated(1), true)
     })
 
     it('does not allow users without a valid approved balance to upgrade a node', async () => {
@@ -184,7 +190,7 @@ contract('DBETNode', accounts => {
         // Not owned by user
         await utils.assertFail(
             dbetNode.upgrade(
-                0,
+                1,
                 1,
                 {
                     from: user2
@@ -198,7 +204,7 @@ contract('DBETNode', accounts => {
         const preUpgradeBalance = await token.balanceOf(user1)
         // Upgrade node to Tier II
         await dbetNode.upgrade(
-            0,
+            1,
             1,
             {
                 from: user1
@@ -214,31 +220,31 @@ contract('DBETNode', accounts => {
         )
         // Token balance must be 0 now
         assert.equal(new BigNumber(preUpgradeBalance).minus(postUpgradeBalance).isEqualTo(tokenRequirement), true)
-        const userNode = await dbetNode.userNodes(0)
+        const userNode = await dbetNode.userNodes(1)
         // Node must be owned by user
         assert.equal(userNode.owner, user1)
         // Node must be of type 1
         assert.equal(userNode.node, 1)
         // Node must not be activated
-        assert.equal(await dbetNode.isUserNodeActivated(0), false)
+        assert.equal(await dbetNode.isUserNodeActivated(1), false)
         // Activate node
         await timeTravel(7 * 86400)
         // Node must be activated
-        assert.equal(await dbetNode.isUserNodeActivated(0), true)
+        assert.equal(await dbetNode.isUserNodeActivated(1), true)
     })
 
     it('does not allow users to destroy invalid nodes', async () => {
         // Invalid ID
         await utils.assertFail(
             dbetNode.destroy(
-                1
+                0
             )
         )
 
         // Not owned by user
         await utils.assertFail(
             dbetNode.destroy(
-                0,
+                1,
                 {
                     from: user2
                 }
@@ -252,13 +258,13 @@ contract('DBETNode', accounts => {
         } = getUpgradedNode()
         const preDestroyBalance = await token.balanceOf(user1)
         await dbetNode.destroy(
-            0,
+            1,
             {
                 from: user1
             }
         )
 
-        const node = await dbetNode.nodes(0)
+        const node = await dbetNode.nodes(1)
         assert.notEqual(node.destroyTime, '0')
 
         const postDestroyBalance = await token.balanceOf(user1)
@@ -278,7 +284,7 @@ contract('DBETNode', accounts => {
             }
         )
 
-        const isUserNodeActivated = await dbetNode.isUserNodeActivated(1)
+        const isUserNodeActivated = await dbetNode.isUserNodeActivated(2)
 
         assert.equal(
             isUserNodeActivated,
@@ -292,7 +298,7 @@ contract('DBETNode', accounts => {
         } = getNode()
         await timeTravel(timeThreshold)
 
-        const isUserNodeActivated = await dbetNode.isUserNodeActivated(1)
+        const isUserNodeActivated = await dbetNode.isUserNodeActivated(2)
 
         assert.equal(
             isUserNodeActivated,
