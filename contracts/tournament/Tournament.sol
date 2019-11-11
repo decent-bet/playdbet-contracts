@@ -983,10 +983,7 @@ LibDBETNode {
         return (
             dbetNode.isUserNodeActivated(id) &&
             dbetNode.isTournamentNode(id) &&
-            dbetNode.isUserNodeOwner(
-                nodeOwner,
-                id
-            )
+            dbetNode.getNodeOwner(id) == nodeOwner
         );
     }
 
