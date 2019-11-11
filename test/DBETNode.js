@@ -4,7 +4,8 @@ const timeTraveler = require('ganache-time-traveler')
 const contracts = require('./utils/contracts')
 const utils = require('./utils/utils')
 const {
-    getNode
+    getNode,
+    getUpgradedNode
 } = require('./utils/nodes')
 
 let admin
@@ -19,6 +20,13 @@ const web3 = utils.getWeb3()
 
 const timeTravel = async timeDiff => {
     await timeTraveler.advanceTime(timeDiff)
+    await timeTraveler.advanceBlock()
+}
+
+const getNodeUpgradeTokenRequirement = () => {
+    const tier1TokenThreshold = getNode().tokenThreshold
+    const tier2TokenThreshold = getUpgradedNode().tokenThreshold
+    return new BigNumber(tier2TokenThreshold).minus(tier1TokenThreshold).toFixed()
 }
 
 contract('DBETNode', accounts => {
@@ -38,7 +46,8 @@ contract('DBETNode', accounts => {
             tokenThreshold,
             timeThreshold,
             maxCount,
-            rewards
+            rewards,
+            entryFeeDiscount
         } = getNode()
 
         await utils.assertFail(
@@ -48,6 +57,7 @@ contract('DBETNode', accounts => {
                 timeThreshold,
                 maxCount,
                 rewards,
+                entryFeeDiscount,
                 {
                     from: user1
                 }
@@ -56,28 +66,35 @@ contract('DBETNode', accounts => {
     })
 
     it('allows admins to add new node types', async () => {
-        const {
-            name,
-            tokenThreshold,
-            timeThreshold,
-            maxCount,
-            rewards
-        } = getNode()
+        const addNode = async (node, index) => {
+            const {
+                name,
+                tokenThreshold,
+                timeThreshold,
+                maxCount,
+                rewards,
+                entryFeeDiscount
+            } = node
 
-        await dbetNode.addNode(
-            name,
-            tokenThreshold,
-            timeThreshold,
-            maxCount,
-            rewards
-        )
+            await dbetNode.addNode(
+                name,
+                tokenThreshold,
+                timeThreshold,
+                maxCount,
+                rewards,
+                entryFeeDiscount
+            )
 
-        const nodeType = await dbetNode.nodes(0)
+            const nodeType = await dbetNode.nodes(index)
 
-        assert.equal(
-            name,
-            nodeType.name
-        )
+            assert.equal(
+                name,
+                nodeType.name
+            )
+        }
+
+        await addNode(getNode(), 0)
+        await addNode(getUpgradedNode(), 1)
     })
 
     it('does not allow users without an approved DBET balance to create a node', async () => {
@@ -122,6 +139,92 @@ contract('DBETNode', accounts => {
                 from: user1
             }
         )
+
+        // Check if user is owner of node
+        const userNode = await dbetNode.userNodes(0)
+        assert.equal(userNode.owner, user1)
+
+        // Node must not be activated
+        assert.equal(await dbetNode.isUserNodeActivated(0), false)
+
+        // Activate node
+        await timeTravel(7 * 86400)
+
+        // Node must be activated
+        assert.equal(await dbetNode.isUserNodeActivated(0), true)
+    })
+
+    it('does not allow users without a valid approved balance to upgrade a node', async () => {
+        await utils.assertFail(
+            dbetNode.upgrade(
+                0,
+                1,
+                {
+                    from: user1
+                }
+            )
+        )
+    })
+
+    it('does not allow users without an existing node to upgrade a node', async () => {
+        const tokenRequirement = getNodeUpgradeTokenRequirement()
+        // Transfer tokens to user2
+        await token.transfer(
+            user1,
+            tokenRequirement
+        )
+        // Approve tokens to be transferred on behalf of user from DBETNode contract
+        await token.approve(
+            dbetNode.address,
+            utils.MAX_VALUE,
+            {
+                from: user2
+            }
+        )
+        // Not owned by user
+        await utils.assertFail(
+            dbetNode.upgrade(
+                0,
+                1,
+                {
+                    from: user2
+                }
+            )
+        )
+    })
+
+    it('allows users to upgrade a node with an existing node', async () => {
+        const tokenRequirement = getNodeUpgradeTokenRequirement()
+        const preUpgradeBalance = await token.balanceOf(user1)
+        // Upgrade node to Tier II
+        await dbetNode.upgrade(
+            0,
+            1,
+            {
+                from: user1
+            }
+        )
+        const postUpgradeBalance = await token.balanceOf(user1)
+
+        console.log(
+            'pre/post upgrade balances',
+            web3.utils.fromWei(preUpgradeBalance.toString(), 'ether'),
+            web3.utils.fromWei(postUpgradeBalance.toString(), 'ether'),
+            web3.utils.fromWei(tokenRequirement, 'ether')
+        )
+        // Token balance must be 0 now
+        assert.equal(new BigNumber(preUpgradeBalance).minus(postUpgradeBalance).isEqualTo(tokenRequirement), true)
+        const userNode = await dbetNode.userNodes(0)
+        // Node must be owned by user
+        assert.equal(userNode.owner, user1)
+        // Node must be of type 1
+        assert.equal(userNode.node, 1)
+        // Node must not be activated
+        assert.equal(await dbetNode.isUserNodeActivated(0), false)
+        // Activate node
+        await timeTravel(7 * 86400)
+        // Node must be activated
+        assert.equal(await dbetNode.isUserNodeActivated(0), true)
     })
 
     it('does not allow users to destroy invalid nodes', async () => {
@@ -146,7 +249,7 @@ contract('DBETNode', accounts => {
     it('allows users to destroy valid nodes owned by them', async () => {
         const {
             tokenThreshold
-        } = getNode()
+        } = getUpgradedNode()
         const preDestroyBalance = await token.balanceOf(user1)
         await dbetNode.destroy(
             0,

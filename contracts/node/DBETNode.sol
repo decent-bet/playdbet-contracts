@@ -42,20 +42,26 @@ LibDBETNode {
     uint256 public userNodeCount;
 
     // Maps addresses to node types and a bool representing whether the user owns the node type
-    mapping (address => mapping (uint256 => bool)) nodeOwnership;
+    mapping (address => mapping (uint256 => bool)) public nodeOwnership;
 
     event LogSetContracts(
         address quest,
         address tournament
     );
     event LogCreateUserNode(
-        uint256 id
+        uint256 indexed id,
+        address indexed user
+    );
+    event LogUpgradeUserNode(
+        uint256 indexed id,
+        uint256 previousNodeType
     );
     event LogDestroyUserNode(
-        uint256 id
+        uint256 indexed id,
+        address indexed user
     );
     event LogNewNode(
-        uint256 id
+        uint256 indexed id
     );
 
     constructor(
@@ -150,7 +156,86 @@ LibDBETNode {
             "TOKEN_TRANSFER_ERROR"
         );
         // Emit create user node event
-        emit LogCreateUserNode(userNodeCount++);
+        emit LogCreateUserNode(
+            userNodeCount++,
+            msg.sender
+        );
+        return true;
+    }
+
+    /**
+    * Upgrades an existing node by locking up additional collateral
+    * @param id unique ID of node
+    * @param upgradeNodeType Node type to upgrade to
+    * @return Whether node was upgraded
+    */
+    function upgrade(
+        uint256 id,
+        uint256 upgradeNodeType
+    )
+    public
+    returns (bool) {
+        // Validate node type
+        require(
+            nodes[upgradeNodeType].timeThreshold != 0,
+            "INVALID_NODE_TYPE"
+        );
+        // User cannot already own the same node
+        require(
+            !nodeOwnership[msg.sender][upgradeNodeType],
+            "NODE_TYPE_ALREADY_OWNED"
+        );
+        // Must be an upgrade
+        require(
+            nodes[upgradeNodeType].tokenThreshold > userNodes[id].deposit,
+            "MUST_BE_UPGRADE"
+        );
+        uint256 tokenRequirement = nodes[upgradeNodeType].tokenThreshold.sub(userNodes[id].deposit);
+        // User must meet the token requirement threshold
+        require(
+            token.balanceOf(msg.sender) >= tokenRequirement,
+            "INVALID_TOKEN_BALANCE"
+        );
+        // User must have approved DBETNode contract to transfer tokens on users' behalf
+        require(
+            token.allowance(
+                msg.sender,
+                address(this)
+            ) >= tokenRequirement,
+            "INVALID_TOKEN_ALLOWANCE"
+        );
+        // Node count for node type must be lesser than max count
+        require(
+            nodes[upgradeNodeType].count.add(1) <= nodes[upgradeNodeType].maxCount,
+            "MAX_NODE_COUNT_EXCEEDED"
+        );
+        // Update user node
+        uint256 previousNodeType = userNodes[id].node;
+        userNodes[id].node = upgradeNodeType;
+        userNodes[id].deposit = nodes[upgradeNodeType].tokenThreshold;
+        userNodes[id].index = nodes[upgradeNodeType].count;
+        // Increment node type count
+        nodes[upgradeNodeType].count++;
+        // Decrement previous node type count
+        nodes[previousNodeType].count--;
+        // Assign node ownership for node type to user
+        nodeOwnership[msg.sender][upgradeNodeType] = true;
+        // Remove node ownership for previous node type from user
+        nodeOwnership[msg.sender][previousNodeType] = false;
+        // Transfer threshold tokens to contract
+        require(
+            token.transferFrom(
+                msg.sender,
+                address(this),
+                tokenRequirement
+            ),
+            "TOKEN_TRANSFER_ERROR"
+        );
+        // Emit upgrade user node event
+        emit LogUpgradeUserNode(
+            id,
+            previousNodeType
+        );
         return true;
     }
 
@@ -194,7 +279,10 @@ LibDBETNode {
             "TOKEN_TRANSFER_ERROR"
         );
         // Emit log destroy user node event
-        emit LogDestroyUserNode(id);
+        emit LogDestroyUserNode(
+            id,
+            msg.sender
+        );
         return true;
     }
 
@@ -205,6 +293,7 @@ LibDBETNode {
     * @param timeThreshold Minimum time tokens need to be held before node can be activated
     * @param maxCount Maximum number of nodes of this type that can be active at a time
     * @param rewards Array of reward IDs linked to this node type
+    * @param entryFeeDiscount Entry fee discount
     * @return Whether node was added
     */
     function addNode(
@@ -212,7 +301,8 @@ LibDBETNode {
         uint256 tokenThreshold,
         uint256 timeThreshold,
         uint256 maxCount,
-        uint8[] memory rewards
+        uint8[] memory rewards,
+        uint256 entryFeeDiscount
     )
     public
     returns (bool) {
@@ -241,6 +331,12 @@ LibDBETNode {
             maxCount > 0,
             "INVALID_MAX_COUNT"
         );
+        // Entry fee discount must be between 0 and 100
+        require(
+            entryFeeDiscount <= 100 &&
+            entryFeeDiscount > 0,
+            "INVALID_ENTRY_FEE_DISCOUNT"
+        );
         // Must be valid rewards array
         require(
             rewards.length > 0 &&
@@ -263,6 +359,7 @@ LibDBETNode {
             timeThreshold: timeThreshold,
             maxCount: maxCount,
             rewards: rewards,
+            entryFeeDiscount: entryFeeDiscount,
             count: 0
         });
         emit LogNewNode(nodeCount++);

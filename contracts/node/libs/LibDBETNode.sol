@@ -29,6 +29,8 @@ contract LibDBETNode {
         uint256 maxCount;
         // List of rewards linked to this node type
         uint8[] rewards;
+        // % discount on entry fees
+        uint256 entryFeeDiscount;
         // Number of nodes created of this type
         uint256 count;
     }

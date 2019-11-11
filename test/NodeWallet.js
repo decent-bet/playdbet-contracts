@@ -104,14 +104,16 @@ contract('NodeWallet', accounts => {
             tokenThreshold,
             timeThreshold,
             maxCount,
-            rewards
+            rewards,
+            entryFeeDiscount
         } = getNode()
         await dbetNode.addNode(
             name,
             tokenThreshold,
             timeThreshold,
             maxCount,
-            rewards
+            rewards,
+            entryFeeDiscount
         )
 
         // Approve tokens to be transferred on behalf of user from DBETNode and Quest contracts
@@ -221,10 +223,6 @@ contract('NodeWallet', accounts => {
                 web3.utils.toWei('10', 'ether')
             )
         )
-    })
-
-    it('throws if non-tournament address tries to call add tournament rake fee in node wallet contract', async () => {
-
     })
 
     it('prize fund is set in node wallet contract on adding a quest in Quest contract', async () => {
@@ -681,6 +679,16 @@ contract('NodeWallet', accounts => {
             1,
             20,
             1
+        )
+    })
+
+    it('throws if non-tournament address tries to call add tournament rake fee in node wallet contract', async () => {
+        await utils.assertFail(
+            nodeWallet.addTournamentRakeFee(
+                nodeId,
+                standardTournamentId,
+                100
+            )
         )
     })
 

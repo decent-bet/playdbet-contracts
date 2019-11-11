@@ -31,6 +31,7 @@ contract IDBETNode {
     * @param timeThreshold Minimum time tokens need to be held before node can be activated
     * @param maxCount Maximum number of nodes of this type that can be active at a time
     * @param rewards Array of reward IDs linked to this node type
+    * @param entryFeeDiscount Entry fee discount
     * @return Whether node was added
     */
     function addNode(
@@ -38,7 +39,8 @@ contract IDBETNode {
         uint256 tokenThreshold,
         uint256 timeThreshold,
         uint256 maxCount,
-        uint8[] memory rewards
+        uint8[] memory rewards,
+        uint256 entryFeeDiscount
     )
     public
     returns (bool);

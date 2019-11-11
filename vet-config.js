@@ -21,8 +21,9 @@ if (
 module.exports = {
     chains: {
         testnet: {
-            host: "localhost",
-            port: 8669,
+            host: "sync-testnet.vechain.org",
+            port: null,
+            secure: true,
             chain_tag: "0x27",
             gasPrice: '100000000000',
             from: '0x7567d83b7b8d80addcb281a71d54fc7b3364ffed',
