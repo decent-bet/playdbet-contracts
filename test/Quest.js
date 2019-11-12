@@ -904,16 +904,71 @@ contract('Quest', accounts => {
         )
     })
 
+    it('pays increased prize payouts if node holders win quests', async () => {
+        const {
+            id,
+            prize
+        } = getValidNodeQuestParams()
+        const {
+            increasedPrizePayout
+        } = getNode()
+
+        const preSetQuestOutcomeBalance = await token.balanceOf(nodeHolder)
+        await quest.setQuestOutcome(
+            id,
+            nodeHolder,
+            OUTCOME_SUCCESS
+        )
+        const postSetQuestOutcomeBalance = await token.balanceOf(nodeHolder)
+
+        assert.equal(
+            new BigNumber(
+                postSetQuestOutcomeBalance
+            ).isEqualTo(
+                new BigNumber(
+                    preSetQuestOutcomeBalance
+                ).plus(
+                    new BigNumber(
+                        prize
+                    ).multipliedBy(
+                        (100 + increasedPrizePayout)/100
+                    )
+                )
+            ),
+            true
+        )
+    })
+
     it('refunds discounted entry fee for cancelled node holder quest entries', async () => {
         const {
-            id
-        } = getValidNodeQuestParams()
-
-        const {entryFee} = await quest.userQuestEntries(
-            nodeHolder,
             id,
-            0
+            entryFee
+        } = getValidNodeQuestParams()
+        const {
+            entryFeeDiscount
+        } = getNode()
+
+        // Enter quest again
+        const nodeId = 1
+        const prePayForQuestBalance = await token.balanceOf(nodeHolder)
+        await quest.payForQuestWithNode(
+            id,
+            nodeId,
+            nodeHolder,
+            {
+                from: nodeHolder
+            }
         )
+        const postPayForQuestBalance = await token.balanceOf(nodeHolder)
+        assert.equal(
+            new BigNumber(postPayForQuestBalance).isEqualTo(
+                new BigNumber(prePayForQuestBalance).minus(
+                    new BigNumber(entryFee).multipliedBy((100 - entryFeeDiscount)/100)
+                )
+            ),
+            true
+        )
+
         const preCancelQuestEntryBalance = await token.balanceOf(nodeHolder)
         await quest.cancelQuestEntry(
             id,
@@ -923,7 +978,7 @@ contract('Quest', accounts => {
         assert.equal(
             new BigNumber(postCancelQuestEntryBalance).isEqualTo(
                 new BigNumber(preCancelQuestEntryBalance).plus(
-                    new BigNumber(entryFee)
+                    new BigNumber(entryFee).multipliedBy((100 - entryFeeDiscount)/100)
                 )
             ),
             true
