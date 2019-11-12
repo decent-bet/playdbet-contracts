@@ -1,5 +1,5 @@
 module.exports = {
-    "VERSION": "1.0.11",
+    "VERSION": "1.0.12",
     "AdminContract": {
         "raw": {
             "abi": [{
@@ -98,10 +98,10 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0xbD1049428e732aED13874b283E07ae8710648a92",
+            "0x27": "0xE228b04Ed3979B89beB19250Aa2182FF9104747a",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0x4a": "0xE1A9dA3a8E10B74AB05Bc068272254C242DaFb4D",
-            "0xa4": "0xd74313287364cA0fd80425d52c6c6B13538c0247"
+            "0xa4": "0xbAa4774602Dc5571FebcEa7D3cf966297Cb3f1BF"
         }
     },
     "DBETNode": {
@@ -116,7 +116,10 @@ module.exports = {
                 }, {"name": "timeThreshold", "type": "uint256"}, {
                     "name": "maxCount",
                     "type": "uint256"
-                }, {"name": "entryFeeDiscount", "type": "uint256"}, {"name": "count", "type": "uint256"}],
+                }, {"name": "entryFeeDiscount", "type": "uint256"}, {
+                    "name": "increasedPrizePayout",
+                    "type": "uint256"
+                }, {"name": "count", "type": "uint256"}],
                 "payable": false,
                 "stateMutability": "view",
                 "type": "function",
@@ -313,13 +316,16 @@ module.exports = {
                 }, {"name": "timeThreshold", "type": "uint256"}, {
                     "name": "maxCount",
                     "type": "uint256"
-                }, {"name": "rewards", "type": "uint8[]"}, {"name": "entryFeeDiscount", "type": "uint256"}],
+                }, {"name": "rewards", "type": "uint8[]"}, {
+                    "name": "entryFeeDiscount",
+                    "type": "uint256"
+                }, {"name": "increasedPrizePayout", "type": "uint256"}],
                 "name": "addNode",
                 "outputs": [{"name": "", "type": "bool"}],
                 "payable": false,
                 "stateMutability": "nonpayable",
                 "type": "function",
-                "signature": "0xfff59703"
+                "signature": "0x404d0fd2"
             }, {
                 "constant": true,
                 "inputs": [{"name": "id", "type": "uint256"}],
@@ -366,7 +372,11 @@ module.exports = {
                 "type": "function",
                 "signature": "0x8533022a"
             }]
-        }, "address": {"0x27": "0xCb45E34C7865364FefA298760A2aDbE56098BE09"}
+        },
+        "address": {
+            "0x27": "0x46b4DA77DC4142702963531bB1B895C2aC731408",
+            "0xa4": "0xA867c87682D7c5ebe92046D1ddd9F1930B8B55BC"
+        }
     },
     "QuestContract": {
         "raw": {
@@ -380,7 +390,10 @@ module.exports = {
                 "outputs": [{"name": "entryTime", "type": "uint256"}, {
                     "name": "entryFee",
                     "type": "uint256"
-                }, {"name": "status", "type": "uint8"}, {"name": "refunded", "type": "bool"}],
+                }, {"name": "nodeId", "type": "uint256"}, {"name": "status", "type": "uint8"}, {
+                    "name": "refunded",
+                    "type": "bool"
+                }],
                 "payable": false,
                 "stateMutability": "view",
                 "type": "function",
@@ -456,7 +469,7 @@ module.exports = {
                 "signature": "constructor"
             }, {
                 "anonymous": false,
-                "inputs": [{"indexed": false, "name": "id", "type": "bytes32"}],
+                "inputs": [{"indexed": true, "name": "id", "type": "bytes32"}],
                 "name": "LogNewQuest",
                 "type": "event",
                 "signature": "0x06809877c9cf1ec1fd8430c60fda9db629d86f4ed619153f7f08dd798dc416cd"
@@ -637,13 +650,22 @@ module.exports = {
                 "stateMutability": "view",
                 "type": "function",
                 "signature": "0x5ab6f638"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "nodeType", "type": "uint256"}, {"name": "prize", "type": "uint256"}],
+                "name": "getPrizePayoutForNodeType",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0xa7457aa2"
             }]
         },
         "address": {
-            "0x27": "0x5289b50EF5A7C328e8A97B9943CC5469D9277DDD",
+            "0x27": "0x08ff493FA0e09981B0c996dAd7a67B0085B2eBD6",
             "0xc7": "0x55db2feE8A2A039BCA83b014cf0b455a31E77Cda",
             "0x4a": "0x0E599Dc9e307251729Dbf05Be79E61E0165f3FbF",
-            "0xa4": "0x5379897279457f4f8F182f29273E087e505aF8c0"
+            "0xa4": "0x975f12947bA0654a56873F8236E5c9b5C498c874"
         }
     },
     "DBETVETTokenContract": {
@@ -848,7 +870,7 @@ module.exports = {
             "0x27": "0x151B77a9AbD9D4b950B2aD87c5E7a35D917FeBa4",
             "0xc7": "0x1b8EC6C2A45ccA481Da6F243Df0d7A5744aFc1f8",
             "0x4a": "0x1b8EC6C2A45ccA481Da6F243Df0d7A5744aFc1f8",
-            "0xa4": "0x9485cDB237f5B582f86B125CAd32b420Ad46519D"
+            "0xa4": "0x56631CF7AB2deFef7525837ed2f85e9A6Aca28Ec"
         }
     },
     "TournamentContract": {
@@ -1246,10 +1268,10 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0x83d4A2322041AA54b1Bc2C394e6A65087695de25",
+            "0x27": "0xA5663eB0F2AF3c869Dc599db2567293dB5242Bd8",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0x4a": "0x5dc557E3b082ecA7c6EA890f806F5bddE4D39d50",
-            "0xa4": "0x86F3EC2f5C82C86974f2407c0ac9c627015eCcA0"
+            "0xa4": "0xacc34b6a1FcC2cBE08b08f2db9b023Dcdb6C6Fc4"
         }
     }
 }

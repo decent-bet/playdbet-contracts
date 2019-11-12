@@ -983,10 +983,7 @@ LibDBETNode {
         return (
             dbetNode.isUserNodeActivated(id) &&
             dbetNode.isTournamentNode(id) &&
-            dbetNode.isUserNodeOwner(
-                nodeOwner,
-                id
-            )
+            dbetNode.getNodeOwner(id) == nodeOwner
         );
     }
 
@@ -1002,7 +999,7 @@ LibDBETNode {
     public
     view
     returns (uint256) {
-        (,,,,uint256 discount,) = dbetNode.nodes(nodeType);
+        (,,,,uint256 discount,,) = dbetNode.nodes(nodeType);
         // entryFee * (1 - discount)/100
         return entryFee.mul(uint256(100).sub(discount)).div(100);
     }

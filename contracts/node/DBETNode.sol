@@ -133,8 +133,8 @@ LibDBETNode {
             nodes[node].count.add(1) <= nodes[node].maxCount,
             "MAX_NODE_COUNT_EXCEEDED"
         );
-        // Add user node
-        userNodes[userNodeCount] = UserNode({
+        // Add user node - userNodeCount would start with 1-index
+        userNodes[++userNodeCount] = UserNode({
             node: node,
             owner: msg.sender,
             deposit: nodes[node].tokenThreshold,
@@ -157,7 +157,7 @@ LibDBETNode {
         );
         // Emit create user node event
         emit LogCreateUserNode(
-            userNodeCount++,
+            userNodeCount,
             msg.sender
         );
         return true;
@@ -294,6 +294,7 @@ LibDBETNode {
     * @param maxCount Maximum number of nodes of this type that can be active at a time
     * @param rewards Array of reward IDs linked to this node type
     * @param entryFeeDiscount Entry fee discount
+    * @param increasedPrizePayout % increment on prizes won from quests by node holders
     * @return Whether node was added
     */
     function addNode(
@@ -302,7 +303,8 @@ LibDBETNode {
         uint256 timeThreshold,
         uint256 maxCount,
         uint8[] memory rewards,
-        uint256 entryFeeDiscount
+        uint256 entryFeeDiscount,
+        uint256 increasedPrizePayout
     )
     public
     returns (bool) {
@@ -337,6 +339,12 @@ LibDBETNode {
             entryFeeDiscount > 0,
             "INVALID_ENTRY_FEE_DISCOUNT"
         );
+        // Increased prize payout must be between 0 and 100
+        require(
+            increasedPrizePayout <= 100 &&
+            increasedPrizePayout > 0,
+            "INVALID_INCREASED_PRIZE_PAYOUT"
+        );
         // Must be valid rewards array
         require(
             rewards.length > 0 &&
@@ -360,6 +368,7 @@ LibDBETNode {
             maxCount: maxCount,
             rewards: rewards,
             entryFeeDiscount: entryFeeDiscount,
+            increasedPrizePayout: increasedPrizePayout,
             count: 0
         });
         emit LogNewNode(nodeCount++);
@@ -399,49 +408,33 @@ LibDBETNode {
     }
 
     /**
-    * Returns whether a user owns a node type
-    * @param user Address of user
-    * @param node Unique node ID
-    * @return Whether user owns the node type
-    */
-    function isUserNodeOwner(
-        address user,
-        uint256 node
-    )
-    public
-    view
-    returns (bool) {
-        return nodeOwnership[user][node];
-    }
-
-    /**
     * Returns node owner for a given node ID
-    * @param id Unique user node ID
+    * @param userNodeId Unique user node ID
     * @return Returns owner address of a node
     */
     function getNodeOwner(
-        uint256 id
+        uint256 userNodeId
     )
     public
     view
     returns (address) {
-        return userNodes[id].owner;
+        return userNodes[userNodeId].owner;
     }
 
     /**
     * Returns whether a node has quest rewards
-    * @param id Unique user node ID
+    * @param userNodeId Unique user node ID
     * @return Whether node has quest rewards
     */
     function isQuestNode(
-        uint256 id
+        uint256 userNodeId
     )
     public
     view
     returns (bool) {
         bool _isQuestNode = false;
-        for (uint256 i = 0; i < nodes[userNodes[id].node].rewards.length; i++) {
-            if (nodes[userNodes[id].node].rewards[i] == uint8(Rewards.CREATE_QUEST))
+        for (uint256 i = 0; i < nodes[userNodes[userNodeId].node].rewards.length; i++) {
+            if (nodes[userNodes[userNodeId].node].rewards[i] == uint8(Rewards.CREATE_QUEST))
                 _isQuestNode = true;
         }
         return _isQuestNode;
@@ -449,18 +442,18 @@ LibDBETNode {
 
     /**
     * Returns whether a node has tournament rewards
-    * @param id Unique user node ID
+    * @param userNodeId Unique user node ID
     * @return Whether node has tournament rewards
     */
     function isTournamentNode(
-        uint256 id
+        uint256 userNodeId
     )
     public
     view
     returns (bool) {
         bool _isTournamentNode = false;
-        for (uint256 i = 0; i < nodes[userNodes[id].node].rewards.length; i++) {
-            if (nodes[userNodes[id].node].rewards[i] == uint8(Rewards.CREATE_TOURNAMENT))
+        for (uint256 i = 0; i < nodes[userNodes[userNodeId].node].rewards.length; i++) {
+            if (nodes[userNodes[userNodeId].node].rewards[i] == uint8(Rewards.CREATE_TOURNAMENT))
                 _isTournamentNode = true;
         }
         return _isTournamentNode;

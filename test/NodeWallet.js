@@ -35,7 +35,7 @@ let prizeTableId
 let standardTournamentId
 
 const web3 = utils.getWeb3()
-const nodeId = 0
+const nodeId = 1
 
 const OUTCOME_SUCCESS = 2
 const OUTCOME_FAILED = 3
@@ -105,7 +105,8 @@ contract('NodeWallet', accounts => {
             timeThreshold,
             maxCount,
             rewards,
-            entryFeeDiscount
+            entryFeeDiscount,
+            increasedPrizePayout
         } = getNode()
         await dbetNode.addNode(
             name,
@@ -113,7 +114,8 @@ contract('NodeWallet', accounts => {
             timeThreshold,
             maxCount,
             rewards,
-            entryFeeDiscount
+            entryFeeDiscount,
+            increasedPrizePayout
         )
 
         // Approve tokens to be transferred on behalf of user from DBETNode and Quest contracts
@@ -151,7 +153,7 @@ contract('NodeWallet', accounts => {
 
         // Add node quest
         await quest.addNodeQuest(
-            0,
+            1,
             id,
             entryFee,
             prize,
@@ -206,7 +208,8 @@ contract('NodeWallet', accounts => {
             nodeWallet.completeQuest(
                 nodeId,
                 id,
-                web3.utils.toWei('10', 'ether')
+                web3.utils.toWei('10', 'ether'),
+                web3.utils.toWei('100', 'ether')
             )
         )
     })

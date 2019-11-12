@@ -42,6 +42,8 @@ contract LibQuest {
         uint256 entryFee;
         // Quest entry status
         uint8 status;
+        // Node ID used when entering quest
+        uint256 nodeId;
         // True if user claims refund for a cancelled quest
         bool refunded;
     }
