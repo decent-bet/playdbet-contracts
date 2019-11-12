@@ -1151,7 +1151,8 @@ contract('Tournament', accounts => {
             timeThreshold,
             maxCount,
             rewards,
-            entryFeeDiscount
+            entryFeeDiscount,
+            increasedPrizePayout
         } = getNode()
         await dbetNode.addNode(
             name,
@@ -1159,7 +1160,8 @@ contract('Tournament', accounts => {
             timeThreshold,
             maxCount,
             rewards,
-            entryFeeDiscount
+            entryFeeDiscount,
+            increasedPrizePayout
         )
 
         // Approve tokens to be transferred on behalf of user from DBETNode and Quest contracts
@@ -1228,11 +1230,11 @@ contract('Tournament', accounts => {
             prizeType
         } = getValidTournamentParams(1)
 
-        const nodeId = 0
+        const nodeId = 1
         // Invalid node ID
         await utils.assertFail(
             tournament.createNodeTournament(
-                1,
+                2,
                 entryFee,
                 entryLimit,
                 minEntries,
@@ -1376,7 +1378,7 @@ contract('Tournament', accounts => {
             prizeType
         } = getValidTournamentParams(1)
 
-        const nodeId = 0
+        const nodeId = 1
         const tx = await tournament.createNodeTournament(
             nodeId,
             entryFee,
@@ -1408,7 +1410,7 @@ contract('Tournament', accounts => {
             entryFeeDiscount
         } = getNode()
 
-        const nodeId = 0
+        const nodeId = 1
         const preEnterTournamentUserBalance =
             await token.balanceOf(nodeHolder)
         await tournament.enterTournamentWithNode(
@@ -1534,7 +1536,7 @@ contract('Tournament', accounts => {
             prizeType
         } = getValidTournamentParams(1)
 
-        const nodeId = 0
+        const nodeId = 1
         const tx = await tournament.createNodeTournament(
             nodeId,
             entryFee,

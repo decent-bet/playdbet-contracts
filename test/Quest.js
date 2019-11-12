@@ -520,7 +520,7 @@ contract('Quest', accounts => {
 
         // Quest must be refunded
         assert.equal(
-            questEntry[3],
+            questEntry[4],
             true
         )
     })
@@ -685,7 +685,8 @@ contract('Quest', accounts => {
             timeThreshold,
             maxCount,
             rewards,
-            entryFeeDiscount
+            entryFeeDiscount,
+            increasedPrizePayout
         } = getNode()
         await dbetNode.addNode(
             name,
@@ -693,7 +694,8 @@ contract('Quest', accounts => {
             timeThreshold,
             maxCount,
             rewards,
-            entryFeeDiscount
+            entryFeeDiscount,
+            increasedPrizePayout
         )
 
         // Approve tokens to be transferred on behalf of user from DBETNode and Quest contracts
@@ -843,7 +845,7 @@ contract('Quest', accounts => {
 
         // Add node quest
         await quest.addNodeQuest(
-            0,
+            1,
             id,
             entryFee,
             prize,
@@ -869,7 +871,7 @@ contract('Quest', accounts => {
         const {
             entryFeeDiscount
         } = getNode()
-        const nodeId = 0
+        const nodeId = 1
 
         const prePayForQuestBalance = await token.balanceOf(nodeHolder)
         await quest.payForQuestWithNode(
@@ -957,7 +959,7 @@ contract('Quest', accounts => {
 
     it('allows active node holders to cancel active node quests', async () => {
         const {id} = getValidNodeQuestParams()
-        const nodeId = 0
+        const nodeId = 1
         await quest.cancelNodeQuest(
             nodeId,
             id,
@@ -976,9 +978,10 @@ contract('Quest', accounts => {
         } = getValidNodeQuestParams()
         const id = web3.utils.fromUtf8('789')
 
+        const nodeId = 1
         // Add node quest as node holder
         await quest.addNodeQuest(
-            0,
+            nodeId,
             id,
             entryFee,
             prize,
@@ -999,9 +1002,11 @@ contract('Quest', accounts => {
             prize,
             maxEntries
         } = getValidNodeQuestParams()
+
+        const nodeId = 1
         // Add node quest for next test
         await quest.addNodeQuest(
-            0,
+            nodeId,
             web3.utils.fromUtf8('111'),
             entryFee,
             prize,
@@ -1014,7 +1019,7 @@ contract('Quest', accounts => {
         // Destroy active node
         const preDestroyBalance = await token.balanceOf(nodeHolder)
         await dbetNode.destroy(
-            0,
+            nodeId,
             {
                 from: nodeHolder
             }
@@ -1046,7 +1051,7 @@ contract('Quest', accounts => {
 
     it('throws if non-active node holders cancel quests', async () => {
         // Try cancelling quest using inactive node
-        const nodeId = 0
+        const nodeId = 1
         await utils.assertFail(
             quest.cancelNodeQuest(
                 nodeId,
