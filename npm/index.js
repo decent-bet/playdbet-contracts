@@ -1,5 +1,5 @@
 module.exports = {
-    "VERSION": "1.0.13",
+    "VERSION": "1.0.14",
     "AdminContract": {
         "raw": {
             "abi": [{
@@ -98,7 +98,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0xE228b04Ed3979B89beB19250Aa2182FF9104747a",
+            "0x27": "0x0aEB52F3ed81dd732C1b7513dBed74BF40930753",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0x4a": "0xE1A9dA3a8E10B74AB05Bc068272254C242DaFb4D",
             "0xa4": "0xbAa4774602Dc5571FebcEa7D3cf966297Cb3f1BF"
@@ -119,7 +119,10 @@ module.exports = {
                 }, {"name": "entryFeeDiscount", "type": "uint256"}, {
                     "name": "increasedPrizePayout",
                     "type": "uint256"
-                }, {"name": "count", "type": "uint256"}],
+                }, {"name": "count", "type": "uint256"}, {"name": "nodeType", "type": "uint8"}, {
+                    "name": "deprecated",
+                    "type": "bool"
+                }],
                 "payable": false,
                 "stateMutability": "view",
                 "type": "function",
@@ -168,15 +171,6 @@ module.exports = {
                 "signature": "0x51964f3a"
             }, {
                 "constant": true,
-                "inputs": [{"name": "", "type": "address"}, {"name": "", "type": "uint256"}],
-                "name": "nodeOwnership",
-                "outputs": [{"name": "", "type": "bool"}],
-                "payable": false,
-                "stateMutability": "view",
-                "type": "function",
-                "signature": "0x65f1b165"
-            }, {
-                "constant": true,
                 "inputs": [],
                 "name": "nodeCount",
                 "outputs": [{"name": "", "type": "uint256"}],
@@ -193,6 +187,15 @@ module.exports = {
                 "stateMutability": "view",
                 "type": "function",
                 "signature": "0x8da5cb5b"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "", "type": "address"}],
+                "name": "nodeOwnership",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0xac05a44d"
             }, {
                 "constant": true,
                 "inputs": [],
@@ -249,13 +252,13 @@ module.exports = {
             }, {
                 "anonymous": false,
                 "inputs": [{"indexed": true, "name": "id", "type": "uint256"}, {
-                    "indexed": false,
+                    "indexed": true,
                     "name": "previousNodeType",
                     "type": "uint256"
-                }],
+                }, {"indexed": true, "name": "newNodeType", "type": "uint256"}],
                 "name": "LogUpgradeUserNode",
                 "type": "event",
-                "signature": "0x9a5479b8e6bbf8fad2b1dc7d477f4035c655b7808590d8e139042fe1d24d8269"
+                "signature": "0x0dd9a48df69e33423c399bd9cd993b74dcd7d7463400ccd0b1d19e2ceb83dca3"
             }, {
                 "anonymous": false,
                 "inputs": [{"indexed": true, "name": "id", "type": "uint256"}, {
@@ -268,10 +271,20 @@ module.exports = {
                 "signature": "0x3376c15012e84e96494909f552c426052f0cf2d207b963d5bb16470e9734d180"
             }, {
                 "anonymous": false,
-                "inputs": [{"indexed": true, "name": "id", "type": "uint256"}],
+                "inputs": [{"indexed": true, "name": "id", "type": "uint256"}, {
+                    "indexed": true,
+                    "name": "nodeType",
+                    "type": "uint8"
+                }],
                 "name": "LogNewNode",
                 "type": "event",
-                "signature": "0xfd87414d354ab22a67e24dc515e141be1f584cb4c6ea9f287c1a842be0b330fb"
+                "signature": "0xc2534f6a446b4ab6fbba2bc99c5f88915195345f4a13e909e323ff656bce5882"
+            }, {
+                "anonymous": false,
+                "inputs": [{"indexed": true, "name": "id", "type": "uint256"}],
+                "name": "LogDeprecatedNode",
+                "type": "event",
+                "signature": "0x343996fb6a78d672d92fe175deb9278e646a31ec144c0d8367a046097c6c55f1"
             }, {
                 "constant": false,
                 "inputs": [{"name": "_quest", "type": "address"}, {"name": "_tournament", "type": "address"}],
@@ -319,13 +332,22 @@ module.exports = {
                 }, {"name": "rewards", "type": "uint8[]"}, {
                     "name": "entryFeeDiscount",
                     "type": "uint256"
-                }, {"name": "increasedPrizePayout", "type": "uint256"}],
+                }, {"name": "increasedPrizePayout", "type": "uint256"}, {"name": "nodeType", "type": "uint8"}],
                 "name": "addNode",
                 "outputs": [{"name": "", "type": "bool"}],
                 "payable": false,
                 "stateMutability": "nonpayable",
                 "type": "function",
-                "signature": "0x404d0fd2"
+                "signature": "0x32ea73a0"
+            }, {
+                "constant": false,
+                "inputs": [{"name": "node", "type": "uint256"}],
+                "name": "deprecateNode",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function",
+                "signature": "0xc6b8774b"
             }, {
                 "constant": true,
                 "inputs": [{"name": "id", "type": "uint256"}],
@@ -337,16 +359,7 @@ module.exports = {
                 "signature": "0xfe12bdd6"
             }, {
                 "constant": true,
-                "inputs": [{"name": "user", "type": "address"}, {"name": "node", "type": "uint256"}],
-                "name": "isUserNodeOwner",
-                "outputs": [{"name": "", "type": "bool"}],
-                "payable": false,
-                "stateMutability": "view",
-                "type": "function",
-                "signature": "0x3a8d300e"
-            }, {
-                "constant": true,
-                "inputs": [{"name": "id", "type": "uint256"}],
+                "inputs": [{"name": "userNodeId", "type": "uint256"}],
                 "name": "getNodeOwner",
                 "outputs": [{"name": "", "type": "address"}],
                 "payable": false,
@@ -355,7 +368,7 @@ module.exports = {
                 "signature": "0x5d3c373f"
             }, {
                 "constant": true,
-                "inputs": [{"name": "id", "type": "uint256"}],
+                "inputs": [{"name": "userNodeId", "type": "uint256"}],
                 "name": "isQuestNode",
                 "outputs": [{"name": "", "type": "bool"}],
                 "payable": false,
@@ -364,491 +377,27 @@ module.exports = {
                 "signature": "0x8a71edcf"
             }, {
                 "constant": true,
-                "inputs": [{"name": "id", "type": "uint256"}],
+                "inputs": [{"name": "userNodeId", "type": "uint256"}],
                 "name": "isTournamentNode",
                 "outputs": [{"name": "", "type": "bool"}],
                 "payable": false,
                 "stateMutability": "view",
                 "type": "function",
                 "signature": "0x8533022a"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "userNodeId", "type": "uint256"}],
+                "name": "isIncreasedPrizePayoutNode",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0x7d434b2d"
             }]
         },
         "address": {
-            "0x27": "0x46b4DA77DC4142702963531bB1B895C2aC731408",
+            "0x27": "0xED51F4Ff6cb278dfDe274B1e18cD6fA1618E73ad",
             "0xa4": "0xA867c87682D7c5ebe92046D1ddd9F1930B8B55BC"
-        }
-    },
-    "NodeWallet": {
-        "raw": {
-            "abi": [
-                {
-                    "constant": true,
-                    "inputs": [
-                        {
-                            "name": "",
-                            "type": "uint256"
-                        },
-                        {
-                            "name": "",
-                            "type": "bytes32"
-                        }
-                    ],
-                    "name": "prizeFund",
-                    "outputs": [
-                        {
-                            "name": "",
-                            "type": "uint256"
-                        }
-                    ],
-                    "payable": false,
-                    "stateMutability": "view",
-                    "type": "function"
-                },
-                {
-                    "constant": true,
-                    "inputs": [
-                        {
-                            "name": "",
-                            "type": "uint256"
-                        }
-                    ],
-                    "name": "totalCompletedQuestPrizePayouts",
-                    "outputs": [
-                        {
-                            "name": "",
-                            "type": "uint256"
-                        }
-                    ],
-                    "payable": false,
-                    "stateMutability": "view",
-                    "type": "function"
-                },
-                {
-                    "constant": true,
-                    "inputs": [],
-                    "name": "dbetNode",
-                    "outputs": [
-                        {
-                            "name": "",
-                            "type": "address"
-                        }
-                    ],
-                    "payable": false,
-                    "stateMutability": "view",
-                    "type": "function"
-                },
-                {
-                    "constant": true,
-                    "inputs": [
-                        {
-                            "name": "",
-                            "type": "uint256"
-                        }
-                    ],
-                    "name": "totalRakeFees",
-                    "outputs": [
-                        {
-                            "name": "",
-                            "type": "uint256"
-                        }
-                    ],
-                    "payable": false,
-                    "stateMutability": "view",
-                    "type": "function"
-                },
-                {
-                    "constant": true,
-                    "inputs": [
-                        {
-                            "name": "",
-                            "type": "uint256"
-                        },
-                        {
-                            "name": "",
-                            "type": "bytes32"
-                        }
-                    ],
-                    "name": "questFees",
-                    "outputs": [
-                        {
-                            "name": "",
-                            "type": "uint256"
-                        }
-                    ],
-                    "payable": false,
-                    "stateMutability": "view",
-                    "type": "function"
-                },
-                {
-                    "constant": true,
-                    "inputs": [
-                        {
-                            "name": "",
-                            "type": "uint256"
-                        },
-                        {
-                            "name": "",
-                            "type": "bytes32"
-                        }
-                    ],
-                    "name": "rakeFees",
-                    "outputs": [
-                        {
-                            "name": "",
-                            "type": "uint256"
-                        }
-                    ],
-                    "payable": false,
-                    "stateMutability": "view",
-                    "type": "function"
-                },
-                {
-                    "constant": true,
-                    "inputs": [
-                        {
-                            "name": "",
-                            "type": "uint256"
-                        }
-                    ],
-                    "name": "totalCompletedQuestEntryFees",
-                    "outputs": [
-                        {
-                            "name": "",
-                            "type": "uint256"
-                        }
-                    ],
-                    "payable": false,
-                    "stateMutability": "view",
-                    "type": "function"
-                },
-                {
-                    "constant": true,
-                    "inputs": [
-                        {
-                            "name": "",
-                            "type": "uint256"
-                        }
-                    ],
-                    "name": "totalQuestEntryFees",
-                    "outputs": [
-                        {
-                            "name": "",
-                            "type": "uint256"
-                        }
-                    ],
-                    "payable": false,
-                    "stateMutability": "view",
-                    "type": "function"
-                },
-                {
-                    "inputs": [],
-                    "payable": false,
-                    "stateMutability": "nonpayable",
-                    "type": "constructor"
-                },
-                {
-                    "anonymous": false,
-                    "inputs": [
-                        {
-                            "indexed": true,
-                            "name": "nodeId",
-                            "type": "uint256"
-                        },
-                        {
-                            "indexed": true,
-                            "name": "questId",
-                            "type": "bytes32"
-                        }
-                    ],
-                    "name": "LogSetPrizeFund",
-                    "type": "event"
-                },
-                {
-                    "anonymous": false,
-                    "inputs": [
-                        {
-                            "indexed": true,
-                            "name": "nodeId",
-                            "type": "uint256"
-                        },
-                        {
-                            "indexed": true,
-                            "name": "questId",
-                            "type": "bytes32"
-                        }
-                    ],
-                    "name": "LogAddQuestEntryFee",
-                    "type": "event"
-                },
-                {
-                    "anonymous": false,
-                    "inputs": [
-                        {
-                            "indexed": true,
-                            "name": "nodeId",
-                            "type": "uint256"
-                        },
-                        {
-                            "indexed": true,
-                            "name": "questId",
-                            "type": "bytes32"
-                        }
-                    ],
-                    "name": "LogAddCompletedQuestEntryFee",
-                    "type": "event"
-                },
-                {
-                    "anonymous": false,
-                    "inputs": [
-                        {
-                            "indexed": true,
-                            "name": "nodeId",
-                            "type": "uint256"
-                        },
-                        {
-                            "indexed": true,
-                            "name": "questId",
-                            "type": "bytes32"
-                        }
-                    ],
-                    "name": "LogClaimRefund",
-                    "type": "event"
-                },
-                {
-                    "anonymous": false,
-                    "inputs": [
-                        {
-                            "indexed": true,
-                            "name": "nodeId",
-                            "type": "uint256"
-                        },
-                        {
-                            "indexed": true,
-                            "name": "amount",
-                            "type": "uint256"
-                        }
-                    ],
-                    "name": "LogWithdrawCompletedQuestEntryFees",
-                    "type": "event"
-                },
-                {
-                    "anonymous": false,
-                    "inputs": [
-                        {
-                            "indexed": true,
-                            "name": "nodeId",
-                            "type": "uint256"
-                        },
-                        {
-                            "indexed": true,
-                            "name": "tournamentId",
-                            "type": "bytes32"
-                        }
-                    ],
-                    "name": "LogAddTournamentRakeFees",
-                    "type": "event"
-                },
-                {
-                    "anonymous": false,
-                    "inputs": [
-                        {
-                            "indexed": true,
-                            "name": "nodeId",
-                            "type": "uint256"
-                        },
-                        {
-                            "indexed": true,
-                            "name": "amount",
-                            "type": "uint256"
-                        }
-                    ],
-                    "name": "LogWithdrawTournamentRakeFees",
-                    "type": "event"
-                },
-                {
-                    "constant": false,
-                    "inputs": [
-                        {
-                            "name": "nodeId",
-                            "type": "uint256"
-                        },
-                        {
-                            "name": "questId",
-                            "type": "bytes32"
-                        },
-                        {
-                            "name": "fund",
-                            "type": "uint256"
-                        }
-                    ],
-                    "name": "setPrizeFund",
-                    "outputs": [
-                        {
-                            "name": "",
-                            "type": "bool"
-                        }
-                    ],
-                    "payable": false,
-                    "stateMutability": "nonpayable",
-                    "type": "function"
-                },
-                {
-                    "constant": false,
-                    "inputs": [
-                        {
-                            "name": "nodeId",
-                            "type": "uint256"
-                        },
-                        {
-                            "name": "questId",
-                            "type": "bytes32"
-                        },
-                        {
-                            "name": "fee",
-                            "type": "uint256"
-                        }
-                    ],
-                    "name": "addQuestEntryFee",
-                    "outputs": [
-                        {
-                            "name": "",
-                            "type": "bool"
-                        }
-                    ],
-                    "payable": false,
-                    "stateMutability": "nonpayable",
-                    "type": "function"
-                },
-                {
-                    "constant": false,
-                    "inputs": [
-                        {
-                            "name": "nodeId",
-                            "type": "uint256"
-                        },
-                        {
-                            "name": "questId",
-                            "type": "bytes32"
-                        },
-                        {
-                            "name": "fee",
-                            "type": "uint256"
-                        },
-                        {
-                            "name": "prize",
-                            "type": "uint256"
-                        }
-                    ],
-                    "name": "completeQuest",
-                    "outputs": [
-                        {
-                            "name": "",
-                            "type": "bool"
-                        }
-                    ],
-                    "payable": false,
-                    "stateMutability": "nonpayable",
-                    "type": "function"
-                },
-                {
-                    "constant": false,
-                    "inputs": [
-                        {
-                            "name": "nodeId",
-                            "type": "uint256"
-                        },
-                        {
-                            "name": "questId",
-                            "type": "bytes32"
-                        },
-                        {
-                            "name": "fee",
-                            "type": "uint256"
-                        }
-                    ],
-                    "name": "claimRefund",
-                    "outputs": [
-                        {
-                            "name": "",
-                            "type": "bool"
-                        }
-                    ],
-                    "payable": false,
-                    "stateMutability": "nonpayable",
-                    "type": "function"
-                },
-                {
-                    "constant": false,
-                    "inputs": [
-                        {
-                            "name": "nodeId",
-                            "type": "uint256"
-                        }
-                    ],
-                    "name": "withdrawCompletedQuestEntryFees",
-                    "outputs": [
-                        {
-                            "name": "",
-                            "type": "bool"
-                        }
-                    ],
-                    "payable": false,
-                    "stateMutability": "nonpayable",
-                    "type": "function"
-                },
-                {
-                    "constant": false,
-                    "inputs": [
-                        {
-                            "name": "nodeId",
-                            "type": "uint256"
-                        },
-                        {
-                            "name": "tournamentId",
-                            "type": "bytes32"
-                        },
-                        {
-                            "name": "rakeFee",
-                            "type": "uint256"
-                        }
-                    ],
-                    "name": "addTournamentRakeFee",
-                    "outputs": [
-                        {
-                            "name": "",
-                            "type": "bool"
-                        }
-                    ],
-                    "payable": false,
-                    "stateMutability": "nonpayable",
-                    "type": "function"
-                },
-                {
-                    "constant": false,
-                    "inputs": [
-                        {
-                            "name": "nodeId",
-                            "type": "uint256"
-                        }
-                    ],
-                    "name": "withdrawTournamentRakeFees",
-                    "outputs": [
-                        {
-                            "name": "",
-                            "type": "bool"
-                        }
-                    ],
-                    "payable": false,
-                    "stateMutability": "nonpayable",
-                    "type": "function"
-                }
-            ]
-        },
-        "address": {
-            "0x27": "0x9E46b0e72052d8caa86B9633988F603973591c1D",
-            "0xc7": "0x9E46b0e72052d8caa86B9633988F603973591c1D",
-            "0x4a": "0x9E46b0e72052d8caa86B9633988F603973591c1D",
-            "0xa4": "0x9E46b0e72052d8caa86B9633988F603973591c1D"
         }
     },
     "QuestContract": {
@@ -863,7 +412,7 @@ module.exports = {
                 "outputs": [{"name": "entryTime", "type": "uint256"}, {
                     "name": "entryFee",
                     "type": "uint256"
-                }, {"name": "nodeId", "type": "uint256"}, {"name": "status", "type": "uint8"}, {
+                }, {"name": "status", "type": "uint8"}, {"name": "nodeId", "type": "uint256"}, {
                     "name": "refunded",
                     "type": "bool"
                 }],
@@ -1108,12 +657,21 @@ module.exports = {
             }, {
                 "constant": true,
                 "inputs": [{"name": "id", "type": "uint256"}, {"name": "nodeOwner", "type": "address"}],
-                "name": "isActiveNode",
+                "name": "isActiveHouseNode",
                 "outputs": [{"name": "", "type": "bool"}],
                 "payable": false,
                 "stateMutability": "view",
                 "type": "function",
-                "signature": "0x874fa1a1"
+                "signature": "0xbbd31d73"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "id", "type": "uint256"}, {"name": "nodeOwner", "type": "address"}],
+                "name": "isActiveIncreasedPrizePayoutNode",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0xf814ff21"
             }, {
                 "constant": true,
                 "inputs": [{"name": "nodeType", "type": "uint256"}, {"name": "entryFee", "type": "uint256"}],
@@ -1135,10 +693,246 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0x08ff493FA0e09981B0c996dAd7a67B0085B2eBD6",
+            "0x27": "0xf5b296dd218cE165dE9fDda0eDa56Fdd15fA21C4",
             "0xc7": "0x55db2feE8A2A039BCA83b014cf0b455a31E77Cda",
             "0x4a": "0x0E599Dc9e307251729Dbf05Be79E61E0165f3FbF",
             "0xa4": "0x975f12947bA0654a56873F8236E5c9b5C498c874"
+        }
+    },
+    "NodeWallet": {
+        "raw": {
+            "abi": [{
+                "constant": true,
+                "inputs": [{"name": "", "type": "uint256"}, {"name": "", "type": "bytes32"}],
+                "name": "prizeFund",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0x319e46f5"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "", "type": "uint256"}],
+                "name": "totalCompletedQuestPrizePayouts",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0x46fb2cae"
+            }, {
+                "constant": true,
+                "inputs": [],
+                "name": "dbetNode",
+                "outputs": [{"name": "", "type": "address"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0x53f7eb90"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "", "type": "uint256"}],
+                "name": "totalRakeFees",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0x7308a021"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "", "type": "uint256"}, {"name": "", "type": "bytes32"}],
+                "name": "questFees",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0x9236f624"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "", "type": "uint256"}, {"name": "", "type": "bytes32"}],
+                "name": "rakeFees",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0xc4ded9d5"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "", "type": "uint256"}],
+                "name": "totalCompletedQuestEntryFees",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0xc91a64a0"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "", "type": "uint256"}],
+                "name": "totalQuestEntryFees",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0xceaac89f"
+            }, {
+                "inputs": [],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            }, {
+                "anonymous": false,
+                "inputs": [{"indexed": true, "name": "nodeId", "type": "uint256"}, {
+                    "indexed": true,
+                    "name": "questId",
+                    "type": "bytes32"
+                }],
+                "name": "LogSetPrizeFund",
+                "type": "event",
+                "signature": "0x0139e7e874fbcf19d90f8ad114d5f294ee5e36c2a92da5334a42c97268f0030f"
+            }, {
+                "anonymous": false,
+                "inputs": [{"indexed": true, "name": "nodeId", "type": "uint256"}, {
+                    "indexed": true,
+                    "name": "questId",
+                    "type": "bytes32"
+                }],
+                "name": "LogAddQuestEntryFee",
+                "type": "event",
+                "signature": "0x00a6b81229b4ebfc07e6b9a7de389506517383dd38a76ebf60ee23986ad01c35"
+            }, {
+                "anonymous": false,
+                "inputs": [{"indexed": true, "name": "nodeId", "type": "uint256"}, {
+                    "indexed": true,
+                    "name": "questId",
+                    "type": "bytes32"
+                }],
+                "name": "LogAddCompletedQuestEntryFee",
+                "type": "event",
+                "signature": "0x7501ebdab1c1f68475f61e42ef7b4d8ac330131e2202bed3c85a4ad1f17359a4"
+            }, {
+                "anonymous": false,
+                "inputs": [{"indexed": true, "name": "nodeId", "type": "uint256"}, {
+                    "indexed": true,
+                    "name": "questId",
+                    "type": "bytes32"
+                }],
+                "name": "LogClaimRefund",
+                "type": "event",
+                "signature": "0xf7ab3c1383080a8912888a37804d4153bb74e80eb73ed44131a8e15c5726ab2d"
+            }, {
+                "anonymous": false,
+                "inputs": [{"indexed": true, "name": "nodeId", "type": "uint256"}, {
+                    "indexed": true,
+                    "name": "amount",
+                    "type": "uint256"
+                }],
+                "name": "LogWithdrawCompletedQuestEntryFees",
+                "type": "event",
+                "signature": "0x2ddd7d38c89622e82ff6893431cff5d4f115d3e3b0e8c5871c854e593a60f256"
+            }, {
+                "anonymous": false,
+                "inputs": [{"indexed": true, "name": "nodeId", "type": "uint256"}, {
+                    "indexed": true,
+                    "name": "tournamentId",
+                    "type": "bytes32"
+                }],
+                "name": "LogAddTournamentRakeFees",
+                "type": "event",
+                "signature": "0x3090809ec27599283b97ee582f754e77fdf6b508a81ed0725e9d988a182fff48"
+            }, {
+                "anonymous": false,
+                "inputs": [{"indexed": true, "name": "nodeId", "type": "uint256"}, {
+                    "indexed": true,
+                    "name": "amount",
+                    "type": "uint256"
+                }],
+                "name": "LogWithdrawTournamentRakeFees",
+                "type": "event",
+                "signature": "0x4b1caf238fdd995ea2c279896256e886e9f8488a7ae3aab750165b9cd3652291"
+            }, {
+                "constant": false,
+                "inputs": [{"name": "nodeId", "type": "uint256"}, {
+                    "name": "questId",
+                    "type": "bytes32"
+                }, {"name": "fund", "type": "uint256"}],
+                "name": "setPrizeFund",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function",
+                "signature": "0xd614ef25"
+            }, {
+                "constant": false,
+                "inputs": [{"name": "nodeId", "type": "uint256"}, {
+                    "name": "questId",
+                    "type": "bytes32"
+                }, {"name": "fee", "type": "uint256"}],
+                "name": "addQuestEntryFee",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function",
+                "signature": "0x114b69dc"
+            }, {
+                "constant": false,
+                "inputs": [{"name": "nodeId", "type": "uint256"}, {
+                    "name": "questId",
+                    "type": "bytes32"
+                }, {"name": "fee", "type": "uint256"}, {"name": "prize", "type": "uint256"}],
+                "name": "completeQuest",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function",
+                "signature": "0x574f7ef5"
+            }, {
+                "constant": false,
+                "inputs": [{"name": "nodeId", "type": "uint256"}, {
+                    "name": "questId",
+                    "type": "bytes32"
+                }, {"name": "fee", "type": "uint256"}],
+                "name": "claimRefund",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function",
+                "signature": "0x5e2d7f12"
+            }, {
+                "constant": false,
+                "inputs": [{"name": "nodeId", "type": "uint256"}],
+                "name": "withdrawCompletedQuestEntryFees",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function",
+                "signature": "0xc4585d61"
+            }, {
+                "constant": false,
+                "inputs": [{"name": "nodeId", "type": "uint256"}, {
+                    "name": "tournamentId",
+                    "type": "bytes32"
+                }, {"name": "rakeFee", "type": "uint256"}],
+                "name": "addTournamentRakeFee",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function",
+                "signature": "0xa49e22e5"
+            }, {
+                "constant": false,
+                "inputs": [{"name": "nodeId", "type": "uint256"}],
+                "name": "withdrawTournamentRakeFees",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function",
+                "signature": "0x13406de4"
+            }]
+        },
+        "address": {
+            "0x27": "0x0e6E93927afd058B4673844BE317Ea855aBb47cC",
+            "0xc7": "0x9E46b0e72052d8caa86B9633988F603973591c1D",
+            "0x4a": "0x9E46b0e72052d8caa86B9633988F603973591c1D",
+            "0xa4": "0x9E46b0e72052d8caa86B9633988F603973591c1D"
         }
     },
     "DBETVETTokenContract": {
@@ -1741,7 +1535,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0xA5663eB0F2AF3c869Dc599db2567293dB5242Bd8",
+            "0x27": "0x6525ffA81423e4f1dc4fc7435806ea563DeDf259",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0x4a": "0x5dc557E3b082ecA7c6EA890f806F5bddE4D39d50",
             "0xa4": "0xacc34b6a1FcC2cBE08b08f2db9b023Dcdb6C6Fc4"
