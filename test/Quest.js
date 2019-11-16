@@ -25,7 +25,7 @@ let user2
 let user3
 let user4
 let houseNodeHolder
-let rewardNodeHolder
+let increasedPrizePayoutNodeHolder
 
 const web3 = new Web3()
 
@@ -53,7 +53,7 @@ contract('Quest', accounts => {
         user3 = accounts[3]
         user4 = accounts[4]
         houseNodeHolder = accounts[5]
-        rewardNodeHolder = accounts[6]
+        increasedPrizePayoutNodeHolder = accounts[6]
 
         dbetNode = await contracts.DBETNode.deployed()
         quest = await contracts.Quest.deployed()
@@ -875,7 +875,7 @@ contract('Quest', accounts => {
     it('pays discounted fees if node holders pays for quest', async () => {
         // Transfer DBETs to reward node holder
         await token.transfer(
-            rewardNodeHolder,
+            increasedPrizePayoutNodeHolder,
             web3.utils.toWei('2000000', 'ether')
         )
         // Add a new node type as admin
@@ -904,21 +904,21 @@ contract('Quest', accounts => {
             dbetNode.address,
             utils.MAX_VALUE,
             {
-                from: rewardNodeHolder
+                from: increasedPrizePayoutNodeHolder
             }
         )
         await token.approve(
             quest.address,
             utils.MAX_VALUE,
             {
-                from: rewardNodeHolder
+                from: increasedPrizePayoutNodeHolder
             }
         )
         // Create node of type ID 2
         await dbetNode.create(
             2,
             {
-                from: rewardNodeHolder
+                from: increasedPrizePayoutNodeHolder
             }
         )
         // Move forward in time by `timeThreshold` to activate node
@@ -932,16 +932,16 @@ contract('Quest', accounts => {
 
         const nodeId = 2
 
-        const prePayForQuestBalance = await token.balanceOf(rewardNodeHolder)
+        const prePayForQuestBalance = await token.balanceOf(increasedPrizePayoutNodeHolder)
         await quest.payForQuestWithNode(
             id,
             nodeId,
-            rewardNodeHolder,
+            increasedPrizePayoutNodeHolder,
             {
-                from: rewardNodeHolder
+                from: increasedPrizePayoutNodeHolder
             }
         )
-        const postPayForQuestBalance = await token.balanceOf(rewardNodeHolder)
+        const postPayForQuestBalance = await token.balanceOf(increasedPrizePayoutNodeHolder)
         assert.equal(
             new BigNumber(postPayForQuestBalance).isEqualTo(
                 new BigNumber(prePayForQuestBalance).minus(
@@ -951,7 +951,7 @@ contract('Quest', accounts => {
             true
         )
         const userQuestEntryFee = (await quest.userQuestEntries(
-            rewardNodeHolder,
+            increasedPrizePayoutNodeHolder,
             id,
             0
         )).entryFee
@@ -972,13 +972,13 @@ contract('Quest', accounts => {
             increasedPrizePayout
         } = getIncreasedPrizePayoutNode()
 
-        const preSetQuestOutcomeBalance = await token.balanceOf(rewardNodeHolder)
+        const preSetQuestOutcomeBalance = await token.balanceOf(increasedPrizePayoutNodeHolder)
         await quest.setQuestOutcome(
             id,
-            rewardNodeHolder,
+            increasedPrizePayoutNodeHolder,
             OUTCOME_SUCCESS
         )
-        const postSetQuestOutcomeBalance = await token.balanceOf(rewardNodeHolder)
+        const postSetQuestOutcomeBalance = await token.balanceOf(increasedPrizePayoutNodeHolder)
 
         assert.equal(
             new BigNumber(
@@ -1009,16 +1009,16 @@ contract('Quest', accounts => {
 
         // Enter quest again
         const nodeId = 2
-        const prePayForQuestBalance = await token.balanceOf(rewardNodeHolder)
+        const prePayForQuestBalance = await token.balanceOf(increasedPrizePayoutNodeHolder)
         await quest.payForQuestWithNode(
             id,
             nodeId,
-            rewardNodeHolder,
+            increasedPrizePayoutNodeHolder,
             {
-                from: rewardNodeHolder
+                from: increasedPrizePayoutNodeHolder
             }
         )
-        const postPayForQuestBalance = await token.balanceOf(rewardNodeHolder)
+        const postPayForQuestBalance = await token.balanceOf(increasedPrizePayoutNodeHolder)
         assert.equal(
             new BigNumber(postPayForQuestBalance).isEqualTo(
                 new BigNumber(prePayForQuestBalance).minus(
@@ -1028,12 +1028,12 @@ contract('Quest', accounts => {
             true
         )
 
-        const preCancelQuestEntryBalance = await token.balanceOf(rewardNodeHolder)
+        const preCancelQuestEntryBalance = await token.balanceOf(increasedPrizePayoutNodeHolder)
         await quest.cancelQuestEntry(
             id,
-            rewardNodeHolder
+            increasedPrizePayoutNodeHolder
         )
-        const postCancelQuestEntryBalance = await token.balanceOf(rewardNodeHolder)
+        const postCancelQuestEntryBalance = await token.balanceOf(increasedPrizePayoutNodeHolder)
         assert.equal(
             new BigNumber(postCancelQuestEntryBalance).isEqualTo(
                 new BigNumber(preCancelQuestEntryBalance).plus(
