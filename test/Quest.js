@@ -5,7 +5,8 @@ const Web3 = require('web3')
 const contracts = require('./utils/contracts')
 const utils = require('./utils/utils')
 const {
-    getNode,
+    getHouseNode,
+    getIncreasedPrizePayoutNode,
     getValidNodeQuestParams
 } = require('./utils/nodes')
 
@@ -687,7 +688,7 @@ contract('Quest', accounts => {
             rewards,
             entryFeeDiscount,
             increasedPrizePayout
-        } = getNode()
+        } = getHouseNode()
         await dbetNode.addNode(
             name,
             tokenThreshold,
@@ -713,9 +714,9 @@ contract('Quest', accounts => {
                 from: nodeHolder
             }
         )
-        // Create node of type ID 0
+        // Create node of type ID 1
         await dbetNode.create(
-            0,
+            1,
             {
                 from: nodeHolder
             }
@@ -728,9 +729,10 @@ contract('Quest', accounts => {
             maxEntries
         } = getValidNodeQuestParams()
 
+        const nodeId = 1
         await utils.assertFail(
             quest.addNodeQuest(
-                0,
+                nodeId,
                 id,
                 entryFee,
                 prize,
@@ -751,9 +753,10 @@ contract('Quest', accounts => {
             maxEntries
         } = getValidNodeQuestParams()
 
+        const nodeId = 1
         await utils.assertFail(
             quest.addNodeQuest(
-                0,
+                nodeId,
                 id,
                 entryFee,
                 prize,
@@ -765,7 +768,7 @@ contract('Quest', accounts => {
     it('throws if active node holders add node quests with invalid parameters', async () => {
         const {
             timeThreshold,
-        } = getNode()
+        } = getHouseNode()
         // Move forward in time by `timeThreshold` to activate node
         await timeTravel(timeThreshold)
 
@@ -778,9 +781,10 @@ contract('Quest', accounts => {
         } = getValidNodeQuestParams()
 
         // Invalid id - existing quest ID
+        const nodeId = 1
         await utils.assertFail(
             quest.addNodeQuest(
-                0,
+                nodeId,
                 web3.utils.fromUtf8('123'),
                 entryFee,
                 prize,
@@ -794,7 +798,7 @@ contract('Quest', accounts => {
         // Invalid entry fee - 0
         await utils.assertFail(
             quest.addNodeQuest(
-                0,
+                nodeId,
                 id,
                 0,
                 prize,
@@ -808,7 +812,7 @@ contract('Quest', accounts => {
         // Invalid prize - 0
         await utils.assertFail(
             quest.addNodeQuest(
-                0,
+                nodeId,
                 id,
                 entryFee,
                 0,
@@ -822,7 +826,7 @@ contract('Quest', accounts => {
         // Invalid max entries - 0
         await utils.assertFail(
             quest.addNodeQuest(
-                0,
+                nodeId,
                 id,
                 entryFee,
                 prize,
@@ -843,9 +847,10 @@ contract('Quest', accounts => {
             maxEntries
         } = getValidNodeQuestParams()
 
+        const nodeId = 1
         // Add node quest
         await quest.addNodeQuest(
-            1,
+            nodeId,
             id,
             entryFee,
             prize,
@@ -870,7 +875,7 @@ contract('Quest', accounts => {
         } = getValidNodeQuestParams()
         const {
             entryFeeDiscount
-        } = getNode()
+        } = getHouseNode()
         const nodeId = 1
 
         const prePayForQuestBalance = await token.balanceOf(nodeHolder)
@@ -911,7 +916,7 @@ contract('Quest', accounts => {
         } = getValidNodeQuestParams()
         const {
             increasedPrizePayout
-        } = getNode()
+        } = getHouseNode()
 
         const preSetQuestOutcomeBalance = await token.balanceOf(nodeHolder)
         await quest.setQuestOutcome(
@@ -946,7 +951,7 @@ contract('Quest', accounts => {
         } = getValidNodeQuestParams()
         const {
             entryFeeDiscount
-        } = getNode()
+        } = getHouseNode()
 
         // Enter quest again
         const nodeId = 1
@@ -989,7 +994,7 @@ contract('Quest', accounts => {
         const {
             id
         } = getValidNodeQuestParams()
-        const nodeId = 0
+        const nodeId = 1
         await utils.assertFail(
             quest.cancelNodeQuest(
                 nodeId,
@@ -1003,7 +1008,7 @@ contract('Quest', accounts => {
 
     it('throws if active node holders cancel invalid quest IDs', async () => {
         const invalidId = web3.utils.fromUtf8('789')
-        const nodeId = 0
+        const nodeId = 1
         await utils.assertFail(
             quest.cancelNodeQuest(
                 nodeId,
@@ -1083,7 +1088,7 @@ contract('Quest', accounts => {
         // Check if node holder received locked deposit
         const {
             tokenThreshold
-        } = getNode()
+        } = getHouseNode()
         assert.equal(
             new BigNumber(postDestroyBalance).minus(preDestroyBalance).isEqualTo(tokenThreshold),
             true
@@ -1092,7 +1097,7 @@ contract('Quest', accounts => {
         // Try adding quest using an inactive node
         await utils.assertFail(
             quest.addNodeQuest(
-                0,
+                nodeId,
                 web3.utils.fromUtf8('222'),
                 entryFee,
                 prize,

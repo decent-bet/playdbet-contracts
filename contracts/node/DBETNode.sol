@@ -42,7 +42,7 @@ LibDBETNode {
     uint256 public userNodeCount;
 
     // Maps addresses to node types and a bool representing whether the user owns the node type
-    mapping (address => mapping (uint256 => bool)) public nodeOwnership;
+    mapping (address => uint256) public nodeOwnership;
 
     event LogSetContracts(
         address quest,
@@ -54,7 +54,8 @@ LibDBETNode {
     );
     event LogUpgradeUserNode(
         uint256 indexed id,
-        uint256 previousNodeType
+        uint256 indexed previousNodeType,
+        uint256 indexed newNodeType
     );
     event LogDestroyUserNode(
         uint256 indexed id,
@@ -110,10 +111,10 @@ LibDBETNode {
             nodes[node].timeThreshold != 0,
             "INVALID_NODE_TYPE"
         );
-        // User cannot already own the same node
+        // User cannot already own a node
         require(
-            !nodeOwnership[msg.sender][node],
-            "NODE_TYPE_ALREADY_OWNED"
+            nodeOwnership[msg.sender] == 0,
+            "NODE_ALREADY_OWNED"
         );
         // User must meet the token requirement threshold
         require(
@@ -145,7 +146,7 @@ LibDBETNode {
         // Increment node count
         nodes[node].count++;
         // Assign node ownership for node type to user
-        nodeOwnership[msg.sender][node] = true;
+        nodeOwnership[msg.sender] = node;
         // Transfer threshold tokens to contract
         require(
             token.transferFrom(
@@ -182,7 +183,7 @@ LibDBETNode {
         );
         // User cannot already own the same node
         require(
-            !nodeOwnership[msg.sender][upgradeNodeType],
+            nodeOwnership[msg.sender] != upgradeNodeType,
             "NODE_TYPE_ALREADY_OWNED"
         );
         // Must be an upgrade
@@ -219,9 +220,7 @@ LibDBETNode {
         // Decrement previous node type count
         nodes[previousNodeType].count--;
         // Assign node ownership for node type to user
-        nodeOwnership[msg.sender][upgradeNodeType] = true;
-        // Remove node ownership for previous node type from user
-        nodeOwnership[msg.sender][previousNodeType] = false;
+        nodeOwnership[msg.sender] = upgradeNodeType;
         // Transfer threshold tokens to contract
         require(
             token.transferFrom(
@@ -234,7 +233,8 @@ LibDBETNode {
         // Emit upgrade user node event
         emit LogUpgradeUserNode(
             id,
-            previousNodeType
+            previousNodeType,
+            upgradeNodeType
         );
         return true;
     }
@@ -267,7 +267,7 @@ LibDBETNode {
         // Set destroy time for node
         userNodes[id].destroyTime = now;
         // Revoke node ownership of node type for user
-        nodeOwnership[msg.sender][userNodes[id].node] = false;
+        nodeOwnership[msg.sender] = 0;
         // Decrement number of nodes of user node type
         nodes[userNodes[id].node].count--;
         // Transfer tokens to user
@@ -361,7 +361,8 @@ LibDBETNode {
                 "INVALID_REWARDS_ARRAY"
             );
         }
-        nodes[nodeCount] = Node({
+        // Add node type - Node types would start with 1-index
+        nodes[++nodeCount] = Node({
             name: name,
             tokenThreshold: tokenThreshold,
             timeThreshold: timeThreshold,
@@ -371,7 +372,7 @@ LibDBETNode {
             increasedPrizePayout: increasedPrizePayout,
             count: 0
         });
-        emit LogNewNode(nodeCount++);
+        emit LogNewNode(nodeCount);
         return true;
     }
 
@@ -457,6 +458,25 @@ LibDBETNode {
                 _isTournamentNode = true;
         }
         return _isTournamentNode;
+    }
+
+    /**
+    * Returns whether a node has increased prize payout rewards
+    * @param userNodeId Unique user node ID
+    * @return Whether node has increased prize payout rewards
+    */
+    function isIncreasedPrizePayoutNode(
+        uint256 userNodeId
+    )
+    public
+    view
+    returns (bool) {
+        bool _isIncreasedPrizePayoutNode = false;
+        for (uint256 i = 0; i < nodes[userNodes[userNodeId].node].rewards.length; i++) {
+            if (nodes[userNodes[userNodeId].node].rewards[i] == uint8(Rewards.INCREASED_PRIZE_PAYOUTS))
+                _isIncreasedPrizePayoutNode = true;
+        }
+        return _isIncreasedPrizePayoutNode;
     }
 
 }

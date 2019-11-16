@@ -15,7 +15,7 @@ const {
 } = require('./utils/tournament')
 
 const {
-    getNode
+    getHouseNode
 } = require('./utils/nodes')
 
 let admin,
@@ -1153,7 +1153,7 @@ contract('Tournament', accounts => {
             rewards,
             entryFeeDiscount,
             increasedPrizePayout
-        } = getNode()
+        } = getHouseNode()
         await dbetNode.addNode(
             name,
             tokenThreshold,
@@ -1179,9 +1179,9 @@ contract('Tournament', accounts => {
                 from: nodeHolder
             }
         )
-        // Create node of type ID 0
+        // Create node of type ID 1
         await dbetNode.create(
-            0,
+            1,
             {
                 from: nodeHolder
             }
@@ -1217,7 +1217,7 @@ contract('Tournament', accounts => {
     it('throws if active node holders create node tournaments with invalid parameters', async () => {
         const {
             timeThreshold,
-        } = getNode()
+        } = getHouseNode()
         // Move forward in time by `timeThreshold` to activate node
         await timeTravel(timeThreshold)
 
@@ -1408,7 +1408,7 @@ contract('Tournament', accounts => {
         } = getValidTournamentParams(1)
         const {
             entryFeeDiscount
-        } = getNode()
+        } = getHouseNode()
 
         const nodeId = 1
         const preEnterTournamentUserBalance =
@@ -1569,7 +1569,7 @@ contract('Tournament', accounts => {
 
         const {
             entryFeeDiscount
-        } = getNode()
+        } = getHouseNode()
 
         // Complete tournament with `FAILED` status
         await tournament.completeTournament(

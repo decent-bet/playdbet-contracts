@@ -4,7 +4,7 @@ const timeTraveler = require('ganache-time-traveler')
 const contracts = require('./utils/contracts')
 const utils = require('./utils/utils')
 const {
-    getNode,
+    getHouseNode,
     getUpgradedNode
 } = require('./utils/nodes')
 
@@ -24,7 +24,7 @@ const timeTravel = async timeDiff => {
 }
 
 const getNodeUpgradeTokenRequirement = () => {
-    const tier1TokenThreshold = getNode().tokenThreshold
+    const tier1TokenThreshold = getHouseNode().tokenThreshold
     const tier2TokenThreshold = getUpgradedNode().tokenThreshold
     return new BigNumber(tier2TokenThreshold).minus(tier1TokenThreshold).toFixed()
 }
@@ -49,7 +49,7 @@ contract('DBETNode', accounts => {
             rewards,
             entryFeeDiscount,
             increasedPrizePayout
-        } = getNode()
+        } = getHouseNode()
 
         await utils.assertFail(
             dbetNode.addNode(
@@ -97,19 +97,19 @@ contract('DBETNode', accounts => {
             )
         }
 
-        await addNode(getNode(), 0)
-        await addNode(getUpgradedNode(), 1)
+        await addNode(getHouseNode(), 1)
+        await addNode(getUpgradedNode(), 2)
     })
 
     it('does not allow users without an approved DBET balance to create a node', async () => {
         const {
             tokenThreshold
-        } = getNode()
+        } = getHouseNode()
 
         const _assertFailCreateNode = () => {
             utils.assertFail(
                 dbetNode.create(
-                    0,
+                    1,
                     {
                         from: user1
                     }
@@ -136,9 +136,9 @@ contract('DBETNode', accounts => {
                 from: user1
             }
         )
-        // Create node of type ID 0
+        // Create node of type ID 1
         await dbetNode.create(
-            0,
+            1,
             {
                 from: user1
             }
@@ -205,7 +205,7 @@ contract('DBETNode', accounts => {
         // Upgrade node to Tier II
         await dbetNode.upgrade(
             1,
-            1,
+            2,
             {
                 from: user1
             }
@@ -223,8 +223,8 @@ contract('DBETNode', accounts => {
         const userNode = await dbetNode.userNodes(1)
         // Node must be owned by user
         assert.equal(userNode.owner, user1)
-        // Node must be of type 1
-        assert.equal(userNode.node, 1)
+        // Node must be of type 2
+        assert.equal(userNode.node, 2)
         // Node must not be activated
         assert.equal(await dbetNode.isUserNodeActivated(1), false)
         // Activate node
@@ -276,9 +276,9 @@ contract('DBETNode', accounts => {
     })
 
     it('nodes are not active if they don\'t meet time threshold', async () => {
-        // Create node of type ID 0
+        // Create node of type ID 1
         await dbetNode.create(
-            0,
+            1,
             {
                 from: user1
             }
@@ -295,7 +295,7 @@ contract('DBETNode', accounts => {
     it('nodes are active if they meet time threshold', async () => {
         const {
             timeThreshold
-        } = getNode()
+        } = getHouseNode()
         await timeTravel(timeThreshold)
 
         const isUserNodeActivated = await dbetNode.isUserNodeActivated(2)

@@ -145,7 +145,7 @@ LibQuest {
     returns (bool) {
         // Allow only active node holders to add quests
         require(
-            isActiveNode(
+            isActiveHouseNode(
                 nodeId,
                 msg.sender
             ),
@@ -242,9 +242,9 @@ LibQuest {
     ) public returns (bool) {
         // Must be a valid quest ID
         require(quests[id].status == uint8(QuestStatus.ACTIVE), "INVALID_QUEST_ID");
-        // Allow only active node holders to pay for quests
+        // Allow only active `INCREASED_PRIZE_PAYOUT` node holders to pay for quests
         require(
-            isActiveNode(
+            isActiveIncreasedPrizePayoutNode(
                 nodeId,
                 user
             ),
@@ -315,7 +315,7 @@ LibQuest {
         if (quests[id].isNode) {
             // Check if node is active
             require(
-                isActiveNode(
+                isActiveHouseNode(
                     quests[id].nodeId,
                     dbetNode.getNodeOwner(quests[id].nodeId)
                 ),
@@ -480,7 +480,7 @@ LibQuest {
     returns (bool) {
         // Allow only active node holders to cancel their nodes' quests
         require(
-            isActiveNode(
+            isActiveHouseNode(
                 nodeId,
                 msg.sender
             ),
@@ -687,12 +687,12 @@ LibQuest {
     }
 
     /**
-    * Returns whether an input node ID and owner is valid and active
+    * Returns whether an input node ID and owner is a valid house node and active
     * @param id Unique node ID
-    * @param nodeOwner Address of node owner
+    * @param nodeOwner Address of house node owner
     * @return Whether node is active
     */
-    function isActiveNode(
+    function isActiveHouseNode(
         uint256 id,
         address nodeOwner
     )
@@ -702,6 +702,26 @@ LibQuest {
         return (
             dbetNode.isUserNodeActivated(id) &&
             dbetNode.isQuestNode(id) &&
+            dbetNode.getNodeOwner(id) == nodeOwner
+        );
+    }
+
+    /**
+    * Returns whether an input node ID and owner is a valid increased prize payout node and active
+    * @param id Unique node ID
+    * @param nodeOwner Address of house node owner
+    * @return Whether node is active
+    */
+    function isActiveIncreasedPrizePayoutNode(
+        uint256 id,
+        address nodeOwner
+    )
+    public
+    view
+    returns (bool) {
+        return (
+            dbetNode.isUserNodeActivated(id) &&
+            dbetNode.isIncreasedPrizePayoutNode(id) &&
             dbetNode.getNodeOwner(id) == nodeOwner
         );
     }
