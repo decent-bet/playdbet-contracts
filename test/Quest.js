@@ -24,7 +24,8 @@ let user1
 let user2
 let user3
 let user4
-let nodeHolder
+let houseNodeHolder
+let rewardNodeHolder
 
 const web3 = new Web3()
 
@@ -51,7 +52,8 @@ contract('Quest', accounts => {
         user2 = accounts[2]
         user3 = accounts[3]
         user4 = accounts[4]
-        nodeHolder = accounts[5]
+        houseNodeHolder = accounts[5]
+        rewardNodeHolder = accounts[6]
 
         dbetNode = await contracts.DBETNode.deployed()
         quest = await contracts.Quest.deployed()
@@ -675,7 +677,7 @@ contract('Quest', accounts => {
     it('throws if node holders add node quests before activation', async () => {
         // Transfer DBETs to node holder
         await token.transfer(
-            nodeHolder,
+            houseNodeHolder,
             web3.utils.toWei('2000000', 'ether')
         )
 
@@ -704,21 +706,21 @@ contract('Quest', accounts => {
             dbetNode.address,
             utils.MAX_VALUE,
             {
-                from: nodeHolder
+                from: houseNodeHolder
             }
         )
         await token.approve(
             quest.address,
             utils.MAX_VALUE,
             {
-                from: nodeHolder
+                from: houseNodeHolder
             }
         )
         // Create node of type ID 1
         await dbetNode.create(
             1,
             {
-                from: nodeHolder
+                from: houseNodeHolder
             }
         )
         // Try adding a node quest as a node holder before node activation
@@ -738,7 +740,7 @@ contract('Quest', accounts => {
                 prize,
                 maxEntries,
                 {
-                    from: nodeHolder
+                    from: houseNodeHolder
                 }
             )
         )
@@ -790,7 +792,7 @@ contract('Quest', accounts => {
                 prize,
                 maxEntries,
                 {
-                    from: nodeHolder
+                    from: houseNodeHolder
                 }
             )
         )
@@ -804,7 +806,7 @@ contract('Quest', accounts => {
                 prize,
                 maxEntries,
                 {
-                    from: nodeHolder
+                    from: houseNodeHolder
                 }
             )
         )
@@ -818,7 +820,7 @@ contract('Quest', accounts => {
                 0,
                 maxEntries,
                 {
-                    from: nodeHolder
+                    from: houseNodeHolder
                 }
             )
         )
@@ -832,7 +834,7 @@ contract('Quest', accounts => {
                 prize,
                 0,
                 {
-                    from: nodeHolder
+                    from: houseNodeHolder
                 }
             )
         )
@@ -856,7 +858,7 @@ contract('Quest', accounts => {
             prize,
             maxEntries,
             {
-                from: nodeHolder
+                from: houseNodeHolder
             }
         )
 
@@ -869,25 +871,73 @@ contract('Quest', accounts => {
     })
 
     it('pays discounted fees if node holders pays for quest', async () => {
+        // Transfer DBETs to reward node holder
+        await token.transfer(
+            rewardNodeHolder,
+            web3.utils.toWei('2000000', 'ether')
+        )
+        // Add a new node type as admin
+        const {
+            name,
+            tokenThreshold,
+            timeThreshold,
+            maxCount,
+            rewards,
+            entryFeeDiscount,
+            increasedPrizePayout
+        } = getIncreasedPrizePayoutNode()
+        await dbetNode.addNode(
+            name,
+            tokenThreshold,
+            timeThreshold,
+            maxCount,
+            rewards,
+            entryFeeDiscount,
+            increasedPrizePayout
+        )
+        // Approve tokens to be transferred on behalf of user from DBETNode and Quest contracts
+        await token.approve(
+            dbetNode.address,
+            utils.MAX_VALUE,
+            {
+                from: rewardNodeHolder
+            }
+        )
+        await token.approve(
+            quest.address,
+            utils.MAX_VALUE,
+            {
+                from: rewardNodeHolder
+            }
+        )
+        // Create node of type ID 2
+        await dbetNode.create(
+            2,
+            {
+                from: rewardNodeHolder
+            }
+        )
+        // Move forward in time by `timeThreshold` to activate node
+        await timeTravel(timeThreshold)
+
+        // Add node quest as reward node holder
         const {
             id,
             entryFee
         } = getValidNodeQuestParams()
-        const {
-            entryFeeDiscount
-        } = getHouseNode()
-        const nodeId = 1
 
-        const prePayForQuestBalance = await token.balanceOf(nodeHolder)
+        const nodeId = 2
+
+        const prePayForQuestBalance = await token.balanceOf(rewardNodeHolder)
         await quest.payForQuestWithNode(
             id,
             nodeId,
-            nodeHolder,
+            rewardNodeHolder,
             {
-                from: nodeHolder
+                from: rewardNodeHolder
             }
         )
-        const postPayForQuestBalance = await token.balanceOf(nodeHolder)
+        const postPayForQuestBalance = await token.balanceOf(rewardNodeHolder)
         assert.equal(
             new BigNumber(postPayForQuestBalance).isEqualTo(
                 new BigNumber(prePayForQuestBalance).minus(
@@ -897,7 +947,7 @@ contract('Quest', accounts => {
             true
         )
         const userQuestEntryFee = (await quest.userQuestEntries(
-            nodeHolder,
+            rewardNodeHolder,
             id,
             0
         )).entryFee
@@ -916,15 +966,15 @@ contract('Quest', accounts => {
         } = getValidNodeQuestParams()
         const {
             increasedPrizePayout
-        } = getHouseNode()
+        } = getIncreasedPrizePayoutNode()
 
-        const preSetQuestOutcomeBalance = await token.balanceOf(nodeHolder)
+        const preSetQuestOutcomeBalance = await token.balanceOf(rewardNodeHolder)
         await quest.setQuestOutcome(
             id,
-            nodeHolder,
+            rewardNodeHolder,
             OUTCOME_SUCCESS
         )
-        const postSetQuestOutcomeBalance = await token.balanceOf(nodeHolder)
+        const postSetQuestOutcomeBalance = await token.balanceOf(rewardNodeHolder)
 
         assert.equal(
             new BigNumber(
@@ -951,20 +1001,20 @@ contract('Quest', accounts => {
         } = getValidNodeQuestParams()
         const {
             entryFeeDiscount
-        } = getHouseNode()
+        } = getIncreasedPrizePayoutNode()
 
         // Enter quest again
-        const nodeId = 1
-        const prePayForQuestBalance = await token.balanceOf(nodeHolder)
+        const nodeId = 2
+        const prePayForQuestBalance = await token.balanceOf(rewardNodeHolder)
         await quest.payForQuestWithNode(
             id,
             nodeId,
-            nodeHolder,
+            rewardNodeHolder,
             {
-                from: nodeHolder
+                from: rewardNodeHolder
             }
         )
-        const postPayForQuestBalance = await token.balanceOf(nodeHolder)
+        const postPayForQuestBalance = await token.balanceOf(rewardNodeHolder)
         assert.equal(
             new BigNumber(postPayForQuestBalance).isEqualTo(
                 new BigNumber(prePayForQuestBalance).minus(
@@ -974,12 +1024,12 @@ contract('Quest', accounts => {
             true
         )
 
-        const preCancelQuestEntryBalance = await token.balanceOf(nodeHolder)
+        const preCancelQuestEntryBalance = await token.balanceOf(rewardNodeHolder)
         await quest.cancelQuestEntry(
             id,
-            nodeHolder
+            rewardNodeHolder
         )
-        const postCancelQuestEntryBalance = await token.balanceOf(nodeHolder)
+        const postCancelQuestEntryBalance = await token.balanceOf(rewardNodeHolder)
         assert.equal(
             new BigNumber(postCancelQuestEntryBalance).isEqualTo(
                 new BigNumber(preCancelQuestEntryBalance).plus(
@@ -1024,7 +1074,7 @@ contract('Quest', accounts => {
             nodeId,
             id,
             {
-                from: nodeHolder
+                from: houseNodeHolder
             }
         )
     })
@@ -1047,7 +1097,7 @@ contract('Quest', accounts => {
             prize,
             maxEntries,
             {
-                from: nodeHolder
+                from: houseNodeHolder
             }
         )
         // Admin cancels quest - admins do not need to call `cancelNodeQuest()`
@@ -1072,19 +1122,19 @@ contract('Quest', accounts => {
             prize,
             maxEntries,
             {
-                from: nodeHolder
+                from: houseNodeHolder
             }
         )
 
         // Destroy active node
-        const preDestroyBalance = await token.balanceOf(nodeHolder)
+        const preDestroyBalance = await token.balanceOf(houseNodeHolder)
         await dbetNode.destroy(
             nodeId,
             {
-                from: nodeHolder
+                from: houseNodeHolder
             }
         )
-        const postDestroyBalance = await token.balanceOf(nodeHolder)
+        const postDestroyBalance = await token.balanceOf(houseNodeHolder)
         // Check if node holder received locked deposit
         const {
             tokenThreshold
@@ -1103,7 +1153,7 @@ contract('Quest', accounts => {
                 prize,
                 maxEntries,
                 {
-                    from: nodeHolder
+                    from: houseNodeHolder
                 }
             )
         )
@@ -1117,7 +1167,7 @@ contract('Quest', accounts => {
                 nodeId,
                 web3.utils.fromUtf8('111'),
                 {
-                    from: nodeHolder
+                    from: houseNodeHolder
                 }
             )
         )
