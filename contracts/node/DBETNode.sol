@@ -62,7 +62,8 @@ LibDBETNode {
         address indexed user
     );
     event LogNewNode(
-        uint256 indexed id
+        uint256 indexed id,
+        uint8 indexed nodeType
     );
 
     constructor(
@@ -295,6 +296,7 @@ LibDBETNode {
     * @param rewards Array of reward IDs linked to this node type
     * @param entryFeeDiscount Entry fee discount
     * @param increasedPrizePayout % increment on prizes won from quests by node holders
+    * @param nodeType Type of node
     * @return Whether node was added
     */
     function addNode(
@@ -304,7 +306,8 @@ LibDBETNode {
         uint256 maxCount,
         uint8[] memory rewards,
         uint256 entryFeeDiscount,
-        uint256 increasedPrizePayout
+        uint256 increasedPrizePayout,
+        uint8 nodeType
     )
     public
     returns (bool) {
@@ -351,6 +354,12 @@ LibDBETNode {
             rewards.length <= uint8(Rewards.CREATE_TOURNAMENT) + 1,
             "INVALID_REWARDS_ARRAY_LENGTH"
         );
+        // Must be a valid node type
+        require(
+            nodeType >= 0 &&
+            nodeType <= uint8(NodeType.REWARD_NODE),
+            "INVALID_NODE_TYPE"
+        );
         // Validate rewards array
         for (uint256 i = 0; i < rewards.length; i++) {
             // TODO: Check for duplicates
@@ -370,9 +379,13 @@ LibDBETNode {
             rewards: rewards,
             entryFeeDiscount: entryFeeDiscount,
             increasedPrizePayout: increasedPrizePayout,
-            count: 0
+            count: 0,
+            nodeType: nodeType
         });
-        emit LogNewNode(nodeCount);
+        emit LogNewNode(
+            nodeCount,
+            nodeType
+        );
         return true;
     }
 

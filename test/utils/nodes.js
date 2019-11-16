@@ -5,6 +5,9 @@ const REWARD_CREATE_PRIVATE_QUEST = 3
 const REWARD_CREATE_WHITELIST_QUEST = 4
 const REWARD_CREATE_TOURNAMENT = 5
 
+const NODE_TYPE_HOUSE = 0
+const NODE_TYPE_REWARD = 1
+
 const houseRewards = [
     REWARD_CREATE_QUEST,
     REWARD_CREATE_PRIVATE_QUEST,
@@ -30,7 +33,8 @@ const getHouseNode = () => {
         maxCount: 10,
         rewards: houseRewards,
         entryFeeDiscount: 10,
-        increasedPrizePayout: 10
+        increasedPrizePayout: 10,
+        nodeType: NODE_TYPE_HOUSE
     }
 }
 
@@ -42,7 +46,8 @@ const getIncreasedPrizePayoutNode = () => {
         maxCount: 10,
         rewards: increasedPrizePayoutRewards,
         entryFeeDiscount: 10,
-        increasedPrizePayout: 10
+        increasedPrizePayout: 10,
+        nodeType: NODE_TYPE_REWARD
     }
 }
 
@@ -54,7 +59,8 @@ const getUpgradedNode = () => {
         maxCount: 5,
         rewards: allRewards,
         entryFeeDiscount: 25,
-        increasedPrizePayout: 25
+        increasedPrizePayout: 25,
+        nodeType: NODE_TYPE_HOUSE
     }
 }
 

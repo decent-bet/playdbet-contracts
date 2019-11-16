@@ -689,7 +689,8 @@ contract('Quest', accounts => {
             maxCount,
             rewards,
             entryFeeDiscount,
-            increasedPrizePayout
+            increasedPrizePayout,
+            nodeType
         } = getHouseNode()
         await dbetNode.addNode(
             name,
@@ -698,7 +699,8 @@ contract('Quest', accounts => {
             maxCount,
             rewards,
             entryFeeDiscount,
-            increasedPrizePayout
+            increasedPrizePayout,
+            nodeType
         )
 
         // Approve tokens to be transferred on behalf of user from DBETNode and Quest contracts
@@ -884,7 +886,8 @@ contract('Quest', accounts => {
             maxCount,
             rewards,
             entryFeeDiscount,
-            increasedPrizePayout
+            increasedPrizePayout,
+            nodeType
         } = getIncreasedPrizePayoutNode()
         await dbetNode.addNode(
             name,
@@ -893,7 +896,8 @@ contract('Quest', accounts => {
             maxCount,
             rewards,
             entryFeeDiscount,
-            increasedPrizePayout
+            increasedPrizePayout,
+            nodeType
         )
         // Approve tokens to be transferred on behalf of user from DBETNode and Quest contracts
         await token.approve(

@@ -48,7 +48,8 @@ contract('DBETNode', accounts => {
             maxCount,
             rewards,
             entryFeeDiscount,
-            increasedPrizePayout
+            increasedPrizePayout,
+            nodeType
         } = getHouseNode()
 
         await utils.assertFail(
@@ -60,6 +61,7 @@ contract('DBETNode', accounts => {
                 rewards,
                 entryFeeDiscount,
                 increasedPrizePayout,
+                nodeType,
                 {
                     from: user1
                 }
@@ -76,7 +78,8 @@ contract('DBETNode', accounts => {
                 maxCount,
                 rewards,
                 entryFeeDiscount,
-                increasedPrizePayout
+                increasedPrizePayout,
+                nodeType
             } = node
 
             await dbetNode.addNode(
@@ -86,14 +89,15 @@ contract('DBETNode', accounts => {
                 maxCount,
                 rewards,
                 entryFeeDiscount,
-                increasedPrizePayout
+                increasedPrizePayout,
+                nodeType
             )
 
-            const nodeType = await dbetNode.nodes(index)
+            const _node = await dbetNode.nodes(index)
 
             assert.equal(
                 name,
-                nodeType.name
+                _node.name
             )
         }
 
