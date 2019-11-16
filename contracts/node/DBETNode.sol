@@ -65,6 +65,9 @@ LibDBETNode {
         uint256 indexed id,
         uint8 indexed nodeType
     );
+    event LogDeprecatedNode(
+        uint256 indexed id
+    );
 
     constructor(
         address _admin,
@@ -380,13 +383,45 @@ LibDBETNode {
             entryFeeDiscount: entryFeeDiscount,
             increasedPrizePayout: increasedPrizePayout,
             count: 0,
-            nodeType: nodeType
+            nodeType: nodeType,
+            deprecated: false
         });
         emit LogNewNode(
             nodeCount,
             nodeType
         );
         return true;
+    }
+
+    /**
+    * Deprecates an existing node type. Deprecated node types would be hidden from the UI
+    * @param node Unique ID of node type
+    * @return Whether node type was deprecated
+    */
+    function deprecateNode(
+        uint256 node
+    )
+    public
+    returns (bool) {
+        // Sender must be an admin
+        require(
+            admin.admins(msg.sender),
+            "INVALID_SENDER"
+        );
+        // Must be a valid node type
+        require(
+            nodes[node].timeThreshold != 0,
+            "INVALID_NODE_TYPE"
+        );
+        // Must not already be deprecated
+        require(
+            !nodes[node].deprecated,
+            "NODE_TYPE_ALREADY_DEPRECATED"
+        );
+        nodes[node].deprecated = true;
+        emit LogDeprecatedNode(
+            node
+        );
     }
 
     /**

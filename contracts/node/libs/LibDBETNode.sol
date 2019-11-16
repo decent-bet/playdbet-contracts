@@ -37,6 +37,8 @@ contract LibDBETNode {
         uint256 count;
         // Node type
         uint8 nodeType;
+        // If deprecated this node tier will be deemed invalid
+        bool deprecated;
     }
 
     // User node

@@ -739,7 +739,7 @@ LibQuest {
     public
     view
     returns (uint256) {
-        (,,,,uint256 discount,,,) = dbetNode.nodes(nodeType);
+        (,,,,uint256 discount,,,,) = dbetNode.nodes(nodeType);
         // entryFee * (1 - discount)/100
         return entryFee.mul(uint256(100).sub(discount)).div(100);
     }
@@ -757,7 +757,7 @@ LibQuest {
     public
     view
     returns (uint256) {
-        (,,,,,uint256 increasedPrizePayout,,) = dbetNode.nodes(nodeType);
+        (,,,,,uint256 increasedPrizePayout,,,) = dbetNode.nodes(nodeType);
         // prize + ((prize * increasedPrizePayout/100))
         return prize.add(prize.mul(increasedPrizePayout).div(100));
     }

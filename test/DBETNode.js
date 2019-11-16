@@ -361,4 +361,39 @@ contract('DBETNode', accounts => {
         )
     })
 
+    it('does not allow non-admins to deprecate valid nodes', async () => {
+        await utils.assertFail(
+            dbetNode.deprecateNode(
+                NODE_ID_UPGRADED,
+                {
+                    from: user1
+                }
+            )
+        )
+    })
+
+    it('does not allow admins to deprecate invalid nodes', async () => {
+        await utils.assertFail(
+            dbetNode.deprecateNode(
+                0,
+                {
+                    from: user1
+                }
+            )
+        )
+    })
+
+    it('allows admins to deprecate valid nodes', async () => {
+        await dbetNode.deprecateNode(
+            NODE_ID_UPGRADED
+        )
+
+        const node = await dbetNode.nodes(NODE_ID_UPGRADED)
+        const {deprecated} = node
+        assert.equal(
+            deprecated,
+            true
+        )
+    })
+
 })
