@@ -4,7 +4,7 @@ const timeTraveler = require('ganache-time-traveler')
 const contracts = require('./utils/contracts')
 const utils = require('./utils/utils')
 const {
-    getNode,
+    getHouseNode,
     getUpgradedNode
 } = require('./utils/nodes')
 
@@ -16,6 +16,12 @@ let owner
 let user1
 let user2
 
+let NODE_ID_HOUSE = 1
+let NODE_ID_UPGRADED = 2
+
+let USER_NODE_HOUSE_ID_1 = 1
+let USER_NODE_HOUSE_ID_2 = 2
+
 const web3 = utils.getWeb3()
 
 const timeTravel = async timeDiff => {
@@ -24,7 +30,7 @@ const timeTravel = async timeDiff => {
 }
 
 const getNodeUpgradeTokenRequirement = () => {
-    const tier1TokenThreshold = getNode().tokenThreshold
+    const tier1TokenThreshold = getHouseNode().tokenThreshold
     const tier2TokenThreshold = getUpgradedNode().tokenThreshold
     return new BigNumber(tier2TokenThreshold).minus(tier1TokenThreshold).toFixed()
 }
@@ -48,8 +54,9 @@ contract('DBETNode', accounts => {
             maxCount,
             rewards,
             entryFeeDiscount,
-            increasedPrizePayout
-        } = getNode()
+            increasedPrizePayout,
+            nodeType
+        } = getHouseNode()
 
         await utils.assertFail(
             dbetNode.addNode(
@@ -60,6 +67,7 @@ contract('DBETNode', accounts => {
                 rewards,
                 entryFeeDiscount,
                 increasedPrizePayout,
+                nodeType,
                 {
                     from: user1
                 }
@@ -76,7 +84,8 @@ contract('DBETNode', accounts => {
                 maxCount,
                 rewards,
                 entryFeeDiscount,
-                increasedPrizePayout
+                increasedPrizePayout,
+                nodeType
             } = node
 
             await dbetNode.addNode(
@@ -86,30 +95,31 @@ contract('DBETNode', accounts => {
                 maxCount,
                 rewards,
                 entryFeeDiscount,
-                increasedPrizePayout
+                increasedPrizePayout,
+                nodeType
             )
 
-            const nodeType = await dbetNode.nodes(index)
+            const _node = await dbetNode.nodes(index)
 
             assert.equal(
                 name,
-                nodeType.name
+                _node.name
             )
         }
 
-        await addNode(getNode(), 0)
-        await addNode(getUpgradedNode(), 1)
+        await addNode(getHouseNode(), NODE_ID_HOUSE)
+        await addNode(getUpgradedNode(), NODE_ID_UPGRADED)
     })
 
     it('does not allow users without an approved DBET balance to create a node', async () => {
         const {
             tokenThreshold
-        } = getNode()
+        } = getHouseNode()
 
         const _assertFailCreateNode = () => {
             utils.assertFail(
                 dbetNode.create(
-                    0,
+                    NODE_ID_HOUSE,
                     {
                         from: user1
                     }
@@ -136,9 +146,9 @@ contract('DBETNode', accounts => {
                 from: user1
             }
         )
-        // Create node of type ID 0
+        // Create node of type ID 1
         await dbetNode.create(
-            0,
+            NODE_ID_HOUSE,
             {
                 from: user1
             }
@@ -146,25 +156,65 @@ contract('DBETNode', accounts => {
 
 
         // Check if user is owner of node
-        const userNode = await dbetNode.userNodes(1)
+        const userNode = await dbetNode.userNodes(USER_NODE_HOUSE_ID_1)
         console.log('user node', userNode, userNode.owner, user1)
         assert.equal(userNode.owner, user1)
 
         // Node must not be activated
-        assert.equal(await dbetNode.isUserNodeActivated(1), false)
+        assert.equal(await dbetNode.isUserNodeActivated(USER_NODE_HOUSE_ID_1), false)
 
         // Activate node
         await timeTravel(7 * 86400)
 
         // Node must be activated
-        assert.equal(await dbetNode.isUserNodeActivated(1), true)
+        assert.equal(await dbetNode.isUserNodeActivated(USER_NODE_HOUSE_ID_1), true)
+    })
+
+    it('does not allow users with an existing node and a valid approved balance to create a new node', async () => {
+        const {
+            tokenThreshold
+        } = getUpgradedNode()
+
+        // Transfer `tokenThreshold` for upgraded node to user1
+        await token.transfer(
+            user1,
+            tokenThreshold
+        )
+        // Node of same type
+        await utils.assertFail(
+            dbetNode.create(
+                NODE_ID_HOUSE,
+                {
+                    from: user1
+                }
+            )
+        )
+
+        // Node of different type
+        await utils.assertFail(
+            dbetNode.create(
+                NODE_ID_UPGRADED,
+                {
+                    from: user1
+                }
+            )
+        )
+
+        // Transfer `tokenThreshold` for upgraded node back from user1
+        await token.transfer(
+            owner,
+            tokenThreshold,
+            {
+                from: user1
+            }
+        )
     })
 
     it('does not allow users without a valid approved balance to upgrade a node', async () => {
         await utils.assertFail(
             dbetNode.upgrade(
-                0,
-                1,
+                NODE_ID_HOUSE,
+                NODE_ID_UPGRADED,
                 {
                     from: user1
                 }
@@ -190,8 +240,8 @@ contract('DBETNode', accounts => {
         // Not owned by user
         await utils.assertFail(
             dbetNode.upgrade(
-                1,
-                1,
+                NODE_ID_HOUSE,
+                NODE_ID_UPGRADED,
                 {
                     from: user2
                 }
@@ -204,8 +254,8 @@ contract('DBETNode', accounts => {
         const preUpgradeBalance = await token.balanceOf(user1)
         // Upgrade node to Tier II
         await dbetNode.upgrade(
-            1,
-            1,
+            NODE_ID_HOUSE,
+            NODE_ID_UPGRADED,
             {
                 from: user1
             }
@@ -219,18 +269,23 @@ contract('DBETNode', accounts => {
             web3.utils.fromWei(tokenRequirement, 'ether')
         )
         // Token balance must be 0 now
-        assert.equal(new BigNumber(preUpgradeBalance).minus(postUpgradeBalance).isEqualTo(tokenRequirement), true)
-        const userNode = await dbetNode.userNodes(1)
+        assert.equal(
+            new BigNumber(preUpgradeBalance)
+                .minus(postUpgradeBalance)
+                .isEqualTo(tokenRequirement),
+            true
+        )
+        const userNode = await dbetNode.userNodes(USER_NODE_HOUSE_ID_1)
         // Node must be owned by user
         assert.equal(userNode.owner, user1)
-        // Node must be of type 1
-        assert.equal(userNode.node, 1)
+        // Node must be of type 2
+        assert.equal(userNode.node, NODE_ID_UPGRADED)
         // Node must not be activated
-        assert.equal(await dbetNode.isUserNodeActivated(1), false)
+        assert.equal(await dbetNode.isUserNodeActivated(USER_NODE_HOUSE_ID_1), false)
         // Activate node
         await timeTravel(7 * 86400)
         // Node must be activated
-        assert.equal(await dbetNode.isUserNodeActivated(1), true)
+        assert.equal(await dbetNode.isUserNodeActivated(USER_NODE_HOUSE_ID_1), true)
     })
 
     it('does not allow users to destroy invalid nodes', async () => {
@@ -244,7 +299,7 @@ contract('DBETNode', accounts => {
         // Not owned by user
         await utils.assertFail(
             dbetNode.destroy(
-                1,
+                USER_NODE_HOUSE_ID_1,
                 {
                     from: user2
                 }
@@ -258,13 +313,13 @@ contract('DBETNode', accounts => {
         } = getUpgradedNode()
         const preDestroyBalance = await token.balanceOf(user1)
         await dbetNode.destroy(
-            1,
+            USER_NODE_HOUSE_ID_1,
             {
                 from: user1
             }
         )
 
-        const node = await dbetNode.nodes(1)
+        const node = await dbetNode.userNodes(USER_NODE_HOUSE_ID_1)
         assert.notEqual(node.destroyTime, '0')
 
         const postDestroyBalance = await token.balanceOf(user1)
@@ -276,15 +331,15 @@ contract('DBETNode', accounts => {
     })
 
     it('nodes are not active if they don\'t meet time threshold', async () => {
-        // Create node of type ID 0
+        // Create node of type ID 1
         await dbetNode.create(
-            0,
+            NODE_ID_HOUSE,
             {
                 from: user1
             }
         )
 
-        const isUserNodeActivated = await dbetNode.isUserNodeActivated(2)
+        const isUserNodeActivated = await dbetNode.isUserNodeActivated(USER_NODE_HOUSE_ID_2)
 
         assert.equal(
             isUserNodeActivated,
@@ -295,13 +350,48 @@ contract('DBETNode', accounts => {
     it('nodes are active if they meet time threshold', async () => {
         const {
             timeThreshold
-        } = getNode()
+        } = getHouseNode()
         await timeTravel(timeThreshold)
 
-        const isUserNodeActivated = await dbetNode.isUserNodeActivated(2)
+        const isUserNodeActivated = await dbetNode.isUserNodeActivated(USER_NODE_HOUSE_ID_2)
 
         assert.equal(
             isUserNodeActivated,
+            true
+        )
+    })
+
+    it('does not allow non-admins to deprecate valid nodes', async () => {
+        await utils.assertFail(
+            dbetNode.deprecateNode(
+                NODE_ID_UPGRADED,
+                {
+                    from: user1
+                }
+            )
+        )
+    })
+
+    it('does not allow admins to deprecate invalid nodes', async () => {
+        await utils.assertFail(
+            dbetNode.deprecateNode(
+                0,
+                {
+                    from: user1
+                }
+            )
+        )
+    })
+
+    it('allows admins to deprecate valid nodes', async () => {
+        await dbetNode.deprecateNode(
+            NODE_ID_UPGRADED
+        )
+
+        const node = await dbetNode.nodes(NODE_ID_UPGRADED)
+        const {deprecated} = node
+        assert.equal(
+            deprecated,
             true
         )
     })

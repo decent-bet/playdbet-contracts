@@ -33,6 +33,7 @@ contract IDBETNode {
     * @param rewards Array of reward IDs linked to this node type
     * @param entryFeeDiscount Entry fee discount
     * @param increasedPrizePayout % increment on prizes won from quests by node holders
+    * @param nodeType Type of node
     * @return Whether node was added
     */
     function addNode(
@@ -42,7 +43,8 @@ contract IDBETNode {
         uint256 maxCount,
         uint8[] memory rewards,
         uint256 entryFeeDiscount,
-        uint256 increasedPrizePayout
+        uint256 increasedPrizePayout,
+        uint8 nodeType
     )
     public
     returns (bool);

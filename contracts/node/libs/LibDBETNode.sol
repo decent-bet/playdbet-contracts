@@ -35,6 +35,10 @@ contract LibDBETNode {
         uint256 increasedPrizePayout;
         // Number of nodes created of this type
         uint256 count;
+        // Node type
+        uint8 nodeType;
+        // If deprecated this node tier will be deemed invalid
+        bool deprecated;
     }
 
     // User node

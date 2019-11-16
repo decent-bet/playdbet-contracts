@@ -4,7 +4,7 @@ const timeTraveler = require('ganache-time-traveler')
 const contracts = require('./utils/contracts')
 const utils = require('./utils/utils')
 const {
-    getNode,
+    getHouseNode,
     getValidNodeQuestParams
 } = require('./utils/nodes')
 const {
@@ -106,8 +106,9 @@ contract('NodeWallet', accounts => {
             maxCount,
             rewards,
             entryFeeDiscount,
-            increasedPrizePayout
-        } = getNode()
+            increasedPrizePayout,
+            nodeType
+        } = getHouseNode()
         await dbetNode.addNode(
             name,
             tokenThreshold,
@@ -115,7 +116,8 @@ contract('NodeWallet', accounts => {
             maxCount,
             rewards,
             entryFeeDiscount,
-            increasedPrizePayout
+            increasedPrizePayout,
+            nodeType
         )
 
         // Approve tokens to be transferred on behalf of user from DBETNode and Quest contracts
@@ -133,9 +135,9 @@ contract('NodeWallet', accounts => {
                 from: nodeHolder
             }
         )
-        // Create node of type ID 0
+        // Create node of type ID 1
         await dbetNode.create(
-            0,
+            1,
             {
                 from: nodeHolder
             }
