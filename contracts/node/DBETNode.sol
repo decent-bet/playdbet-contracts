@@ -471,6 +471,32 @@ LibDBETNode {
     }
 
     /**
+    * Returns whether a node has a specified reward
+    * @param userNodeId Unique user node ID
+    * @param reward Reward enum
+    * @return Whether node has specified reward
+    */
+    function checkForNodeReward(
+        uint256 userNodeId,
+        uint8 reward
+    )
+    public
+    view
+    returns (bool) {
+        require(
+            reward >= uint8(Rewards.ENTRY_FEE_DISCOUNTS) &&
+            reward <= uint8(Rewards.CREATE_TOURNAMENT),
+            "INVALID_REWARD"
+        );
+        bool _isRewardNode = false;
+        for (uint256 i = 0; i < nodes[userNodes[userNodeId].node].rewards.length; i++) {
+            if (nodes[userNodes[userNodeId].node].rewards[i] == reward)
+                _isRewardNode = true;
+        }
+        return _isRewardNode;
+    }
+
+    /**
     * Returns whether a node has quest rewards
     * @param userNodeId Unique user node ID
     * @return Whether node has quest rewards
@@ -481,12 +507,10 @@ LibDBETNode {
     public
     view
     returns (bool) {
-        bool _isQuestNode = false;
-        for (uint256 i = 0; i < nodes[userNodes[userNodeId].node].rewards.length; i++) {
-            if (nodes[userNodes[userNodeId].node].rewards[i] == uint8(Rewards.CREATE_QUEST))
-                _isQuestNode = true;
-        }
-        return _isQuestNode;
+        return checkForNodeReward(
+            userNodeId,
+            uint8(Rewards.CREATE_QUEST)
+        );
     }
 
     /**
@@ -500,12 +524,10 @@ LibDBETNode {
     public
     view
     returns (bool) {
-        bool _isTournamentNode = false;
-        for (uint256 i = 0; i < nodes[userNodes[userNodeId].node].rewards.length; i++) {
-            if (nodes[userNodes[userNodeId].node].rewards[i] == uint8(Rewards.CREATE_TOURNAMENT))
-                _isTournamentNode = true;
-        }
-        return _isTournamentNode;
+        return checkForNodeReward(
+            userNodeId,
+            uint8(Rewards.CREATE_TOURNAMENT)
+        );
     }
 
     /**
@@ -519,12 +541,27 @@ LibDBETNode {
     public
     view
     returns (bool) {
-        bool _isIncreasedPrizePayoutNode = false;
-        for (uint256 i = 0; i < nodes[userNodes[userNodeId].node].rewards.length; i++) {
-            if (nodes[userNodes[userNodeId].node].rewards[i] == uint8(Rewards.INCREASED_PRIZE_PAYOUTS))
-                _isIncreasedPrizePayoutNode = true;
-        }
-        return _isIncreasedPrizePayoutNode;
+        return checkForNodeReward(
+            userNodeId,
+            uint8(Rewards.INCREASED_PRIZE_PAYOUTS)
+        );
+    }
+
+    /**
+    * Returns whether a node has increased prize payout rewards
+    * @param userNodeId Unique user node ID
+    * @return Whether node has increased prize payout rewards
+    */
+    function isEntryFeeDiscountNode(
+        uint256 userNodeId
+    )
+    public
+    view
+    returns (bool) {
+        return checkForNodeReward(
+            userNodeId,
+            uint8(Rewards.ENTRY_FEE_DISCOUNTS)
+        );
     }
 
 }

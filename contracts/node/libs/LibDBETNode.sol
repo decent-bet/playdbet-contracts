@@ -8,6 +8,7 @@ contract LibDBETNode {
     }
 
     enum Rewards {
+        ENTRY_FEE_DISCOUNTS,
         INCREASED_PRIZE_PAYOUTS,
         INCREASED_REFER_A_FRIEND,
         CREATE_QUEST,
