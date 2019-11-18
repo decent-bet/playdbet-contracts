@@ -1,6 +1,6 @@
 {
     "name": "@decent-bet/contract-playdbet",
-    "version": "1.0.14",
+    "version": "1.0.15",
     "description": "Contracts for PlayDBET Platform",
     "main": "index.js",
     "repository": {

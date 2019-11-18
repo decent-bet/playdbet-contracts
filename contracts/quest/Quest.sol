@@ -242,9 +242,9 @@ LibQuest {
     ) public returns (bool) {
         // Must be a valid quest ID
         require(quests[id].status == uint8(QuestStatus.ACTIVE), "INVALID_QUEST_ID");
-        // Allow only active `INCREASED_PRIZE_PAYOUT` node holders to pay for quests
+        // Allow only active `ENTRY_FEE_DISCOUNT` node holders to pay for quests at a discounted entry fee
         require(
-            isActiveIncreasedPrizePayoutNode(
+            isActiveEntryFeeDiscountNode(
                 nodeId,
                 user
             ),
@@ -707,12 +707,12 @@ LibQuest {
     }
 
     /**
-    * Returns whether an input node ID and owner is a valid increased prize payout node and active
+    * Returns whether an input node ID and owner is a valid entry fee discount node and active
     * @param id Unique node ID
-    * @param nodeOwner Address of house node owner
+    * @param nodeOwner Address of node owner
     * @return Whether node is active
     */
-    function isActiveIncreasedPrizePayoutNode(
+    function isActiveEntryFeeDiscountNode(
         uint256 id,
         address nodeOwner
     )
@@ -721,7 +721,7 @@ LibQuest {
     returns (bool) {
         return (
             dbetNode.isUserNodeActivated(id) &&
-            dbetNode.isIncreasedPrizePayoutNode(id) &&
+            dbetNode.isEntryFeeDiscountNode(id) &&
             dbetNode.getNodeOwner(id) == nodeOwner
         );
     }

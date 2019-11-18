@@ -1,9 +1,10 @@
-const REWARD_INCREASED_PRIZE_PAYOUTS = 0
-const REWARD_INCREASED_REFER_A_FRIEND = 1
-const REWARD_CREATE_QUEST = 2
-const REWARD_CREATE_PRIVATE_QUEST = 3
-const REWARD_CREATE_WHITELIST_QUEST = 4
-const REWARD_CREATE_TOURNAMENT = 5
+const REWARD_ENTRY_FEE_DISCOUNT = 0
+const REWARD_INCREASED_PRIZE_PAYOUTS = 1
+const REWARD_INCREASED_REFER_A_FRIEND = 2
+const REWARD_CREATE_QUEST = 3
+const REWARD_CREATE_PRIVATE_QUEST = 4
+const REWARD_CREATE_WHITELIST_QUEST = 5
+const REWARD_CREATE_TOURNAMENT = 6
 
 const NODE_TYPE_HOUSE = 0
 const NODE_TYPE_REWARD = 1
@@ -16,6 +17,7 @@ const houseRewards = [
 ]
 
 const increasedPrizePayoutRewards = [
+    REWARD_ENTRY_FEE_DISCOUNT,
     REWARD_INCREASED_PRIZE_PAYOUTS,
     REWARD_INCREASED_REFER_A_FRIEND
 ]
@@ -38,7 +40,7 @@ const getHouseNode = () => {
     }
 }
 
-const getIncreasedPrizePayoutNode = () => {
+const getRewardNode = () => {
     return {
         name: 'Reward',
         tokenThreshold: web3.utils.toWei('100000', 'ether'), // 100k DBETs
@@ -79,6 +81,7 @@ const getValidNodeQuestParams = () => {
 }
 
 module.exports = {
+    REWARD_ENTRY_FEE_DISCOUNT,
     REWARD_INCREASED_PRIZE_PAYOUTS,
     REWARD_INCREASED_REFER_A_FRIEND,
     REWARD_CREATE_QUEST,
@@ -88,7 +91,7 @@ module.exports = {
     houseRewards,
     increasedPrizePayoutRewards,
     getHouseNode,
-    getIncreasedPrizePayoutNode,
+    getRewardNode,
     getUpgradedNode,
     getValidNodeQuestParams
 }
