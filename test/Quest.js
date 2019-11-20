@@ -45,6 +45,18 @@ const getValidQuestParams = () => {
     }
 }
 
+const getValidSecondQuestParams = () => {
+    const id = web3.utils.fromUtf8('789')
+    const entryFee = web3.utils.toWei('100', 'ether')
+    const prize = web3.utils.toWei('500', 'ether')
+
+    return {
+        id,
+        entryFee,
+        prize
+    }
+}
+
 contract('Quest', accounts => {
     it('initializes quest contract', async () => {
         owner = accounts[0]
@@ -963,15 +975,54 @@ contract('Quest', accounts => {
         )
     })
 
-    it('pays increased prize payouts if node holders win quests', async () => {
+    it('pays increased prize payout if node holder wins non-node quest', async () => {
+        // Add a new quest as admin
         const {
             id,
+            entryFee,
             prize
-        } = getValidNodeQuestParams()
+        } = getValidSecondQuestParams()
+
+        await quest.addQuest(
+            id,
+            entryFee,
+            prize
+        )
+
+        const questData = await quest.quests(id)
+        assert.equal(
+            questData[4],
+            true
+        )
+
         const {
-            increasedPrizePayout
+            increasedPrizePayout,
+            entryFeeDiscount
         } = getRewardNode()
 
+        // Pay for quest with sufficient allowance and balance
+        const nodeId = 2
+
+        const prePayForQuestBalance = await token.balanceOf(rewardNodeHolder)
+        await quest.payForQuestWithNode(
+            id,
+            nodeId,
+            rewardNodeHolder,
+            {
+                from: rewardNodeHolder
+            }
+        )
+        const postPayForQuestBalance = await token.balanceOf(rewardNodeHolder)
+        assert.equal(
+            new BigNumber(postPayForQuestBalance).isEqualTo(
+                new BigNumber(prePayForQuestBalance).minus(
+                    new BigNumber(entryFee).multipliedBy((100 - entryFeeDiscount)/100)
+                )
+            ),
+            true
+        )
+
+        // Set quest outcome to `SUCCESS`
         const preSetQuestOutcomeBalance = await token.balanceOf(rewardNodeHolder)
         await quest.setQuestOutcome(
             id,
@@ -992,6 +1043,34 @@ contract('Quest', accounts => {
                     ).multipliedBy(
                         (100 + increasedPrizePayout)/100
                     )
+                )
+            ),
+            true
+        )
+    })
+
+    it('pays regular prize payout if node holder wins node quest', async () => {
+        const {
+            id,
+            prize
+        } = getValidNodeQuestParams()
+
+        const preSetQuestOutcomeBalance = await token.balanceOf(rewardNodeHolder)
+        await quest.setQuestOutcome(
+            id,
+            rewardNodeHolder,
+            OUTCOME_SUCCESS
+        )
+        const postSetQuestOutcomeBalance = await token.balanceOf(rewardNodeHolder)
+
+        assert.equal(
+            new BigNumber(
+                postSetQuestOutcomeBalance
+            ).isEqualTo(
+                new BigNumber(
+                    preSetQuestOutcomeBalance
+                ).plus(
+                    prize
                 )
             ),
             true
@@ -1090,7 +1169,7 @@ contract('Quest', accounts => {
             prize,
             maxEntries
         } = getValidNodeQuestParams()
-        const id = web3.utils.fromUtf8('789')
+        const id = web3.utils.fromUtf8('888')
 
         const nodeId = 1
         // Add node quest as node holder

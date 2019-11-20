@@ -1,5 +1,5 @@
 module.exports = {
-    "VERSION": "1.0.15",
+    "VERSION": "1.0.16",
     "AdminContract": {
         "raw": {
             "abi": [{
@@ -98,10 +98,324 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0x9adA64FF49daaB827099EF9D445eBD4ECa0fC9E7",
+            "0x27": "0xA8E32c696d5c820A4f1ef7de290e68050A36F6FC",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0x4a": "0xE1A9dA3a8E10B74AB05Bc068272254C242DaFb4D",
             "0xa4": "0xbAa4774602Dc5571FebcEa7D3cf966297Cb3f1BF"
+        }
+    },
+    "DBETNode": {
+        "raw": {
+            "abi": [{
+                "constant": true,
+                "inputs": [{"name": "", "type": "uint256"}],
+                "name": "nodes",
+                "outputs": [{"name": "name", "type": "string"}, {
+                    "name": "tokenThreshold",
+                    "type": "uint256"
+                }, {"name": "timeThreshold", "type": "uint256"}, {
+                    "name": "maxCount",
+                    "type": "uint256"
+                }, {"name": "entryFeeDiscount", "type": "uint256"}, {
+                    "name": "increasedPrizePayout",
+                    "type": "uint256"
+                }, {"name": "count", "type": "uint256"}, {"name": "nodeType", "type": "uint8"}, {
+                    "name": "deprecated",
+                    "type": "bool"
+                }],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0x1c53c280"
+            }, {
+                "constant": true,
+                "inputs": [],
+                "name": "tournament",
+                "outputs": [{"name": "", "type": "address"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0x1e0197e2"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "", "type": "uint256"}],
+                "name": "userNodes",
+                "outputs": [{"name": "node", "type": "uint256"}, {
+                    "name": "owner",
+                    "type": "address"
+                }, {"name": "deposit", "type": "uint256"}, {
+                    "name": "creationTime",
+                    "type": "uint256"
+                }, {"name": "destroyTime", "type": "uint256"}, {"name": "index", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0x3badaecb"
+            }, {
+                "constant": true,
+                "inputs": [],
+                "name": "quest",
+                "outputs": [{"name": "", "type": "address"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0x42cccf08"
+            }, {
+                "constant": true,
+                "inputs": [],
+                "name": "userNodeCount",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0x51964f3a"
+            }, {
+                "constant": true,
+                "inputs": [],
+                "name": "nodeCount",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0x6da49b83"
+            }, {
+                "constant": true,
+                "inputs": [],
+                "name": "owner",
+                "outputs": [{"name": "", "type": "address"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0x8da5cb5b"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "", "type": "address"}],
+                "name": "nodeOwnership",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0xac05a44d"
+            }, {
+                "constant": true,
+                "inputs": [],
+                "name": "nodeWallet",
+                "outputs": [{"name": "", "type": "address"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0xecded914"
+            }, {
+                "constant": true,
+                "inputs": [],
+                "name": "admin",
+                "outputs": [{"name": "", "type": "address"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0xf851a440"
+            }, {
+                "constant": true,
+                "inputs": [],
+                "name": "token",
+                "outputs": [{"name": "", "type": "address"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0xfc0c546a"
+            }, {
+                "inputs": [{"name": "_admin", "type": "address"}, {"name": "_token", "type": "address"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "constructor",
+                "signature": "constructor"
+            }, {
+                "anonymous": false,
+                "inputs": [{"indexed": false, "name": "quest", "type": "address"}, {
+                    "indexed": false,
+                    "name": "tournament",
+                    "type": "address"
+                }],
+                "name": "LogSetContracts",
+                "type": "event",
+                "signature": "0xc8ac2a6c11cbd4da449119940b906ecd3f5dcf48fec513b91d3adffe3cdf2493"
+            }, {
+                "anonymous": false,
+                "inputs": [{"indexed": true, "name": "id", "type": "uint256"}, {
+                    "indexed": true,
+                    "name": "user",
+                    "type": "address"
+                }],
+                "name": "LogCreateUserNode",
+                "type": "event",
+                "signature": "0x45b9bae30cde858c2e22536f48cf48b7ddcf275b8c2ba5edab7bc969d600d975"
+            }, {
+                "anonymous": false,
+                "inputs": [{"indexed": true, "name": "id", "type": "uint256"}, {
+                    "indexed": true,
+                    "name": "previousNodeType",
+                    "type": "uint256"
+                }, {"indexed": true, "name": "newNodeType", "type": "uint256"}],
+                "name": "LogUpgradeUserNode",
+                "type": "event",
+                "signature": "0x0dd9a48df69e33423c399bd9cd993b74dcd7d7463400ccd0b1d19e2ceb83dca3"
+            }, {
+                "anonymous": false,
+                "inputs": [{"indexed": true, "name": "id", "type": "uint256"}, {
+                    "indexed": true,
+                    "name": "user",
+                    "type": "address"
+                }],
+                "name": "LogDestroyUserNode",
+                "type": "event",
+                "signature": "0x3376c15012e84e96494909f552c426052f0cf2d207b963d5bb16470e9734d180"
+            }, {
+                "anonymous": false,
+                "inputs": [{"indexed": true, "name": "id", "type": "uint256"}, {
+                    "indexed": true,
+                    "name": "nodeType",
+                    "type": "uint8"
+                }],
+                "name": "LogNewNode",
+                "type": "event",
+                "signature": "0xc2534f6a446b4ab6fbba2bc99c5f88915195345f4a13e909e323ff656bce5882"
+            }, {
+                "anonymous": false,
+                "inputs": [{"indexed": true, "name": "id", "type": "uint256"}],
+                "name": "LogDeprecatedNode",
+                "type": "event",
+                "signature": "0x343996fb6a78d672d92fe175deb9278e646a31ec144c0d8367a046097c6c55f1"
+            }, {
+                "constant": false,
+                "inputs": [{"name": "_quest", "type": "address"}, {"name": "_tournament", "type": "address"}],
+                "name": "setContracts",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function",
+                "signature": "0xd8952a49"
+            }, {
+                "constant": false,
+                "inputs": [{"name": "node", "type": "uint256"}],
+                "name": "create",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function",
+                "signature": "0x780900dc"
+            }, {
+                "constant": false,
+                "inputs": [{"name": "id", "type": "uint256"}, {"name": "upgradeNodeType", "type": "uint256"}],
+                "name": "upgrade",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function",
+                "signature": "0x451450ec"
+            }, {
+                "constant": false,
+                "inputs": [{"name": "id", "type": "uint256"}],
+                "name": "destroy",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function",
+                "signature": "0x9d118770"
+            }, {
+                "constant": false,
+                "inputs": [{"name": "name", "type": "string"}, {
+                    "name": "tokenThreshold",
+                    "type": "uint256"
+                }, {"name": "timeThreshold", "type": "uint256"}, {
+                    "name": "maxCount",
+                    "type": "uint256"
+                }, {"name": "rewards", "type": "uint8[]"}, {
+                    "name": "entryFeeDiscount",
+                    "type": "uint256"
+                }, {"name": "increasedPrizePayout", "type": "uint256"}, {"name": "nodeType", "type": "uint8"}],
+                "name": "addNode",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function",
+                "signature": "0x32ea73a0"
+            }, {
+                "constant": false,
+                "inputs": [{"name": "node", "type": "uint256"}],
+                "name": "deprecateNode",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function",
+                "signature": "0xc6b8774b"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "id", "type": "uint256"}],
+                "name": "isUserNodeActivated",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0xfe12bdd6"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "userNodeId", "type": "uint256"}],
+                "name": "getNodeOwner",
+                "outputs": [{"name": "", "type": "address"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0x5d3c373f"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "userNodeId", "type": "uint256"}, {"name": "reward", "type": "uint8"}],
+                "name": "checkForNodeReward",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0x37ea2506"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "userNodeId", "type": "uint256"}],
+                "name": "isQuestNode",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0x8a71edcf"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "userNodeId", "type": "uint256"}],
+                "name": "isTournamentNode",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0x8533022a"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "userNodeId", "type": "uint256"}],
+                "name": "isIncreasedPrizePayoutNode",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0x7d434b2d"
+            }, {
+                "constant": true,
+                "inputs": [{"name": "userNodeId", "type": "uint256"}],
+                "name": "isEntryFeeDiscountNode",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function",
+                "signature": "0xc2aa9259"
+            }]
+        },
+        "address": {
+            "0x27": "0xcaeFc647E97c165fc87Fa0448B5D450d79a05D02",
+            "0xa4": "0xA867c87682D7c5ebe92046D1ddd9F1930B8B55BC"
         }
     },
     "NodeWallet": {
@@ -334,7 +648,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0xD833c8dCffb9a0FA06ffBb9D45FeF669CF883f46",
+            "0x27": "0xCB6e01f6f7760Ef704EE7a2a9ceA6F2fC04d81a9",
             "0xc7": "0x9E46b0e72052d8caa86B9633988F603973591c1D",
             "0x4a": "0x9E46b0e72052d8caa86B9633988F603973591c1D",
             "0xa4": "0x9E46b0e72052d8caa86B9633988F603973591c1D"
@@ -633,7 +947,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0x40D8b8e477196564BDB6DaC7000C31148Eb9cd4B",
+            "0x27": "0x571B2496Dab4E928853922e5523fe08656639190",
             "0xc7": "0x55db2feE8A2A039BCA83b014cf0b455a31E77Cda",
             "0x4a": "0x0E599Dc9e307251729Dbf05Be79E61E0165f3FbF",
             "0xa4": "0x975f12947bA0654a56873F8236E5c9b5C498c874"
@@ -1239,324 +1553,10 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0xb82df6377d685B932aAD0233Aba2c13AB74328fA",
+            "0x27": "0xFe8B08984A56793122A9307dbB2C2554Cd5eF3CF",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0x4a": "0x5dc557E3b082ecA7c6EA890f806F5bddE4D39d50",
             "0xa4": "0xacc34b6a1FcC2cBE08b08f2db9b023Dcdb6C6Fc4"
-        }
-    },
-    "DBETNode": {
-        "raw": {
-            "abi": [{
-                "constant": true,
-                "inputs": [{"name": "", "type": "uint256"}],
-                "name": "nodes",
-                "outputs": [{"name": "name", "type": "string"}, {
-                    "name": "tokenThreshold",
-                    "type": "uint256"
-                }, {"name": "timeThreshold", "type": "uint256"}, {
-                    "name": "maxCount",
-                    "type": "uint256"
-                }, {"name": "entryFeeDiscount", "type": "uint256"}, {
-                    "name": "increasedPrizePayout",
-                    "type": "uint256"
-                }, {"name": "count", "type": "uint256"}, {"name": "nodeType", "type": "uint8"}, {
-                    "name": "deprecated",
-                    "type": "bool"
-                }],
-                "payable": false,
-                "stateMutability": "view",
-                "type": "function",
-                "signature": "0x1c53c280"
-            }, {
-                "constant": true,
-                "inputs": [],
-                "name": "tournament",
-                "outputs": [{"name": "", "type": "address"}],
-                "payable": false,
-                "stateMutability": "view",
-                "type": "function",
-                "signature": "0x1e0197e2"
-            }, {
-                "constant": true,
-                "inputs": [{"name": "", "type": "uint256"}],
-                "name": "userNodes",
-                "outputs": [{"name": "node", "type": "uint256"}, {
-                    "name": "owner",
-                    "type": "address"
-                }, {"name": "deposit", "type": "uint256"}, {
-                    "name": "creationTime",
-                    "type": "uint256"
-                }, {"name": "destroyTime", "type": "uint256"}, {"name": "index", "type": "uint256"}],
-                "payable": false,
-                "stateMutability": "view",
-                "type": "function",
-                "signature": "0x3badaecb"
-            }, {
-                "constant": true,
-                "inputs": [],
-                "name": "quest",
-                "outputs": [{"name": "", "type": "address"}],
-                "payable": false,
-                "stateMutability": "view",
-                "type": "function",
-                "signature": "0x42cccf08"
-            }, {
-                "constant": true,
-                "inputs": [],
-                "name": "userNodeCount",
-                "outputs": [{"name": "", "type": "uint256"}],
-                "payable": false,
-                "stateMutability": "view",
-                "type": "function",
-                "signature": "0x51964f3a"
-            }, {
-                "constant": true,
-                "inputs": [],
-                "name": "nodeCount",
-                "outputs": [{"name": "", "type": "uint256"}],
-                "payable": false,
-                "stateMutability": "view",
-                "type": "function",
-                "signature": "0x6da49b83"
-            }, {
-                "constant": true,
-                "inputs": [],
-                "name": "owner",
-                "outputs": [{"name": "", "type": "address"}],
-                "payable": false,
-                "stateMutability": "view",
-                "type": "function",
-                "signature": "0x8da5cb5b"
-            }, {
-                "constant": true,
-                "inputs": [{"name": "", "type": "address"}],
-                "name": "nodeOwnership",
-                "outputs": [{"name": "", "type": "uint256"}],
-                "payable": false,
-                "stateMutability": "view",
-                "type": "function",
-                "signature": "0xac05a44d"
-            }, {
-                "constant": true,
-                "inputs": [],
-                "name": "nodeWallet",
-                "outputs": [{"name": "", "type": "address"}],
-                "payable": false,
-                "stateMutability": "view",
-                "type": "function",
-                "signature": "0xecded914"
-            }, {
-                "constant": true,
-                "inputs": [],
-                "name": "admin",
-                "outputs": [{"name": "", "type": "address"}],
-                "payable": false,
-                "stateMutability": "view",
-                "type": "function",
-                "signature": "0xf851a440"
-            }, {
-                "constant": true,
-                "inputs": [],
-                "name": "token",
-                "outputs": [{"name": "", "type": "address"}],
-                "payable": false,
-                "stateMutability": "view",
-                "type": "function",
-                "signature": "0xfc0c546a"
-            }, {
-                "inputs": [{"name": "_admin", "type": "address"}, {"name": "_token", "type": "address"}],
-                "payable": false,
-                "stateMutability": "nonpayable",
-                "type": "constructor",
-                "signature": "constructor"
-            }, {
-                "anonymous": false,
-                "inputs": [{"indexed": false, "name": "quest", "type": "address"}, {
-                    "indexed": false,
-                    "name": "tournament",
-                    "type": "address"
-                }],
-                "name": "LogSetContracts",
-                "type": "event",
-                "signature": "0xc8ac2a6c11cbd4da449119940b906ecd3f5dcf48fec513b91d3adffe3cdf2493"
-            }, {
-                "anonymous": false,
-                "inputs": [{"indexed": true, "name": "id", "type": "uint256"}, {
-                    "indexed": true,
-                    "name": "user",
-                    "type": "address"
-                }],
-                "name": "LogCreateUserNode",
-                "type": "event",
-                "signature": "0x45b9bae30cde858c2e22536f48cf48b7ddcf275b8c2ba5edab7bc969d600d975"
-            }, {
-                "anonymous": false,
-                "inputs": [{"indexed": true, "name": "id", "type": "uint256"}, {
-                    "indexed": true,
-                    "name": "previousNodeType",
-                    "type": "uint256"
-                }, {"indexed": true, "name": "newNodeType", "type": "uint256"}],
-                "name": "LogUpgradeUserNode",
-                "type": "event",
-                "signature": "0x0dd9a48df69e33423c399bd9cd993b74dcd7d7463400ccd0b1d19e2ceb83dca3"
-            }, {
-                "anonymous": false,
-                "inputs": [{"indexed": true, "name": "id", "type": "uint256"}, {
-                    "indexed": true,
-                    "name": "user",
-                    "type": "address"
-                }],
-                "name": "LogDestroyUserNode",
-                "type": "event",
-                "signature": "0x3376c15012e84e96494909f552c426052f0cf2d207b963d5bb16470e9734d180"
-            }, {
-                "anonymous": false,
-                "inputs": [{"indexed": true, "name": "id", "type": "uint256"}, {
-                    "indexed": true,
-                    "name": "nodeType",
-                    "type": "uint8"
-                }],
-                "name": "LogNewNode",
-                "type": "event",
-                "signature": "0xc2534f6a446b4ab6fbba2bc99c5f88915195345f4a13e909e323ff656bce5882"
-            }, {
-                "anonymous": false,
-                "inputs": [{"indexed": true, "name": "id", "type": "uint256"}],
-                "name": "LogDeprecatedNode",
-                "type": "event",
-                "signature": "0x343996fb6a78d672d92fe175deb9278e646a31ec144c0d8367a046097c6c55f1"
-            }, {
-                "constant": false,
-                "inputs": [{"name": "_quest", "type": "address"}, {"name": "_tournament", "type": "address"}],
-                "name": "setContracts",
-                "outputs": [{"name": "", "type": "bool"}],
-                "payable": false,
-                "stateMutability": "nonpayable",
-                "type": "function",
-                "signature": "0xd8952a49"
-            }, {
-                "constant": false,
-                "inputs": [{"name": "node", "type": "uint256"}],
-                "name": "create",
-                "outputs": [{"name": "", "type": "bool"}],
-                "payable": false,
-                "stateMutability": "nonpayable",
-                "type": "function",
-                "signature": "0x780900dc"
-            }, {
-                "constant": false,
-                "inputs": [{"name": "id", "type": "uint256"}, {"name": "upgradeNodeType", "type": "uint256"}],
-                "name": "upgrade",
-                "outputs": [{"name": "", "type": "bool"}],
-                "payable": false,
-                "stateMutability": "nonpayable",
-                "type": "function",
-                "signature": "0x451450ec"
-            }, {
-                "constant": false,
-                "inputs": [{"name": "id", "type": "uint256"}],
-                "name": "destroy",
-                "outputs": [{"name": "", "type": "bool"}],
-                "payable": false,
-                "stateMutability": "nonpayable",
-                "type": "function",
-                "signature": "0x9d118770"
-            }, {
-                "constant": false,
-                "inputs": [{"name": "name", "type": "string"}, {
-                    "name": "tokenThreshold",
-                    "type": "uint256"
-                }, {"name": "timeThreshold", "type": "uint256"}, {
-                    "name": "maxCount",
-                    "type": "uint256"
-                }, {"name": "rewards", "type": "uint8[]"}, {
-                    "name": "entryFeeDiscount",
-                    "type": "uint256"
-                }, {"name": "increasedPrizePayout", "type": "uint256"}, {"name": "nodeType", "type": "uint8"}],
-                "name": "addNode",
-                "outputs": [{"name": "", "type": "bool"}],
-                "payable": false,
-                "stateMutability": "nonpayable",
-                "type": "function",
-                "signature": "0x32ea73a0"
-            }, {
-                "constant": false,
-                "inputs": [{"name": "node", "type": "uint256"}],
-                "name": "deprecateNode",
-                "outputs": [{"name": "", "type": "bool"}],
-                "payable": false,
-                "stateMutability": "nonpayable",
-                "type": "function",
-                "signature": "0xc6b8774b"
-            }, {
-                "constant": true,
-                "inputs": [{"name": "id", "type": "uint256"}],
-                "name": "isUserNodeActivated",
-                "outputs": [{"name": "", "type": "bool"}],
-                "payable": false,
-                "stateMutability": "view",
-                "type": "function",
-                "signature": "0xfe12bdd6"
-            }, {
-                "constant": true,
-                "inputs": [{"name": "userNodeId", "type": "uint256"}],
-                "name": "getNodeOwner",
-                "outputs": [{"name": "", "type": "address"}],
-                "payable": false,
-                "stateMutability": "view",
-                "type": "function",
-                "signature": "0x5d3c373f"
-            }, {
-                "constant": true,
-                "inputs": [{"name": "userNodeId", "type": "uint256"}, {"name": "reward", "type": "uint8"}],
-                "name": "checkForNodeReward",
-                "outputs": [{"name": "", "type": "bool"}],
-                "payable": false,
-                "stateMutability": "view",
-                "type": "function",
-                "signature": "0x37ea2506"
-            }, {
-                "constant": true,
-                "inputs": [{"name": "userNodeId", "type": "uint256"}],
-                "name": "isQuestNode",
-                "outputs": [{"name": "", "type": "bool"}],
-                "payable": false,
-                "stateMutability": "view",
-                "type": "function",
-                "signature": "0x8a71edcf"
-            }, {
-                "constant": true,
-                "inputs": [{"name": "userNodeId", "type": "uint256"}],
-                "name": "isTournamentNode",
-                "outputs": [{"name": "", "type": "bool"}],
-                "payable": false,
-                "stateMutability": "view",
-                "type": "function",
-                "signature": "0x8533022a"
-            }, {
-                "constant": true,
-                "inputs": [{"name": "userNodeId", "type": "uint256"}],
-                "name": "isIncreasedPrizePayoutNode",
-                "outputs": [{"name": "", "type": "bool"}],
-                "payable": false,
-                "stateMutability": "view",
-                "type": "function",
-                "signature": "0x7d434b2d"
-            }, {
-                "constant": true,
-                "inputs": [{"name": "userNodeId", "type": "uint256"}],
-                "name": "isEntryFeeDiscountNode",
-                "outputs": [{"name": "", "type": "bool"}],
-                "payable": false,
-                "stateMutability": "view",
-                "type": "function",
-                "signature": "0xc2aa9259"
-            }]
-        },
-        "address": {
-            "0x27": "0xca81cDe006348944338803a7BC87D38425973887",
-            "0xa4": "0xA867c87682D7c5ebe92046D1ddd9F1930B8B55BC"
         }
     }
 }
