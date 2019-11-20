@@ -399,10 +399,13 @@ LibQuest {
             (uint256 node,,,,,) = dbetNode.userNodes(
                 userQuestEntries[user][id][_userQuestEntryCount].nodeId
             );
-            uint256 prize = getPrizePayoutForNodeType(
-                node,
-                quests[id].prize
-            );
+            // Prize must not account for increased prize payout if quest is a node quest
+            uint256 prize = quests[id].isNode ?
+                quests[id].prize :
+                getPrizePayoutForNodeType(
+                    node,
+                    quests[id].prize
+                );
             if (quests[id].isNode) {
                 // Transfer out DBETs escrow-ed within node wallet to user
                 require(

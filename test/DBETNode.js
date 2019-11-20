@@ -396,4 +396,12 @@ contract('DBETNode', accounts => {
         )
     })
 
+    it('throws if admins deprecate an already deprecated node', async () => {
+        await utils.assertFail(
+            dbetNode.deprecateNode(
+                NODE_ID_UPGRADED
+            )
+        )
+    })
+
 })
