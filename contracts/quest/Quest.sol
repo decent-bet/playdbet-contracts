@@ -37,13 +37,15 @@ LibQuest {
     );
     // On cancel quest
     event LogCancelQuest(
-        bytes32 indexed id
+        bytes32 indexed id,
+        address indexed canceller
     );
     // On cancel quest entry
     event LogCancelQuestEntry(
         bytes32 indexed id,
         address indexed user,
-        uint256 questEntryCount
+        uint256 questEntryCount,
+        address indexed canceller
     );
     // On pay for quest
     event LogPayForQuest(
@@ -461,15 +463,8 @@ LibQuest {
     returns (bool) {
         // Allow only admins to cancel quests
         require(admin.admins(msg.sender), "INVALID_SENDER_ADMIN_STATUS");
-        // Quest must be active
-        require(quests[id].status == uint8(QuestStatus.ACTIVE), "INVALID_QUEST_STATUS");
-        // Cancel quest
-        quests[id].status = uint8(QuestStatus.CANCELLED);
-        // Emit cancel quest event
-        emit LogCancelQuest(
-            id
-        );
-        return true;
+        // Complete quest cancellation
+        return _completeCancelQuest(id);
     }
 
     /**
@@ -499,13 +494,23 @@ LibQuest {
             quests[id].nodeId == nodeId,
             "INVALID_QUEST_NODE_OWNERSHIP"
         );
+        // Complete quest cancellation
+        return _completeCancelQuest(id);
+    }
+
+    function _completeCancelQuest(
+        bytes32 id
+    )
+    internal
+    returns (bool) {
         // Quest must be active
         require(quests[id].status == uint8(QuestStatus.ACTIVE), "INVALID_QUEST_STATUS");
         // Cancel quest
         quests[id].status = uint8(QuestStatus.CANCELLED);
         // Emit cancel quest event
         emit LogCancelQuest(
-            id
+            id,
+            msg.sender
         );
         return true;
     }
@@ -543,7 +548,8 @@ LibQuest {
         emit LogCancelQuestEntry(
             id,
             user,
-            _userQuestEntryCount
+            _userQuestEntryCount,
+            msg.sender
         );
         return true;
     }
