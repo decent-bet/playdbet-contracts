@@ -46,6 +46,8 @@ contract LibQuest {
         uint256 nodeId;
         // True if user claims refund for a cancelled quest
         bool refunded;
+        // Address that paid for the user quest entry
+        address payer;
     }
 
 }

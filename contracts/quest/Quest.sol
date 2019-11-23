@@ -307,7 +307,8 @@ LibQuest {
             entryFee: entryFee,
             nodeId: nodeId,
             status: uint8(QuestEntryStatus.STARTED),
-            refunded: false
+            refunded: false,
+            payer: msg.sender
         });
         // Increment quest count
         quests[id].count++;
@@ -399,8 +400,11 @@ LibQuest {
             (uint256 node,,,,,) = dbetNode.userNodes(
                 userQuestEntries[user][id][_userQuestEntryCount].nodeId
             );
-            // Prize must not account for increased prize payout if quest is a node quest
-            uint256 prize = quests[id].isNode ?
+            // Check if `user` paid for the quest
+            bool isUserPayer = userQuestEntries[user][id][_userQuestEntryCount].payer == user;
+            // Prize must not account for increased prize payout if quest is a node quest OR
+            // If the user didn't pay for the quest
+            uint256 prize = quests[id].isNode || !isUserPayer ?
                 quests[id].prize :
                 getPrizePayoutForNodeType(
                     node,
