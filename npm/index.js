@@ -1,5 +1,5 @@
 module.exports = {
-    "VERSION": "1.0.16",
+    "VERSION": "1.0.17",
     "AdminContract": {
         "raw": {
             "abi": [{
@@ -98,7 +98,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0xA8E32c696d5c820A4f1ef7de290e68050A36F6FC",
+            "0x27": "0xdB7872f8CE9F09FEb156e5fC4F932ecE13E2a641",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0x4a": "0xE1A9dA3a8E10B74AB05Bc068272254C242DaFb4D",
             "0xa4": "0xbAa4774602Dc5571FebcEa7D3cf966297Cb3f1BF"
@@ -414,7 +414,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0xcaeFc647E97c165fc87Fa0448B5D450d79a05D02",
+            "0x27": "0x12f588cf9eAaDB2175d41180921d6D9b134c8484",
             "0xa4": "0xA867c87682D7c5ebe92046D1ddd9F1930B8B55BC"
         }
     },
@@ -648,7 +648,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0xCB6e01f6f7760Ef704EE7a2a9ceA6F2fC04d81a9",
+            "0x27": "0x7e9643bAe6a6aed2Bc9Fe1e1a4f119FA0b1ff5B9",
             "0xc7": "0x9E46b0e72052d8caa86B9633988F603973591c1D",
             "0x4a": "0x9E46b0e72052d8caa86B9633988F603973591c1D",
             "0xa4": "0x9E46b0e72052d8caa86B9633988F603973591c1D"
@@ -669,7 +669,7 @@ module.exports = {
                 }, {"name": "status", "type": "uint8"}, {"name": "nodeId", "type": "uint256"}, {
                     "name": "refunded",
                     "type": "bool"
-                }],
+                }, {"name": "payer", "type": "address"}],
                 "payable": false,
                 "stateMutability": "view",
                 "type": "function",
@@ -751,20 +751,28 @@ module.exports = {
                 "signature": "0x06809877c9cf1ec1fd8430c60fda9db629d86f4ed619153f7f08dd798dc416cd"
             }, {
                 "anonymous": false,
-                "inputs": [{"indexed": true, "name": "id", "type": "bytes32"}],
+                "inputs": [{"indexed": true, "name": "id", "type": "bytes32"}, {
+                    "indexed": true,
+                    "name": "canceller",
+                    "type": "address"
+                }],
                 "name": "LogCancelQuest",
                 "type": "event",
-                "signature": "0xccba120f6d8fe88284d3a6ff6cf5540ed5a443face7c093c265d23b12e98556f"
+                "signature": "0xe6a521cee0881c61a431cc7d900384e89ee2735dcaaa0b4c1c51418c8806607e"
             }, {
                 "anonymous": false,
                 "inputs": [{"indexed": true, "name": "id", "type": "bytes32"}, {
                     "indexed": true,
                     "name": "user",
                     "type": "address"
-                }, {"indexed": false, "name": "questEntryCount", "type": "uint256"}],
+                }, {"indexed": false, "name": "questEntryCount", "type": "uint256"}, {
+                    "indexed": true,
+                    "name": "canceller",
+                    "type": "address"
+                }],
                 "name": "LogCancelQuestEntry",
                 "type": "event",
-                "signature": "0xd43f34ddf827c966d2587ee907a77cd2f443d8b3b6e4b3ac9ebb188d6acb84c9"
+                "signature": "0xb65c6c0596720a7ad00963e6623b81f19b11a97a6f697d7659e6494ac66f4383"
             }, {
                 "anonymous": false,
                 "inputs": [{"indexed": true, "name": "id", "type": "bytes32"}, {
@@ -785,10 +793,14 @@ module.exports = {
                     "indexed": true,
                     "name": "user",
                     "type": "address"
-                }, {"indexed": false, "name": "questEntryCount", "type": "uint256"}],
+                }, {"indexed": true, "name": "prizePayer", "type": "address"}, {
+                    "indexed": false,
+                    "name": "questEntryCount",
+                    "type": "uint256"
+                }],
                 "name": "LogSetQuestOutcome",
                 "type": "event",
-                "signature": "0x29a22c08933ca898e48dc66d9de22861ce8d7dc3c84c3c7c69c78e9e2b870a0f"
+                "signature": "0x33ff8f76368c21e2ac10162237df6279a569cc3f81173b3a49f94e7d564d76ad"
             }, {
                 "anonymous": false,
                 "inputs": [{"indexed": true, "name": "id", "type": "bytes32"}, {
@@ -920,12 +932,12 @@ module.exports = {
             }, {
                 "constant": true,
                 "inputs": [{"name": "id", "type": "uint256"}, {"name": "nodeOwner", "type": "address"}],
-                "name": "isActiveIncreasedPrizePayoutNode",
+                "name": "isActiveEntryFeeDiscountNode",
                 "outputs": [{"name": "", "type": "bool"}],
                 "payable": false,
                 "stateMutability": "view",
                 "type": "function",
-                "signature": "0xf814ff21"
+                "signature": "0x1f63c3be"
             }, {
                 "constant": true,
                 "inputs": [{"name": "nodeType", "type": "uint256"}, {"name": "entryFee", "type": "uint256"}],
@@ -947,7 +959,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0x571B2496Dab4E928853922e5523fe08656639190",
+            "0x27": "0xDe21F0870126b619e257a565E6cD51D37f90bc45",
             "0xc7": "0x55db2feE8A2A039BCA83b014cf0b455a31E77Cda",
             "0x4a": "0x0E599Dc9e307251729Dbf05Be79E61E0165f3FbF",
             "0xa4": "0x975f12947bA0654a56873F8236E5c9b5C498c874"
@@ -1553,7 +1565,7 @@ module.exports = {
             }]
         },
         "address": {
-            "0x27": "0xFe8B08984A56793122A9307dbB2C2554Cd5eF3CF",
+            "0x27": "0x0EA6541cAD71ef50fba959fa9C37AeC8Bf310612",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
             "0x4a": "0x5dc557E3b082ecA7c6EA890f806F5bddE4D39d50",
             "0xa4": "0xacc34b6a1FcC2cBE08b08f2db9b023Dcdb6C6Fc4"
