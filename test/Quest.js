@@ -1049,6 +1049,54 @@ contract('Quest', accounts => {
         )
     })
 
+    it('pays regular prize payout if node holder wins non-node quest when payer is not node holder', async () => {
+        const {
+            id,
+            entryFee,
+            prize
+        } = getValidSecondQuestParams()
+
+        // Pay for quest with sufficient allowance and balance
+        const prePayForQuestBalance = await token.balanceOf(owner)
+        await quest.payForQuest(
+            id,
+            rewardNodeHolder
+        )
+        const postPayForQuestBalance = await token.balanceOf(owner)
+        assert.equal(
+            new BigNumber(postPayForQuestBalance).isEqualTo(
+                new BigNumber(prePayForQuestBalance).minus(
+                    new BigNumber(entryFee)
+                )
+            ),
+            true
+        )
+
+        // Set quest outcome to `SUCCESS`
+        const preSetQuestOutcomeBalance = await token.balanceOf(rewardNodeHolder)
+        await quest.setQuestOutcome(
+            id,
+            rewardNodeHolder,
+            OUTCOME_SUCCESS
+        )
+        const postSetQuestOutcomeBalance = await token.balanceOf(rewardNodeHolder)
+
+        assert.equal(
+            new BigNumber(
+                postSetQuestOutcomeBalance
+            ).isEqualTo(
+                new BigNumber(
+                    preSetQuestOutcomeBalance
+                ).plus(
+                    new BigNumber(
+                        prize
+                    )
+                )
+            ),
+            true
+        )
+    })
+
     it('pays regular prize payout if node holder wins node quest', async () => {
         const {
             id,

@@ -6,7 +6,6 @@ import "./libs/LibQuest.sol";
 import "../admin/Admin.sol";
 import "../token/ERC20.sol";
 import "../node/DBETNode.sol";
-import "../node/NodeWallet.sol";
 
 import "../utils/SafeMath.sol";
 
@@ -37,13 +36,15 @@ LibQuest {
     );
     // On cancel quest
     event LogCancelQuest(
-        bytes32 indexed id
+        bytes32 indexed id,
+        address indexed canceller
     );
     // On cancel quest entry
     event LogCancelQuestEntry(
         bytes32 indexed id,
         address indexed user,
-        uint256 questEntryCount
+        uint256 questEntryCount,
+        address indexed canceller
     );
     // On pay for quest
     event LogPayForQuest(
@@ -57,6 +58,7 @@ LibQuest {
     event LogSetQuestOutcome(
         bytes32 indexed id,
         address indexed user,
+        address indexed prizePayer,
         uint256 questEntryCount
     );
     // On refund user
@@ -278,7 +280,7 @@ LibQuest {
         uint256 nodeId,
         uint256 entryFee
     )
-    internal
+    private
     returns (bool) {
         // Balance of user must be greater or equal to quest entry fee
         require(
@@ -307,7 +309,8 @@ LibQuest {
             entryFee: entryFee,
             nodeId: nodeId,
             status: uint8(QuestEntryStatus.STARTED),
-            refunded: false
+            refunded: false,
+            payer: msg.sender
         });
         // Increment quest count
         quests[id].count++;
@@ -399,8 +402,11 @@ LibQuest {
             (uint256 node,,,,,) = dbetNode.userNodes(
                 userQuestEntries[user][id][_userQuestEntryCount].nodeId
             );
-            // Prize must not account for increased prize payout if quest is a node quest
-            uint256 prize = quests[id].isNode ?
+            // Check if `user` paid for the quest
+            bool isUserPayer = userQuestEntries[user][id][_userQuestEntryCount].payer == user;
+            // Prize must not account for increased prize payout if quest is a node quest OR
+            // If the user didn't pay for the quest
+            uint256 prize = quests[id].isNode || !isUserPayer ?
                 quests[id].prize :
                 getPrizePayoutForNodeType(
                     node,
@@ -440,6 +446,7 @@ LibQuest {
         emit LogSetQuestOutcome(
             id,
             user,
+            quests[id].isNode ? user : admin.platformWallet(),
             _userQuestEntryCount
         );
         return true;
@@ -457,15 +464,8 @@ LibQuest {
     returns (bool) {
         // Allow only admins to cancel quests
         require(admin.admins(msg.sender), "INVALID_SENDER_ADMIN_STATUS");
-        // Quest must be active
-        require(quests[id].status == uint8(QuestStatus.ACTIVE), "INVALID_QUEST_STATUS");
-        // Cancel quest
-        quests[id].status = uint8(QuestStatus.CANCELLED);
-        // Emit cancel quest event
-        emit LogCancelQuest(
-            id
-        );
-        return true;
+        // Complete quest cancellation
+        return _completeCancelQuest(id);
     }
 
     /**
@@ -495,13 +495,28 @@ LibQuest {
             quests[id].nodeId == nodeId,
             "INVALID_QUEST_NODE_OWNERSHIP"
         );
+        // Complete quest cancellation
+        return _completeCancelQuest(id);
+    }
+
+    /**
+    * Allows admins or node holders to cancel quests
+    * @param id Unique quest ID
+    * @return whether quest was cancelled
+    */
+    function _completeCancelQuest(
+        bytes32 id
+    )
+    private
+    returns (bool) {
         // Quest must be active
         require(quests[id].status == uint8(QuestStatus.ACTIVE), "INVALID_QUEST_STATUS");
         // Cancel quest
         quests[id].status = uint8(QuestStatus.CANCELLED);
         // Emit cancel quest event
         emit LogCancelQuest(
-            id
+            id,
+            msg.sender
         );
         return true;
     }
@@ -539,7 +554,8 @@ LibQuest {
         emit LogCancelQuestEntry(
             id,
             user,
-            _userQuestEntryCount
+            _userQuestEntryCount,
+            msg.sender
         );
         return true;
     }
@@ -547,6 +563,7 @@ LibQuest {
     /**
     * Allow users with quest entries to claim refunds for cancelled quests
     * @param id Cancelled quest ID
+    * @param user User address
     * @return whether refunds were claimed
     */
     function claimRefund(
@@ -555,73 +572,17 @@ LibQuest {
     )
     public
     returns (bool) {
-        require(
-            admin.admins(msg.sender) ||
-            msg.sender == user,
-            "INVALID_MSG_SENDER"
-        );
-        uint256 _userQuestEntryCount = userQuestEntryCount[user][id];
-        // Quest entry must be started
-        require(
-            userQuestEntries[user][id][_userQuestEntryCount].status == uint8(QuestEntryStatus.STARTED),
-            "INVALID_USER_QUEST_ENTRY_STATUS"
-        );
-        // Quest should be cancelled
-        require(
-            quests[id].status == uint8(QuestStatus.CANCELLED),
-            "INVALID_QUEST_STATUS"
-        );
-        // User quest entry cannot already be refunded
-        require(
-            !userQuestEntries[user][id][_userQuestEntryCount].refunded,
-            "INVALID_USER_QUEST_REFUNDED_STATUS"
-        );
-        userQuestEntries[user][id][_userQuestEntryCount].refunded = true;
-        // Increment user quest entry count
-        userQuestEntryCount[user][id] += 1;
-        // Transfer entryFee to user
-        if (quests[id].isNode) {
-            // Transfer out DBETs escrowed within node wallet to user
-            require(
-                token.transferFrom(
-                    address(dbetNode.nodeWallet()),
-                    user,
-                    userQuestEntries[user][id][_userQuestEntryCount].entryFee
-                ),
-                "ERROR_TOKEN_TRANSFER"
-            );
-            // Remove entry fee from node wallet quest fee records
-            require(
-                dbetNode.nodeWallet()
-                .claimRefund(
-                    quests[id].nodeId,
-                    id,
-                    userQuestEntries[user][id][_userQuestEntryCount].entryFee
-                ),
-                "ERROR_NODE_WALLET_CLAIM_REFUND"
-            );
-        } else
-            require(
-                token.transferFrom(
-                    admin.platformWallet(),
-                    user,
-                    userQuestEntries[user][id][_userQuestEntryCount].entryFee
-                ),
-                "ERROR_TOKEN_TRANSFER"
-            );
-        // Emit log refund quest entry event
-        emit LogRefundQuestEntry(
+        return _completeClaimRefund(
             id,
             user,
-            true,
-            _userQuestEntryCount
+            true
         );
-        return true;
     }
 
     /**
     * Allows user to claim refunds for cancelled quest entries
     * @param id Unique quest id
+    * @param user User address
     * @return whether refunds were claimed
     */
     function claimRefundForEntry(
@@ -630,17 +591,50 @@ LibQuest {
     )
     public
     returns (bool) {
+        return _completeClaimRefund(
+            id,
+            user,
+            false
+        );
+    }
+
+    /**
+    * Completes claim refund logic based on whether the refund is for a cancelled quest or quest entry
+    * @param id Cancelled quest ID
+    * @param user User address
+    * @param isQuestCancelled Whether the quest was cancelled
+    * @return whether refunds were claimed
+    */
+    function _completeClaimRefund(
+        bytes32 id,
+        address user,
+        bool isQuestCancelled
+    )
+    private
+    returns (bool) {
         require(
             admin.admins(msg.sender) ||
             msg.sender == user,
             "INVALID_MSG_SENDER"
         );
         uint256 _userQuestEntryCount = userQuestEntryCount[user][id];
-        // Quest entry must be cancelled
+        // Quest entry must be started in case quest has been cancelled OR
+        // quest entry must be cancelled in case quest is not cancelled
         require(
-            userQuestEntries[user][id][_userQuestEntryCount].status == uint8(QuestEntryStatus.CANCELLED),
+            userQuestEntries[user][id][_userQuestEntryCount].status ==
+            (
+                isQuestCancelled ?
+                    uint8(QuestEntryStatus.STARTED) :
+                    uint8(QuestEntryStatus.CANCELLED)
+            ),
             "INVALID_USER_QUEST_ENTRY_STATUS"
         );
+        // Quest should be cancelled
+        if (isQuestCancelled)
+            require(
+                quests[id].status == uint8(QuestStatus.CANCELLED),
+                "INVALID_QUEST_STATUS"
+            );
         // User quest entry cannot already be refunded
         require(
             !userQuestEntries[user][id][_userQuestEntryCount].refunded,
@@ -670,7 +664,7 @@ LibQuest {
                 "ERROR_NODE_WALLET_CLAIM_REFUND"
             );
         } else
-            // Transfer out DBETs escrow-ed within platform wallet to user
+        // Transfer out DBETs escrow-ed within platform wallet to user
             require(
                 token.transferFrom(
                     admin.platformWallet(),
@@ -683,10 +677,9 @@ LibQuest {
         emit LogRefundQuestEntry(
             id,
             user,
-            false,
+            isQuestCancelled,
             _userQuestEntryCount
         );
-        return true;
     }
 
     /**
