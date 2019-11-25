@@ -32,4 +32,6 @@ export declare const DBETVETTokenContract: ContractWrapper
 export declare const QuestContract: ContractWrapper
 export declare const AdminContract: ContractWrapper
 export declare const TournamentContract: ContractWrapper
+export declare const DBETNode: ContractWrapper;
+export declare const NodeWallet: ContractWrapper;
 export declare const VERSION: string
