@@ -1,5 +1,5 @@
 module.exports = {
-    "VERSION": "1.0.17",
+    "VERSION": "1.0.18",
     "AdminContract": {
         "raw": {
             "abi": [{
