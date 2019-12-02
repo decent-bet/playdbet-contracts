@@ -1,5 +1,5 @@
 module.exports = {
-    "VERSION": "1.0.18",
+    "VERSION": "1.0.19",
     "AdminContract": {
         "raw": {
             "abi": [{
@@ -100,7 +100,7 @@ module.exports = {
         "address": {
             "0x27": "0xdB7872f8CE9F09FEb156e5fC4F932ecE13E2a641",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
-            "0x4a": "0xE1A9dA3a8E10B74AB05Bc068272254C242DaFb4D",
+            "0x4a": "0xCbc02dD7f5A053d9D3897bD503795AFfCE1780C0",
             "0xa4": "0xbAa4774602Dc5571FebcEa7D3cf966297Cb3f1BF"
         }
     },
@@ -415,6 +415,7 @@ module.exports = {
         },
         "address": {
             "0x27": "0x12f588cf9eAaDB2175d41180921d6D9b134c8484",
+            "0x4a": "0x40572118Da06a74B49129377b87f8ae679b27071",
             "0xa4": "0xA867c87682D7c5ebe92046D1ddd9F1930B8B55BC"
         }
     },
@@ -650,7 +651,7 @@ module.exports = {
         "address": {
             "0x27": "0x7e9643bAe6a6aed2Bc9Fe1e1a4f119FA0b1ff5B9",
             "0xc7": "0x9E46b0e72052d8caa86B9633988F603973591c1D",
-            "0x4a": "0x9E46b0e72052d8caa86B9633988F603973591c1D",
+            "0x4a": "0x457Dc1f1237f967F9319BaA41cEd5c2bdE262d59",
             "0xa4": "0x9E46b0e72052d8caa86B9633988F603973591c1D"
         }
     },
@@ -961,7 +962,7 @@ module.exports = {
         "address": {
             "0x27": "0xDe21F0870126b619e257a565E6cD51D37f90bc45",
             "0xc7": "0x55db2feE8A2A039BCA83b014cf0b455a31E77Cda",
-            "0x4a": "0x0E599Dc9e307251729Dbf05Be79E61E0165f3FbF",
+            "0x4a": "0xAE35225d2e7D4B78a3C47381b21C81338ceeee00",
             "0xa4": "0x975f12947bA0654a56873F8236E5c9b5C498c874"
         }
     },
@@ -1567,7 +1568,7 @@ module.exports = {
         "address": {
             "0x27": "0x0EA6541cAD71ef50fba959fa9C37AeC8Bf310612",
             "0xc7": "0x9FD9EaEdCB8621FEc90EE7538B72cde0406396bc",
-            "0x4a": "0x5dc557E3b082ecA7c6EA890f806F5bddE4D39d50",
+            "0x4a": "0x510D52CF8c0FD8E6726FF791e914bB9c88A1d09E",
             "0xa4": "0xacc34b6a1FcC2cBE08b08f2db9b023Dcdb6C6Fc4"
         }
     }

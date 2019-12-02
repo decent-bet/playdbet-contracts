@@ -38,8 +38,9 @@ module.exports = {
             privateKey: '0xdce1443bd2ef0c2631adc1c67e5c93f13dc23a41c18b536effbbdcbcdb96fb65'
         },
         main: {
-            host: MAINNET_HOST,
-            port: MAINNET_PORT,
+            host: "sync-mainnet.vechain.org",
+            port: null,
+            secure: true,
             chain_tag: "0x4a",
             gasPrice: MAINNET_GAS_PRICE,
             from: MAINNET_FROM,
