@@ -66,12 +66,14 @@ LibDBETNode {
         uint256 entryIndex,
         uint256 finalStanding,
         uint256 prizeFromTable,
-        uint256 prizeMoney
+        uint256 prizeMoney,
+        address indexed claimant
     );
     // Log refunded tournament entry
     event LogRefundedTournamentEntry(
         bytes32 indexed id,
-        uint256 entryIndex
+        uint256 entryIndex,
+        address indexed claimant
     );
 
     constructor (
@@ -596,8 +598,9 @@ LibDBETNode {
         );
         // Address at final standings index must be sender
         require(
-            tournaments[id].entries[entryIndex]._address == msg.sender,
-            "INVALID_ENTRY_INDEX"
+            tournaments[id].entries[entryIndex]._address == msg.sender ||
+            admin.admins(msg.sender),
+            "INVALID_ENTRY_INDEX_OR_SENDER"
         );
         // User cannot have already claimed their prize
         require(
@@ -646,10 +649,11 @@ LibDBETNode {
             id,
             finalStanding
         );
+        address prizeWinner = tournaments[id].entries[entryIndex]._address;
         // Transfer prize tokens to sender
         require(
             token.transfer(
-                msg.sender,
+                prizeWinner,
                 prizeMoney
             ),
             "TOKEN_TRANSFER_ERROR"
@@ -664,7 +668,8 @@ LibDBETNode {
             tournaments[id].details.prizeType == uint8(TournamentPrizeType.STANDARD) ?
                 prizeTables[tournaments[id].details.prizeTable][finalStanding] :
                 0,
-            prizeMoney
+            prizeMoney,
+            msg.sender
         );
     }
 
@@ -824,18 +829,20 @@ LibDBETNode {
         );
         // Address at entries entryIndex must be sender
         require(
-            tournaments[id].entries[entryIndex]._address == msg.sender,
-            "INVALID_ENTRY_INDEX"
+            tournaments[id].entries[entryIndex]._address == msg.sender ||
+            admin.admins(msg.sender),
+            "INVALID_SENDER_OR_ENTRY_INDEX"
         );
         // User cannot have already claimed their refund
         require(
             !tournaments[id].refunded[entryIndex],
             "INVALID_REFUNDED_STATUS"
         );
+        address entrant = tournaments[id].entries[entryIndex]._address;
         // Transfer entry fee to sender
         require(
             token.transfer(
-                msg.sender,
+                entrant,
                 tournaments[id].entries[entryIndex].entryFee
             ),
             "TOKEN_TRANSFER_ERROR"
@@ -844,7 +851,8 @@ LibDBETNode {
         tournaments[id].refunded[entryIndex] = true;
         emit LogRefundedTournamentEntry(
             id,
-            entryIndex
+            entryIndex,
+            msg.sender
         );
     }
 
