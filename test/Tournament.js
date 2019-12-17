@@ -590,7 +590,7 @@ contract('Tournament', accounts => {
         )
     })
 
-    it('allows user to claim standard tournament prizes with valid IDs and indices', async () => {
+    it('allows users or admins to claim standard tournament prizes with valid IDs and indices', async () => {
         const claimAndAssertTournamentPrize = async (
             tournamentId,
             user,
@@ -600,8 +600,11 @@ contract('Tournament', accounts => {
             finalStandingPercent,
             uniqueFinalStandings,
             excessPrizePercent,
-            sharedFinalStandings
+            sharedFinalStandings,
+            sender
         ) => {
+            if (!sender)
+                sender = user
             const preClaimTournamentUserBalance =
                 web3.utils.fromWei(await token.balanceOf(user), 'ether')
 
@@ -610,7 +613,7 @@ contract('Tournament', accounts => {
                 entryIndex,
                 finalStandingIndex,
                 {
-                    from: user
+                    from: sender
                 }
             )
 
@@ -656,7 +659,7 @@ contract('Tournament', accounts => {
             1   // shared final standings
         )
 
-        // Claim tournament 2 prize as user1
+        // Claim tournament 2 prize for user1
         await claimAndAssertTournamentPrize(
             standardTournamentId2,
             user1,
@@ -669,6 +672,7 @@ contract('Tournament', accounts => {
             2
         )
 
+        // Claim tournament 2 prize for user1 as admin
         await claimAndAssertTournamentPrize(
             standardTournamentId2,
             user1,
@@ -678,10 +682,11 @@ contract('Tournament', accounts => {
             30,
             2,
             20,
-            2
+            2,
+            owner
         )
 
-        // Claim tournament 2 prizes as user2
+        // Claim tournament 2 prize as user2
         await claimAndAssertTournamentPrize(
             standardTournamentId2,
             user2,
@@ -693,7 +698,7 @@ contract('Tournament', accounts => {
             20,
             2
         )
-
+        // Claim tournament 2 prize as admin
         await claimAndAssertTournamentPrize(
             standardTournamentId2,
             user2,
@@ -703,7 +708,8 @@ contract('Tournament', accounts => {
             30,
             2,
             20,
-            2
+            2,
+            owner
         )
 
         // Claim tournament 3 prizes as user 1
@@ -781,7 +787,7 @@ contract('Tournament', accounts => {
         )
     })
 
-    it('allows user to claim winner take all tournament prizes with valid IDs and indices', async () => {
+    it('allows users or admins to claim winner take all tournament prizes with valid IDs and indices', async () => {
         const enterTournament = async (
             user
         ) => {
@@ -829,8 +835,12 @@ contract('Tournament', accounts => {
             user,
             entryIndex,
             finalStandingIndex,
-            sharedFinalStandings
+            sharedFinalStandings,
+            sender
         ) => {
+            if (!sender)
+                sender = user
+
             const preClaimTournamentUserBalance =
                 web3.utils.fromWei(await token.balanceOf(user), 'ether')
 
@@ -839,7 +849,7 @@ contract('Tournament', accounts => {
                 entryIndex,
                 finalStandingIndex,
                 {
-                    from: user
+                    from: sender
                 }
             )
 
@@ -875,12 +885,13 @@ contract('Tournament', accounts => {
             2
         )
 
-        // Claim tournament prize as user 2
+        // Claim tournament prize as owner
         await claimAndAssertTournamentPrize(
             user2,
             1,
             0,
-            2
+            2,
+            owner
         )
     })
 
@@ -984,8 +995,11 @@ contract('Tournament', accounts => {
         const claimAndAssertTournamentPrize = async (
             user,
             entryIndex,
-            finalStandingIndex
+            finalStandingIndex,
+            sender
         ) => {
+            if (!sender)
+                sender = user
             // Claim tournament prize as user
             const preClaimTournamentBalance =
                 web3.utils.fromWei(await token.balanceOf(user), 'ether')
@@ -995,7 +1009,7 @@ contract('Tournament', accounts => {
                 entryIndex,
                 finalStandingIndex,
                 {
-                    from: user
+                    from: sender
                 }
             )
 
@@ -1047,10 +1061,12 @@ contract('Tournament', accounts => {
         )
 
         // Entry index 1, Final standing index 0
+        // Claim as owner (admin)
         await assertFailedClaimTournamentPrize(
             user2,
             1,
-            0
+            0,
+            owner
         )
 
         // Entry index 2, Final standing index 0
@@ -1061,10 +1077,12 @@ contract('Tournament', accounts => {
         )
 
         // Entry index 3, Final standing index 0
+        // Claim as owner (admin)
         await assertFailedClaimTournamentPrize(
             user2,
             3,
-            0
+            0,
+            owner
         )
 
         // Entry index 4, Final standing index 0
@@ -1440,7 +1458,7 @@ contract('Tournament', accounts => {
         )
     })
 
-    it('allows user to claim node tournament prizes with valid IDs and indices', async () => {
+    it('allows users or admins to claim node tournament prizes with valid IDs and indices', async () => {
         const {
             finalStandings1,
             uniqueFinalStandings1
@@ -1470,8 +1488,11 @@ contract('Tournament', accounts => {
             finalStandingPercent,
             uniqueFinalStandings,
             excessPrizePercent,
-            sharedFinalStandings
+            sharedFinalStandings,
+            sender
         ) => {
+            if (!sender)
+                sender = user
             const preClaimTournamentUserBalance =
                 web3.utils.fromWei(await token.balanceOf(user), 'ether')
 
@@ -1480,7 +1501,7 @@ contract('Tournament', accounts => {
                 entryIndex,
                 finalStandingIndex,
                 {
-                    from: user
+                    from: sender
                 }
             )
 

@@ -1,4 +1,3 @@
-const appRoot = require('app-root-path')
 const Admin = artifacts.require('Admin')
 const DBETNode = artifacts.require('DBETNode')
 const DecentBetToken = artifacts.require('DBETVETToken')
